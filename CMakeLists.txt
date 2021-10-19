@@ -1,0 +1,99 @@
+CMAKE_MINIMUM_REQUIRED(VERSION 3.6)
+MESSAGE(STATUS "Using CMake ${CMAKE_VERSION}")
+
+PROJECT(cubeai VERSION 1.5.3 LANGUAGES CXX)
+
+# -----------------------------------------------------------------------------
+# Prevent in-source builds.
+# -----------------------------------------------------------------------------
+
+IF(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
+	MESSAGE( FATAL_ERROR  "In-source build is not possible. Choose an empty directory for build output.")
+ENDIF(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
+
+# Be sure to avoid troubles with library paths when using old policy
+IF(COMMAND cmake_policy)
+	CMAKE_POLICY(SET CMP0003 NEW)
+	CMAKE_POLICY(SET CMP0048 NEW)
+ENDIF(COMMAND cmake_policy)
+
+
+SET(CUBEAILIB_VERSION_MAJOR 1)
+SET(CUBEAILIB_VERSION_MINOR 5)
+SET(CUBEAILIB_VERSION_PATCH 3)
+SET(CUBEAILIB_VERSION "${CUBEAILIB_VERSION_MAJOR}.${CUBEAILIB_VERSION_MINOR}.${CUBEAILIB_VERSION_PATCH}")
+MESSAGE(STATUS "CubeAI lib Version ${CUBEAILIB_VERSION}")
+
+
+SET(CMAKE_BUILD_TYPE "Debug")
+SET(CMAKE_CXX_COMPILER gcc)
+SET(CMAKE_CXX_STANDARD 20)
+SET(CMAKE_CXX_STANDARD_REQUIRED True)
+SET(CMAKE_C_COMPILER gcc)
+SET(CMAKE_INSTALL_PREFIX /home/alex/qi3/ce_rl/install)
+SET(MAGIC_ENUM_INCL_DIR " ")
+SET(CMAKE_LINKER_FLAGS "-pthread")
+SET(USE_OPENMP True)
+SET(USE_LOG True)
+SET(BLAZE_INCL_DIR "/home/alex/MySoftware/blaze-3.8/install/include")
+SET(NLOHMANN_JSON_INCL_DIR "/home/alex/MySoftware/nlohman_json/install/include")
+
+
+# find Boost
+FIND_PACKAGE(Boost 1.65.0 REQUIRED)
+IF(Boost_FOUND)
+	MESSAGE( STATUS  "Found needed Boost C++ library.")
+	SET(Boost_USE_SHARED_LIBS ON)
+ELSE()
+	MESSAGE( FATAL_ERROR  "Boost C++ library is required but not found.")
+ENDIF()
+
+
+# find OpenBLAS
+FIND_PACKAGE(BLAS REQUIRED)
+IF(NOT BLAS_FOUND)
+	MESSAGE( FATAL_ERROR  "Could not find OpenBLAS library.")
+ELSE()
+	MESSAGE( STATUS  "Found needed BLAS library.")
+ENDIF()
+
+LIST(APPEND CMAKE_PREFIX_PATH /home/alex/MySoftware/libtorch)
+FIND_PACKAGE(Torch REQUIRED CONFIG)
+
+MESSAGE(STATUS "TORCH Include directory ${TORCH_INCLUDE_DIRS}")
+MESSAGE(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
+MESSAGE(STATUS "C++ Compiler: ${CMAKE_CXX_COMPILER}")
+MESSAGE(STATUS "C Compiler: ${CMAKE_C_COMPILER}")
+
+configure_file(config.h.in ${PROJECT_SOURCE_DIR}/base/src/kernel/base/config.h @ONLY)
+configure_file(version.h.in ${PROJECT_SOURCE_DIR}/base/src/kernel/base/version.h @ONLY)
+
+INCLUDE_DIRECTORIES(/home/alex/MySoftware/blaze-3.8/install/include)
+INCLUDE_DIRECTORIES(${BOOST_INCLUDEDIR})
+INCLUDE_DIRECTORIES(/home/alex/MySoftware/nlohman_json/install/include)
+INCLUDE_DIRECTORIES("/home/alex/qi3/ce_rl/third_party")
+INCLUDE_DIRECTORIES(${BLAZE_INCL_DIR})
+INCLUDE_DIRECTORIES(${BOOST_INCLUDEDIR})
+INCLUDE_DIRECTORIES(${TORCH_INCLUDE_DIRS})
+INCLUDE_DIRECTORIES(/home/alex/qi3/ce_rl/cubic_engine/rl/src/)
+INCLUDE_DIRECTORIES(/home/alex/qi3/ce_rl/cubic_engine/cengine/src/)
+INCLUDE_DIRECTORIES(/home/alex/MySoftware/msgpack/install/include/)
+INCLUDE_DIRECTORIES(/home/alex/qi3/ce_rl/kernel/numerics/src)
+INCLUDE_DIRECTORIES(/home/alex/qi3/ce_rl/cubic_engine/ml/src)
+INCLUDE_DIRECTORIES(/home/alex/MySoftware/zmq/install/include)
+INCLUDE_DIRECTORIES(/home/alex/qi3/ce_rl/kernel/kernel/base/src)
+INCLUDE_DIRECTORIES(/home/alex/qi3/ce_rl/kernel/kernel/data_structs/src)
+INCLUDE_DIRECTORIES(/home/alex/qi3/ce_rl/kernel/kernel/geometry/src)
+INCLUDE_DIRECTORIES(/home/alex/qi3/ce_rl/kernel/kernel/maths/src)
+INCLUDE_DIRECTORIES(/home/alex/qi3/ce_rl/kernel/kernel/parallel/src)
+INCLUDE_DIRECTORIES(/home/alex/qi3/ce_rl/kernel/kernel/patterns/src)
+INCLUDE_DIRECTORIES(/home/alex/qi3/ce_rl/kernel/kernel/utilities/src)
+
+ADD_LIBRARY(cubeailib SHARED "")
+
+ADD_SUBDIRECTORY(/home/alex/qi3/ce_rl/cubic_engine/rl/src/cubic_engine/rl)
+
+SET_TARGET_PROPERTIES(cubeailib PROPERTIES LINKER_LANGUAGE CXX)
+INSTALL(TARGETS cubelib DESTINATION ${CMAKE_INSTALL_PREFIX})
+MESSAGE(STATUS "Installation destination at: ${CMAKE_INSTALL_PREFIX}")
+MESSAGE(STATUS "Type make install to build cubeAI")
