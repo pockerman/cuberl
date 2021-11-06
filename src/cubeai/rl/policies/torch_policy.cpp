@@ -1,4 +1,4 @@
-#include "kernel/base/config.h"
+#include "cubeai/base/cubeai_config.h"
 
 
 #ifdef USE_PYTORCH

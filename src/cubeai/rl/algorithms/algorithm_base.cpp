@@ -1,8 +1,9 @@
-#include "cubic_engine/rl/algorithms/algorithm_base.h"
-#include "kernel/utilities/iterative_algorithm_controller.h"
+#include "cubeai/rl/algorithms/algorithm_base.h"
+#include "cubeai/base/iterative_algorithm_controller.h"
+
 #include <iostream>
 
-namespace cengine{
+namespace cubeai{
 namespace rl {
 namespace algos {
 
@@ -12,7 +13,7 @@ AlgorithmBase::AlgorithmBase(uint_t n_max_itrs, real_t tolerance)
 {}
 
 
-kernel::IterativeAlgorithmResult
+IterativeAlgorithmResult
 AlgorithmBase::train(){
 
     this->actions_before_training_iterations();

@@ -4,7 +4,7 @@
 
 #include <boost/algorithm/string.hpp>
 
-#ifdef KERNEL_DEBUG
+#ifdef CUBEAI_DEBUG
 #include <cassert>
 #endif
 
@@ -38,7 +38,7 @@ CSVFileReader::open(){
         try{
             file_reader_.open(file_name_, std::ios_base::in);
 
-#ifdef KERNEL_DEBUG
+#ifdef CUBEAI_DEBUG
 
             if(!file_reader_.good()){
                 std::string msg("Failed to open file: ");
@@ -50,7 +50,7 @@ CSVFileReader::open(){
         }
         catch(...){
 
-#ifdef KERNEL_DEBUG
+#ifdef CUBEAI_DEBUG
             std::string msg("Failed to open file: ");
             msg += file_name_;
             assert(false && msg.c_str());
@@ -77,7 +77,7 @@ CSVFileReader::read_line(){
         return std::vector<std::string>(1, "FILE_NOT_OPEN");
     }
 
-#ifdef KERNEL_DEBUG
+#ifdef CUBEAI_DEBUG
 
             if(!file_reader_.good()){
                 std::string msg("Failed to open file: ");
@@ -89,7 +89,7 @@ CSVFileReader::read_line(){
     std::vector<std::string> result;
     if(file_reader_.eof()){
 		
-        result.push_back(KernelConsts::eof_string());
+        result.push_back(CubeAIConsts::eof_string());
         return result;
     }
 

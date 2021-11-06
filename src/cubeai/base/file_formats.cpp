@@ -10,8 +10,8 @@ FileFormats::type_to_string(FileFormats::Type t){
    {
       case FileFormats::Type::CSV:
          return "csv";
-     case FileFormats::Type::VTK:
-        return "vtk";
+     case FileFormats::Type::JSON:
+        return "json";
    }
 
    return "INVALID_TYPE";
