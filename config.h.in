@@ -2,10 +2,10 @@
 #define CONFIG_H
 
 /*DEBUG*/
-#cmakedefine KERNEL_DEBUG
+#cmakedefine CUBEAI_DEBUG
 
 /* Print debug messages */
-#cmakedefine KERNEL_PRINT_DBG_MSGS
+#cmakedefine CUBEAI_PRINT_DBG_MSGS
 
 /*Use log */
 #cmakedefine USE_LOG
@@ -13,21 +13,8 @@
 /*Use OpenMP */
 #cmakedefine USE_OPENMP
 
-
 /*Use PyTorch */
 #cmakedefine USE_PYTORCH
-
-/*Use FVM*/
-#cmakedefine USE_FVM
-
-/*Use FEM*/
-#cmakedefine USE_FEM
-
-/*Use Trilinos*/
-#cmakedefine USE_TRILINOS
-
-/*Trilinos integer type*/
-#cmakedefine USE_TRILINOS_LONG_LONG_TYPE
 
 /*Path to the datasets*/
 #cmakedefine DATA_SET_FOLDER "@DATA_SET_FOLDER@"
@@ -40,17 +27,6 @@
 
 /*Use OpenCV */
 #cmakedefine USE_OPEN_CV
-
-/*Use discretization module*/
-#cmakedefine USE_DISCRETIZATION
-
-/*Use Numerics module*/
-#cmakedefine USE_NUMERICS
-
-/*Use Rigid body dynamics module*/
-#cmakedefine USE_RIGID_BODY_DYNAMICS
-
-
 
 
 #endif
