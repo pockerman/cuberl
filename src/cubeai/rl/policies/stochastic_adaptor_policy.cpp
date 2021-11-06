@@ -1,15 +1,15 @@
-#include "cubic_engine/rl/policies/stochastic_adaptor_policy.h"
-#include "cubic_engine/rl/policies/discrete_policy_base.h"
-#include "cubic_engine/base/cubic_engine_types.h"
-#include "kernel/utilities/array_utils.h"
+#include "cubeai/rl/policies/stochastic_adaptor_policy.h"
+#include "cubeai/rl/policies/discrete_policy_base.h"
+#include "cubeai/base/cubeai_types.h"
+#include "cubeai/base/array_utils.h"
 
-#include "kernel/base/config.h"
+#include "cubeai/base/cubeai_config.h"
 
-#ifdef KERNEL_DEBUG
+#ifdef CUBEAI_DEBUG
 #include <cassert>
 #endif
 
-namespace cengine {
+namespace cubeai {
 namespace rl {
 namespace policies {
 
@@ -29,9 +29,9 @@ StochasticAdaptorPolicy::operator()(const std::map<std::string, std::any>& optio
 
     auto state = std::any_cast<uint_t>(options.find("state")->second);
     auto state_actions = std::any_cast<DynVec<real_t>>(options.find("state_actions")->second);
-    auto best_actions = kernel::utils::max_indices(state_actions);
+    auto best_actions = cubeai::max_indices(state_actions);
 
-#ifdef KERNEL_DEBUG
+#ifdef CUBEAI_DEBUG
     assert(best_actions.size() <= action_space_size_ && "Incompatible number of best actions. Cannot exccedd the action space size");
 #endif
 

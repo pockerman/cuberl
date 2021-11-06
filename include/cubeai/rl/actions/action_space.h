@@ -1,13 +1,13 @@
 #ifndef ACTION_SPACE_H
 #define ACTION_SPACE_H
 
-#include "kernel/base/config.h"
-#include "cubic_engine/base/cubic_engine_types.h"
+#include "cubeai/base/cubeai_config.h"
+#include "cubeai/base/cubeai_types.h"
 
 #include <string>
 #include <vector>
 
-namespace cengine {
+namespace cubeai {
 namespace rl {
 namespace actions {
 

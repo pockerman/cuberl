@@ -1,14 +1,14 @@
 #ifndef POLICY_ADAPTOR_BASE_H
 #define POLICY_ADAPTOR_BASE_H
 
-#include "cubic_engine/rl/policies/discrete_policy_base.h"
+#include "cubeai/rl/policies/discrete_policy_base.h"
 
 #include <any>
 #include <map>
 #include <string>
 #include <memory>
 
-namespace cengine {
+namespace cubeai {
 namespace rl {
 namespace policies {
 

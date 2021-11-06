@@ -1,6 +1,6 @@
-#include "cubic_engine/rl/policies/discrete_policy_base.h"
+#include "cubeai/rl/policies/discrete_policy_base.h"
 
-namespace cengine{
+namespace cubeai{
 namespace rl{
 namespace policies{
 

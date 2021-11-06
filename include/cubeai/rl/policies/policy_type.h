@@ -1,7 +1,7 @@
 #ifndef POLICY_TYPE_H
 #define POLICY_TYPE_H
 
-namespace cengine {
+namespace cubeai {
 namespace rl {
 namespace policies {
 

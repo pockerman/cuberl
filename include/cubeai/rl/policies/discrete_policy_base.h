@@ -1,14 +1,14 @@
 #ifndef DISCRETE_POLICY_BASE_H
 #define DISCRETE_POLICY_BASE_H
 
-#include "cubic_engine/base/cubic_engine_types.h"
-#include "cubic_engine/rl/policies/policy_base.h"
-#include "cubic_engine/rl/policies/policy_type.h"
+#include "cubeai/base/cubeai_types.h"
+#include "cubeai/rl/policies/policy_base.h"
+#include "cubeai/rl/policies/policy_type.h"
 
 #include <vector>
 #include <utility>
 
-namespace cengine {
+namespace cubeai {
 namespace rl {
 namespace policies {
 

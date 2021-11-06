@@ -1,7 +1,7 @@
-#include "cubic_engine/base/cubic_engine_types.h"
-#include "cubic_engine/rl/algorithms/dp/iterative_policy_evaluation.h"
-#include "cubic_engine/rl/worlds/discrete_world.h"
-#include "cubic_engine/rl/policies/uniform_discrete_policy.h"
+#include "cubeai/base/cubeai_types.h"
+#include "cubeai/rl/algorithms/dp/iterative_policy_evaluation.h"
+#include "cubeai/rl/worlds/discrete_world.h"
+#include "cubeai/rl/policies/uniform_discrete_policy.h"
 
 #include "gymfcpp/gymfcpp_types.h"
 #include "gymfcpp/frozen_lake.h"
@@ -19,11 +19,11 @@
 namespace exe
 {
 
-using cengine::real_t;
-using cengine::uint_t;
-using cengine::rl::envs::DiscreteWorldBase;
-using cengine::rl::policies::UniformDiscretePolicy;
-using cengine::rl::algos::dp::IterativePolicyEval;
+using cubeai::real_t;
+using cubeai::uint_t;
+using cubeai::rl::envs::DiscreteWorldBase;
+using cubeai::rl::policies::UniformDiscretePolicy;
+using cubeai::rl::algos::dp::IterativePolicyEval;
 
 
 

@@ -84,7 +84,7 @@ INCLUDE_DIRECTORIES(${BOOST_INCLUDEDIR})
 INCLUDE_DIRECTORIES(${TORCH_INCLUDE_DIRS})
 INCLUDE_DIRECTORIES(include/)
 
-FILE(GLOB SRCS src/cubeai/base/*.cpp src/cubeai/ml/*.cpp src/cubeai/rl/*.cpp)
+FILE(GLOB SRCS src/cubeai/base/*.cpp src/cubeai/ml/*.cpp src/cubeai/rl/*.cpp src/cubeai/rl/*/*.cpp)
 ADD_LIBRARY(cubeailib SHARED ${SRCS})
 SET_TARGET_PROPERTIES(cubeailib PROPERTIES LINKER_LANGUAGE CXX)
 INSTALL(TARGETS cubeailib DESTINATION ${CMAKE_INSTALL_PREFIX})

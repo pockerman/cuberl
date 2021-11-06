@@ -1,11 +1,11 @@
 #ifndef EPSILON_GREEDY_POLICY_H
 #define EPSILON_GREEDY_POLICY_H
 
-#include "cubic_engine/base/cubic_engine_types.h"
+#include "cubeai/base/cubeai_types.h"
 #include <random>
 #include <cmath>
 
-namespace cengine {
+namespace cubeai {
 namespace rl {
 namespace policies {
 

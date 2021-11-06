@@ -1,10 +1,10 @@
 #ifndef POLICY_BASE_H
 #define POLICY_BASE_H
 
-#include "cubic_engine/rl/policies/policy_type.h"
+#include "cubeai/rl/policies/policy_type.h"
 #include <ostream>
 
-namespace cengine {
+namespace cubeai {
 namespace rl {
 namespace policies {
 
