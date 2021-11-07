@@ -141,7 +141,7 @@ template<typename TimeStepTp>
 void
 DPAlgoBase<TimeStepTp>::save(const std::string& filename)const{
 
-    kernel::utilities::CSVWriter writer(filename, ',', true);
+    CSVWriter writer(filename, ',', true);
 
     std::vector<std::string> columns(2);
     columns[0] = "State Id";

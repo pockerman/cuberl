@@ -25,15 +25,16 @@ using cubeai::rl::envs::DiscreteWorldBase;
 using cubeai::rl::policies::UniformDiscretePolicy;
 using cubeai::rl::algos::dp::IterativePolicyEval;
 
+typedef gymfcpp::TimeStep<uint_t> time_step_t;
 
 
-class FrozenLakeEnv: public DiscreteWorldBase<gymfcpp::TimeStep>
+class FrozenLakeEnv: public DiscreteWorldBase<gymfcpp::TimeStep<uint_t>>
 {
 
 public:
 
-    typedef DiscreteWorldBase<gymfcpp::TimeStep>::action_t action_t;
-    typedef DiscreteWorldBase<gymfcpp::TimeStep>::time_step_t time_step_t;
+    typedef DiscreteWorldBase<time_step_t>::action_t action_t;
+    typedef DiscreteWorldBase<time_step_t>::time_step_t time_step_t;
 
     //
     FrozenLakeEnv(gymfcpp::obj_t gym_namespace);
@@ -59,7 +60,7 @@ private:
 
 FrozenLakeEnv::FrozenLakeEnv(gymfcpp::obj_t gym_namespace)
     :
-     DiscreteWorldBase<gymfcpp::TimeStep>("FrozenLake"),
+     DiscreteWorldBase<time_step_t>("FrozenLake"),
      env_impl_("v0", gym_namespace)
 {}
 
@@ -93,7 +94,7 @@ int main() {
     env.build(true);
 
     auto policy = std::make_shared<UniformDiscretePolicy>(env.n_states(), env.n_actions());
-    IterativePolicyEval<gymfcpp::TimeStep> policy_eval(100, 1.0e-8, 1.0, env, policy);
+    IterativePolicyEval<time_step_t> policy_eval(100, 1.0e-8, 1.0, env, policy);
     policy_eval.train();
 
     // save the value function into a csv file
