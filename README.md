@@ -1,5 +1,12 @@
 # cubeAI
 
+## Dependencies
+
+- CMake
+- PyTorch
+
+## Images
+
 <img src="images/path_following.gif"
      alt="Carrot Path Following"
      style="float: left; margin-right: 10px; width: 500px;" />
