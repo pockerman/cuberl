@@ -1,4 +1,5 @@
 #include "cubeai/base/cubeai_types.h"
+#include "cubeai/rl/utilities/experience_buffer.h"
 
 #include "gymfcpp/gymfcpp_types.h"
 #include "gymfcpp/cart_pole.h"
@@ -15,6 +16,8 @@ namespace example{
 
 using cubeai::real_t;
 using cubeai::uint_t;
+using cubeai::rl::ExperienceBuffer;
+
 
 // constants
 const uint_t BATCH_SIZE = 128;
@@ -132,9 +135,73 @@ CartPoleDQNImpl::forward(torch::Tensor x){
     x = F::relu(bn3_->forward(conv3_->forward(x)));
     return linear_->forward(x.view({x.size(0), -1}));
 
-
 }
 
+TORCH_MODULE(CartPoleDQN);
+
+
+// the class that wraps the agent
+class CartPoleDQNAgent
+{
+
+public:
+
+    void train_step();
+    void train();
+
+private:
+
+    CartPoleDQN policy_net_;
+    CartPoleDQN target_net_;
+
+    torch::optim::RMSprop optimizer_;
+    ExperienceBuffer<gymcpp::TimeStep> memory_;
+
+};
+
+void
+CartPoleDQNAgent::train_step(){
+
+    if(memory_.size() < BATCH_SIZE)
+        return;
+
+    auto transitions = memory_.sample(BATCH_SIZE);
+
+    // get the bathes
+
+    // Compute Q(s_t, a) - the model computes Q(s_t), then we select the
+    // columns of actions taken. These are the actions which would've been taken
+    // for each batch state according to policy_net
+    auto state_action_values = policy_net_.operator()(state_batch).gather(1, action_batch);
+
+    // Compute V(s_{t+1}) for all next states.
+    // Expected values of actions for non_final_next_states are computed based
+    // on the "older" target_net; selecting their best reward with max(1)[0].
+    // This is merged based on the mask, such that we'll have either the expected
+    // state value or 0 in case the state was final.
+    auto next_state_values = torch.zeros(BATCH_SIZE, device=device);
+    next_state_values[non_final_mask] = target_net_->operator()(non_final_next_states).max(1)[0].detach();
+
+    // Compute the expected Q values
+    auto expected_state_action_values = (next_state_values * GAMMA) + reward_batch;
+
+    // Compute Huber loss
+    auto criterion = torch::nn::SmoothL1Loss();
+    auto loss = criterion(state_action_values, expected_state_action_values.unsqueeze(1));
+
+    // Optimize the model
+    optimizer_.zero_grad();
+    loss.backward();
+    for param in policy_net.parameters():
+        param.grad.data.clamp_(-1, 1)
+    optimizer_.step();
+}
+
+void
+CartPoleDQNAgent::train(){
+
+
+}
 
 }
 
@@ -157,6 +224,18 @@ int main(){
         env.build();
         std::cout<<"Number of actions="<<env.n_actions()<<std::endl;
 
+        auto screen_height = 5;
+        auto screen_width = 10;
+        auto n_actions = env.n_actions();
+
+        auto policy_net = CartPoleDQN(screen_height, screen_width, n_actions);
+        auto target_net = CartPoleDQN(screen_height, screen_width, n_actions);
+        target_net->load_state_dict(policy_net.state_dict());
+        target_net->eval();
+
+        // the optimizer
+        //auto optimizer = torch::optim::RMSprop(policy_net->parameters());
+        //auto memory = ExperienceBuffer<gymcpp::TimeStep>(10000);
 
 
     }

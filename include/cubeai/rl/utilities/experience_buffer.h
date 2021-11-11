@@ -1,14 +1,14 @@
 #ifndef EXPERIENCE_BUFFER_H
 #define EXPERIENCE_BUFFER_H
 
-#include "cubic_engine/base/cubic_engine_types.h"
+#include "cubeai/base/cubeai_types.h"
 
 #include "boost/noncopyable.hpp"
 
 #include <deque>
 #include <memory>
 
-namespace cengine{
+namespace cubeai{
 namespace rl {
 
 ///
