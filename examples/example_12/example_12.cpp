@@ -139,6 +139,7 @@ CartPoleDQNImpl::forward(torch::Tensor x){
 
 TORCH_MODULE(CartPoleDQN);
 
+class InvalidState;
 
 // the class that wraps the agent
 class CartPoleDQNAgent
@@ -149,6 +150,12 @@ public:
     void train_step();
     void train();
 
+    template<typename ActionTp>
+    gymcpp::TimeStep step(const ActionTp& a){return env_ptr_->step(a);}
+
+    template<typename StateTp>
+    uint_t select_action(const StateTp& state);
+
 private:
 
     CartPoleDQN policy_net_;
@@ -156,6 +163,9 @@ private:
 
     torch::optim::RMSprop optimizer_;
     ExperienceBuffer<gymcpp::TimeStep> memory_;
+    uint_t num_episodes_;
+
+    Environment* env_ptr_;
 
 };
 
@@ -192,14 +202,58 @@ CartPoleDQNAgent::train_step(){
     // Optimize the model
     optimizer_.zero_grad();
     loss.backward();
-    for param in policy_net.parameters():
-        param.grad.data.clamp_(-1, 1)
+    for(auto& param : policy_net_->parameters())
+        param.grad.data.clamp_(-1, 1);
     optimizer_.step();
 }
 
 void
 CartPoleDQNAgent::train(){
 
+    for(uint_t e=0; e<num_episodes_; ++e){
+
+        env_ptr_->reset();
+
+        auto last_screen = env_ptr_->get_screen();
+        auto current_screen = env_ptr_->get_screen();
+
+        auto state = current_screen - last_screen;
+
+        for(uint_t itr=0; itr < 1000; ++itr){
+
+            // select an action
+            auto action = select_action(state);
+
+            // step in the environment
+            auto step_time = env_ptr_->step(action);
+
+            // update states
+            last_screen = current_screen;
+            current_screen = env_ptr_->get_screen();
+
+            i(!step_time.done()){
+                auto next_state = current_screen - last_screen;
+                memory_.add(state, action, next_state, step_time.reward());
+                state = next_state;
+            }
+            else{
+               memory_.add(state, action, next_state, step_time.reward());
+               state = INVALID_STATE;
+            }
+
+            // optimize the model
+            train_step();
+
+            if(step_time.done()){
+                break;
+            }
+        }
+
+        // update the target
+        if(e % TARGET_UPDATE == 0){
+            target_net_->load(policy_net_->get_state());
+        }
+    }
 
 }
 
