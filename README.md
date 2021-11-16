@@ -1,9 +1,20 @@
 # cubeAI
 
+
 ## Examples
 
 - <a href="#">Toy Markov chain</a>
 - <a href="#">Iterative policy evaluation</a>
+
+## Dependencies
+
+- CMake
+- PyTorch
+
+## Installation
+
+
+## Images
 
 <img src="images/path_following.gif"
      alt="Carrot Path Following"

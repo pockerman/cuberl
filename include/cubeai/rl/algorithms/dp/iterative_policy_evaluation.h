@@ -29,10 +29,15 @@ public:
     typedef typename DPAlgoBase<TimeStepTp>::env_t env_t;
 
     ///
+    /// \brief policy_t
+    ///
+    typedef policies::DiscretePolicyBase policy_t;
+
+    ///
     /// \brief IterativePolicyEval
     ///
     IterativePolicyEval(uint_t n_max_itrs, real_t tolerance, real_t gamma,
-                        env_t& env, std::shared_ptr<cengine::rl::policies::DiscretePolicyBase> policy);
+                        env_t& env, std::shared_ptr<policy_t> policy);
 
     ///
     /// \brief step
@@ -43,37 +48,37 @@ public:
     /// \brief policy
     /// \return
     ///
-    const cengine::rl::policies::DiscretePolicyBase& policy()const{return  *policy_;}
+    const policy_t& policy()const{return  *policy_;}
 
     ///
     /// \brief policy
     /// \return
     ///
-    cengine::rl::policies::DiscretePolicyBase& policy(){return  *policy_;}
+    policy_t& policy(){return  *policy_;}
 
     ///
     /// \brief policy_ptr
     /// \return
     ///
-    std::shared_ptr<policies::DiscretePolicyBase> policy_ptr(){return  policy_;}
+    std::shared_ptr<policy_t> policy_ptr(){return  policy_;}
 
     ///
     ///
     ///
-    void update_policy_ptr(std::shared_ptr<cengine::rl::policies::DiscretePolicyBase> ptr){policy_ = ptr;}
+    void update_policy_ptr(std::shared_ptr<policy_t> ptr){policy_ = ptr;}
 
 protected:
 
     ///
     /// \brief policy_
     ///
-    std::shared_ptr<cengine::rl::policies::DiscretePolicyBase> policy_;
+    std::shared_ptr<policy_t> policy_;
 
 };
 
 template<typename TimeStepTp>
 IterativePolicyEval<TimeStepTp>::IterativePolicyEval(uint_t n_max_itrs, real_t tolerance, real_t gamma,
-                                         env_t& env, std::shared_ptr<cengine::rl::policies::DiscretePolicyBase> policy)
+                                         env_t& env, std::shared_ptr<policy_t> policy)
     :
       DPAlgoBase<TimeStepTp>(n_max_itrs, tolerance, gamma, env),
       policy_(policy)
