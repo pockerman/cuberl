@@ -1,6 +1,7 @@
 #ifndef TORCH_POLICY_H
 #define TORCH_POLICY_H
 
+/*
 #include "kernel/base/config.h"
 
 #ifdef USE_PYTORCH
@@ -144,4 +145,5 @@ TORCH_MODULE(TorchPolicy);
 
 }
 #endif
+*/
 #endif // TORCH_POLICY_H
