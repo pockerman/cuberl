@@ -24,26 +24,27 @@ SET(CUBEAILIB_VERSION_PATCH 1)
 SET(CUBEAILIB_VERSION "${CUBEAILIB_VERSION_MAJOR}.${CUBEAILIB_VERSION_MINOR}.${CUBEAILIB_VERSION_PATCH}")
 MESSAGE(STATUS "CubeAI lib Version ${CUBEAILIB_VERSION}")
 
-
 SET(CMAKE_BUILD_TYPE "Debug")
 SET(CMAKE_CXX_COMPILER gcc)
 SET(CMAKE_CXX_STANDARD 20)
 SET(CMAKE_CXX_STANDARD_REQUIRED True)
 SET(CMAKE_C_COMPILER gcc)
 SET(CMAKE_INSTALL_PREFIX /home/alex/qi3/cubeAI/install)
-SET(MAGIC_ENUM_INCL_DIR " ")
 SET(CMAKE_LINKER_FLAGS "-pthread")
-SET(USE_OPENMP True)
-SET(USE_LOG True)
-SET(ENABLE_EXAMPLES_FLAG ON)
+
 SET(BLAZE_INCL_DIR "/home/alex/MySoftware/blaze-3.8/install/include")
 SET(NLOHMANN_JSON_INCL_DIR "/home/alex/MySoftware/nlohman_json/install/include")
+SET(MAGIC_ENUM_INCL_DIR " ")
+
+SET(USE_OPENMP ON)
+SET(USE_LOG ON)
+SET(USE_PYTORCH ON)
+SET(ENABLE_EXAMPLES_FLAG ON)
+SET(ENABLE_TESTS_FLAG OFF)
 
 IF(CMAKE_BUILD_TYPE STREQUAL "Debug")
 SET(CUBEAI_DEBUG ON)
 ENDIF()
-
-
 
 # find Boost
 FIND_PACKAGE(Boost 1.65.0 REQUIRED)
@@ -78,13 +79,13 @@ configure_file(version.h.in ${PROJECT_SOURCE_DIR}/include/cubeai/base/cubeai_ver
 INCLUDE_DIRECTORIES(/home/alex/MySoftware/blaze-3.8/install/include)
 INCLUDE_DIRECTORIES(${BOOST_INCLUDEDIR})
 INCLUDE_DIRECTORIES(/home/alex/MySoftware/nlohman_json/install/include)
-INCLUDE_DIRECTORIES("/home/alex/qi3/ce_rl/third_party")
 INCLUDE_DIRECTORIES(${BLAZE_INCL_DIR})
 INCLUDE_DIRECTORIES(${BOOST_INCLUDEDIR})
 INCLUDE_DIRECTORIES(${TORCH_INCLUDE_DIRS})
 INCLUDE_DIRECTORIES(include/)
 
-FILE(GLOB SRCS src/cubeai/base/*.cpp src/cubeai/ml/*.cpp src/cubeai/rl/*.cpp src/cubeai/rl/*/*.cpp)
+FILE(GLOB SRCS src/cubeai/base/*.cpp src/cubeai/ml/*.cpp src/cubeai/ml/*/*.cpp src/cubeai/rl/*.cpp src/cubeai/rl/*/*.cpp)
+
 ADD_LIBRARY(cubeailib SHARED ${SRCS})
 SET_TARGET_PROPERTIES(cubeailib PROPERTIES LINKER_LANGUAGE CXX)
 INSTALL(TARGETS cubeailib DESTINATION ${CMAKE_INSTALL_PREFIX})

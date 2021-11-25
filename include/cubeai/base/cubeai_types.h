@@ -3,6 +3,10 @@
 
 #include "cubeai/base/cubeai_config.h"
 
+#ifdef USE_PYTORCH
+#include <torch/torch.h>
+#endif
+
 #include "blaze/Math.h"
 #include <cstddef>
 #include <string>
@@ -68,6 +72,11 @@ namespace cubeai
    /// \brief torch_int_t
    ///
    typedef long int torch_int_t;
+
+   ///
+   /// \brief torch_tensor_t
+   ///
+   typedef torch::Tensor torch_tensor_t;
 #endif
 
 }

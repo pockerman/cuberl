@@ -5,6 +5,8 @@
 #include "cubeai/base/iterative_algorithm_controller.h"
 #include "cubeai/base/iterative_algorithm_result.h"
 
+#include <boost/noncopyable.hpp>
+
 
 namespace cubeai{
 namespace rl{
@@ -14,7 +16,7 @@ namespace algos {
 /// \brief The AlgorithmBase class. Base class for deriving
 /// RL algorithms
 ///
-class AlgorithmBase
+class AlgorithmBase: private boost::noncopyable
 {
 
 public:

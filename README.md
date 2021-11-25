@@ -3,15 +3,27 @@
 
 ## Examples
 
-- <a href="#">Toy Markov chain</a>
+- <a href="#">Example 1: Toy Markov chain</a>
 - <a href="#">Iterative policy evaluation</a>
+
+
+### PyTorch based examples
+
+- <a href="examples/example_13/example_13.cpp">Example 13: Reinforce algorithm on ```CartPole-v0```</a>
+
 
 ## Dependencies
 
 - CMake
 - PyTorch
+- Blaze
 
 ## Installation
+
+
+## References
+
+- <a href="https://pytorch.org/cppdocs/">PyTorch C++ API</a>
 
 
 ## Images
