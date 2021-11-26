@@ -3,8 +3,9 @@
 
 ## Examples
 
-- <a href="#">Example 1: Toy Markov chain</a>
-- <a href="#">Iterative policy evaluation</a>
+- <a href="examples/example_1/example_1.cpp">Example 1: Toy Markov chain</a>
+- <a href="examples/example_2/example_2.cpp">Example 2: Multi-armed bandit with epsilon-greedy policy</a>
+- <a href="#">Example 6: Iterative policy evaluation</a>
 
 
 ### PyTorch based examples
