@@ -1,5 +1,7 @@
 # cubeAI
 
+CubeAI is a C++ library containing implementations of various reinforcement learning, filtering and planning algorithms
+ 
 
 ## Examples
 
@@ -31,10 +33,7 @@
 
 ## Images
 
-<img src="images/path_following.gif"
-     alt="Carrot Path Following"
-     style="float: left; margin-right: 10px; width: 500px;" />
-     
-<img src="images/state_value_function.png" 
-     alt="State value function"
-     style="float:left;margin-right:10px;width:500px;"/>
+![Following a path](images/path_following.gif "Following a path")
+
+![State value function](images/state_value_function.png "State value function")
+
