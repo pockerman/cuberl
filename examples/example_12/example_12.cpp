@@ -1,5 +1,6 @@
 #include "cubeai/base/cubeai_types.h"
 #include "cubeai/rl/utilities/experience_buffer.h"
+#include "cubeai/base/torch_tensor_utils.h"
 
 #include "gymfcpp/gymfcpp_types.h"
 #include "gymfcpp/cart_pole.h"
@@ -7,6 +8,7 @@
 
 #include <torch/torch.h>
 
+#include <tuple>
 #include <deque>
 #include <iostream>
 
@@ -29,17 +31,55 @@ const uint_t TARGET_UPDATE = 10;
 
 
 typedef gymfcpp::CartPole::time_step_t time_step_t;
+typedef gymfcpp::CartPole::Screen screen_t;
 
 // batch type to be used below
+template<typename StateTp, typename ActionTp, typename RewardTp>
 struct BatchType
 {
+    typedef StateTp state_t;
+    typedef ActionTp action_t;
+    typedef RewardTp reward_t;
+    std::vector<std::tuple<state_t, action_t, reward_t, state_t, bool>> batch;
+
+    void add_experience(const state_t& state, const action_t& action,  const reward_t& reward,
+                        const state_t& next_state, bool done);
+
+    // extract the non final next states from the batch
+    std::vector<state_t> get_non_final_next_states();
 
 };
+
+template<typename StateTp, typename ActionTp, typename RewardTp>
+void
+BatchType<StateTp, ActionTp, RewardTp>::add_experience(const state_t& state, const action_t& action,  const reward_t& reward,
+                                                       const state_t& next_state, bool done){
+
+    batch.push_back(std::make_tuple(state, action, reward, next_state, done));
+}
+
+template<typename StateTp, typename ActionTp, typename RewardTp>
+std::vector<StateTp>
+BatchType<StateTp, ActionTp, RewardTp>::get_non_final_next_states(){
+
+    std::vector<StateTp> next_states;
+
+    for(const auto& item : batch){
+
+        if(std::get<4>(item)){
+            next_states.push_back(std::get<3>(item));
+        }
+    }
+
+    return next_states;
+}
 
 struct ExperienceType
 {
     gymfcpp::CartPole::Screen state;
     gymfcpp::CartPole::Screen next_state;
+    real_t reward;
+    bool done;
 
 };
 
@@ -211,17 +251,22 @@ CartPoleDQNAgent::train_step(){
     if(memory_.size() < BATCH_SIZE)
         return;
 
-    BatchType batch;
-    auto transitions = memory_.sample(BATCH_SIZE, batch);
+    BatchType<screen_t, uint_t, real_t>  batch;
+    memory_.sample(BATCH_SIZE, batch);
 
-    // get the bathes
+    //
+    auto non_final_next_states = batch.get_non_final_next_states();
+
+    auto torch_non_final_next_states = torch::cat(non_final_next_states);
+
+    // get the batches
     // Compute a mask of non-final states and concatenate the batch elements
     // (a final state would've been the one after which simulation ended)
-    auto non_final_next_states = torch.cat([s for s in batch.next_state if s is not None])
+    //auto non_final_next_states = torch::cat([s for s in batch.next_state if s is not None])
 
-    auto state_batch =  torch.cat(batch.state)
-    auto action_batch = torch.cat(batch.action)
-    auto reward_batch = torch.cat(batch.reward)
+    auto state_batch =  torch::cat(batch.state)
+    auto action_batch = torch::cat(batch.action)
+    auto reward_batch = torch::cat(batch.reward)
 
     // Compute Q(s_t, a) - the model computes Q(s_t), then we select the
     // columns of actions taken. These are the actions which would've been taken
