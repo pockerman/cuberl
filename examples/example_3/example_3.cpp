@@ -31,13 +31,14 @@ real_t get_reward(real_t prob, uint_t n=10){
 }
 
 
-real_t soft_max(const DynVec<real_t>& values, real_t tau=1.12){
+std::vector<real_t> soft_max(const DynVec<real_t>& values, real_t tau=1.12){
 
 
-   auto exp  = blaze::pow(values / tau);
+   auto exp  = blaze::exp(values / tau);
    auto sum  = blaze::sum(exp);
 
-    return exp / sum;
+   auto result = exp / sum;
+   return std::vector<real_t>(result.begin(), result.end());
 }
 
 void update_record(std::vector<std::vector<real_t>>& records, uint_t action, real_t r){
@@ -69,6 +70,14 @@ std::vector<real_t> get_probs(uint_t n){
 
     return probs;
 }
+
+DynVec<real_t> extract_part(const std::vector<std::vector<real_t>>& values){
+
+    std::vector<real_t> result(values.size());
+    std::for_each(values.begin(), values.end(), [&result](const auto& item){result.push_back(item[1]);});
+    return DynVec<real_t>(values.size(), result.data());
+}
+
 }
 
 int main() {
@@ -83,12 +92,7 @@ int main() {
     auto probs = get_probs(N);
     auto eps = 0.2;
 
-    //Will be used to obtain a seed for the random number engine
-    std::random_device rd;
 
-    //Standard mersenne_twister_engine seeded with rd()
-    std::mt19937 gen(rd());
-    std::uniform_int_distribution<> distrib(0, 9);
 
     std::vector<std::vector<real_t>> records(N);
 
@@ -98,17 +102,18 @@ int main() {
 
     std::vector<real_t> rewards;
 
-    for(uint_t i=0; i<N_EXPERIMENTS; ++i){
-        auto prob_val = static_cast <real_t> (rand()) / static_cast <real_t> (RAND_MAX);
+    //Will be used to obtain a seed for the random number engine
+    std::random_device rd;
+    std::mt19937 gen(rd());
 
-        auto choice = distrib(gen);
-        if(prob_val > eps){
-            choice = get_best_arm(records);
-        }
+    for(uint_t i=0; i<N_EXPERIMENTS; ++i){
+        auto p = soft_max(extract_part(records), 0.7);
+
+        std::discrete_distribution<> distribution(p.begin(), p.end());
+        auto choice = distribution(gen);
 
         auto r = get_reward(probs[choice]);
         update_record(records, choice, r);
-
         auto mean_reward = ( (i + 1) * rewards.back() + r) / (i + 2);
         rewards.push_back(mean_reward);
     }
