@@ -18,7 +18,10 @@ namespace example{
 
 using cubeai::real_t;
 using cubeai::uint_t;
+using cubeai::torch_tensor_t;
+using cubeai::torch_int_t;
 using cubeai::rl::ExperienceBuffer;
+
 
 
 // constants
@@ -46,7 +49,13 @@ struct BatchType
                         const state_t& next_state, bool done);
 
     // extract the non final next states from the batch
-    std::vector<state_t> get_non_final_next_states();
+    std::vector<torch_tensor_t> get_non_final_next_states_as_torch_tensor();
+
+    std::vector<torch_tensor_t> get_states_as_torch_tensor();
+
+    torch_tensor_t get_actions_as_torch_tensor();
+
+    torch_tensor_t get_rewards_as_torch_tensor();
 
 };
 
@@ -59,19 +68,59 @@ BatchType<StateTp, ActionTp, RewardTp>::add_experience(const state_t& state, con
 }
 
 template<typename StateTp, typename ActionTp, typename RewardTp>
-std::vector<StateTp>
-BatchType<StateTp, ActionTp, RewardTp>::get_non_final_next_states(){
+std::vector<torch_tensor_t>
+BatchType<StateTp, ActionTp, RewardTp>::get_non_final_next_states_as_torch_tensor(){
 
-    std::vector<StateTp> next_states;
+    std::vector<torch_tensor_t> next_states;
 
     for(const auto& item : batch){
 
         if(std::get<4>(item)){
-            next_states.push_back(std::get<3>(item));
+            next_states.push_back(std::get<3>(item).get_as_torch_tensor());
         }
     }
 
     return next_states;
+}
+
+template<typename StateTp, typename ActionTp, typename RewardTp>
+std::vector<torch_tensor_t>
+BatchType<StateTp, ActionTp, RewardTp>::get_states_as_torch_tensor(){
+
+    std::vector<torch_tensor_t> states;
+
+    for(const auto& item : batch){
+        states.push_back(std::get<0>(item).get_as_torch_tensor());
+    }
+}
+
+template<typename StateTp, typename ActionTp, typename RewardTp>
+torch_tensor_t
+BatchType<StateTp, ActionTp, RewardTp>::get_actions_as_torch_tensor(){
+
+    std::vector<torch_int_t> actions;
+
+    for(const auto& item : batch){
+       actions.push_back(std::get<1>(item));
+    }
+
+    return torch::tensor(actions);
+
+}
+
+template<typename StateTp, typename ActionTp, typename RewardTp>
+torch_tensor_t
+BatchType<StateTp, ActionTp, RewardTp>::get_rewards_as_torch_tensor(){
+
+
+    std::vector<real_t> rewards;
+
+    for(const auto& item : batch){
+       rewards.push_back(std::get<2>(item));
+    }
+
+    return torch::tensor(rewards);
+
 }
 
 struct ExperienceType
@@ -255,7 +304,7 @@ CartPoleDQNAgent::train_step(){
     memory_.sample(BATCH_SIZE, batch);
 
     //
-    auto non_final_next_states = batch.get_non_final_next_states();
+    auto non_final_next_states = batch.get_non_final_next_states_as_torch_tensor();
 
     auto torch_non_final_next_states = torch::cat(non_final_next_states);
 
@@ -264,9 +313,9 @@ CartPoleDQNAgent::train_step(){
     // (a final state would've been the one after which simulation ended)
     //auto non_final_next_states = torch::cat([s for s in batch.next_state if s is not None])
 
-    auto state_batch =  torch::cat(batch.state)
-    auto action_batch = torch::cat(batch.action)
-    auto reward_batch = torch::cat(batch.reward)
+    auto state_batch =  torch::cat(batch.get_states_as_torch_tensor());
+    auto action_batch = torch::cat(batch.get_actions_as_torch_tensor());
+    auto reward_batch = torch::cat(batch.get_rewards_as_torch_tensor());
 
     // Compute Q(s_t, a) - the model computes Q(s_t), then we select the
     // columns of actions taken. These are the actions which would've been taken
@@ -279,7 +328,7 @@ CartPoleDQNAgent::train_step(){
     // This is merged based on the mask, such that we'll have either the expected
     // state value or 0 in case the state was final.
     auto next_state_values = torch::zeros(BATCH_SIZE, device_);
-    next_state_values[non_final_mask] = target_net_->forward(non_final_next_states).max(1)[0].detach();
+    next_state_values[non_final_mask] = target_net_->forward(torch_non_final_next_states).max(1)[0].detach();
 
     // Compute the expected Q values
     auto expected_state_action_values = (next_state_values * GAMMA) + reward_batch;
@@ -292,7 +341,7 @@ CartPoleDQNAgent::train_step(){
     optimizer_.zero_grad();
     loss.backward();
     for(auto& param : policy_net_->parameters())
-        param.grad().data.clamp_(-1, 1);
+        param.grad().data().clamp_(-1, 1);
     optimizer_.step();
 }
 
