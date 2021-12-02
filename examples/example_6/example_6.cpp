@@ -1,3 +1,7 @@
+#include "cubeai/base/cubeai_config.h"
+
+#ifdef USE_GYMFCPP
+
 #include "cubeai/base/cubeai_types.h"
 #include "cubeai/rl/algorithms/dp/iterative_policy_evaluation.h"
 #include "cubeai/rl/worlds/discrete_world.h"
@@ -102,5 +106,14 @@ int main() {
 
    return 0;
 }
+#else
+#include <iostream>
+
+int main() {
+
+    std::cout<<"This example requires  gymfcpp. Configure cubeai to use gymfcpp"<<std::endl;
+    return 0;
+}
+#endif
 
 
