@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.6 FATAL_ERROR)
 
-SET(EXECUTABLE  example_1)
+SET(EXECUTABLE  example_3)
 SET(SOURCE ${EXECUTABLE}.cpp)
 
 
