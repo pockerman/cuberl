@@ -1,6 +1,6 @@
 #include "cubeai/base/cubeai_config.h"
 
-#ifdef USE_PYTORCH
+#if defined(USE_PYTORCH) && defined(USE_GYMFCPP)
 
 #include "cubeai/base/cubeai_types.h"
 #include "cubeai/rl/algorithms/pg/vanilla_reinforce.h"
@@ -148,7 +148,7 @@ int main(){
 #include <iostream>
 int main(){
 
-    std::cout<<"This example requires PyTorch. Reconfigure cubeai with PyTorch support."<<std::endl;
+    std::cout<<"This example requires PyTorch and gymfcpp. Reconfigure cubeai with PyTorch and gymfcpp support."<<std::endl;
     return 0;
 }
 #endif

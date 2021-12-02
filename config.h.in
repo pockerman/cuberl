@@ -26,7 +26,10 @@
 #cmakedefine PROJECT_PATH "@PROJECT_PATH@"
 
 /*Use OpenCV */
-#cmakedefine USE_OPEN_CV
+#cmakedefine USE_OPENCV
+
+/*Use OpenCV */
+#cmakedefine USE_GYMFCPP
 
 
 #endif
