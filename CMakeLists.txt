@@ -43,6 +43,7 @@ SET(USE_OPENCV OFF)
 SET(USE_GYMFCPP ON)
 SET(ENABLE_EXAMPLES_FLAG ON)
 SET(ENABLE_TESTS_FLAG OFF)
+SET(ENABLE_DOC_FLAG ON)
 
 IF(CMAKE_BUILD_TYPE STREQUAL "Debug")
 SET(CUBEAI_DEBUG ON)
@@ -66,6 +67,8 @@ ELSE()
 	MESSAGE( STATUS  "Found needed BLAS library.")
 ENDIF()
 
+
+LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 LIST(APPEND CMAKE_PREFIX_PATH /home/alex/MySoftware/libtorch)
 FIND_PACKAGE(Torch REQUIRED CONFIG)
 
@@ -75,9 +78,11 @@ MESSAGE(STATUS "C++ Compiler: ${CMAKE_CXX_COMPILER}")
 MESSAGE(STATUS "C Compiler: ${CMAKE_C_COMPILER}")
 MESSAGE(STATUS "Project SRC directory: ${PROJECT_SOURCE_DIR}")
 
+# write configuration and version files
 configure_file(config.h.in ${PROJECT_SOURCE_DIR}/include/cubeai/base/cubeai_config.h @ONLY)
 configure_file(version.h.in ${PROJECT_SOURCE_DIR}/include/cubeai/base/cubeai_version.h @ONLY)
 
+# include directories
 INCLUDE_DIRECTORIES(/home/alex/MySoftware/blaze-3.8/install/include)
 INCLUDE_DIRECTORIES(${BOOST_INCLUDEDIR})
 INCLUDE_DIRECTORIES(/home/alex/MySoftware/nlohman_json/install/include)
@@ -86,6 +91,7 @@ INCLUDE_DIRECTORIES(${BOOST_INCLUDEDIR})
 INCLUDE_DIRECTORIES(${TORCH_INCLUDE_DIRS})
 INCLUDE_DIRECTORIES(include/)
 
+# collect the source files for the library
 FILE(GLOB SRCS src/cubeai/base/*.cpp src/cubeai/ml/*.cpp src/cubeai/ml/*/*.cpp src/cubeai/rl/*.cpp src/cubeai/rl/*/*.cpp)
 
 ADD_LIBRARY(cubeailib SHARED ${SRCS})
@@ -107,3 +113,10 @@ ELSE()
 	MESSAGE(WARNING "Tests have not been enabled")
 ENDIF()
 MESSAGE(STATUS "Type make install to build cubeAI")
+
+IF(ENABLE_DOC_FLAG)
+	# Add the tests
+	ADD_SUBDIRECTORY(doc)
+ELSE()
+	MESSAGE(WARNING "Documentation will not be generated")
+ENDIF()
