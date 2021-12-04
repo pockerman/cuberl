@@ -303,7 +303,7 @@ CartPoleDQNAgent::train_step(){
     BatchType<screen_t, uint_t, real_t>  batch;
     memory_.sample(BATCH_SIZE, batch);
 
-    //
+    // get the non final next states
     auto non_final_next_states = batch.get_non_final_next_states_as_torch_tensor();
 
     auto torch_non_final_next_states = torch::cat(non_final_next_states);
@@ -317,6 +317,8 @@ CartPoleDQNAgent::train_step(){
     auto action_batch = torch::cat(batch.get_actions_as_torch_tensor());
     auto reward_batch = torch::cat(batch.get_rewards_as_torch_tensor());
 
+    //auto non_final_mask = torch::tensor(tuple(map(lambda s: s is not None, batch.next_state)), device=self.device, dtype=torch.bool)
+
     // Compute Q(s_t, a) - the model computes Q(s_t), then we select the
     // columns of actions taken. These are the actions which would've been taken
     // for each batch state according to policy_net
@@ -328,7 +330,7 @@ CartPoleDQNAgent::train_step(){
     // This is merged based on the mask, such that we'll have either the expected
     // state value or 0 in case the state was final.
     auto next_state_values = torch::zeros(BATCH_SIZE, device_);
-    next_state_values[non_final_mask] = target_net_->forward(torch_non_final_next_states).max(1)[0].detach();
+    next_state_values = target_net_->forward(torch_non_final_next_states).max(1)[0].detach();
 
     // Compute the expected Q values
     auto expected_state_action_values = (next_state_values * GAMMA) + reward_batch;
