@@ -39,8 +39,8 @@ public:
     /// \brief ValueIteration
     ///
     ValueIteration(uint_t n_max_iterations, real_t tolerance,
-                   env_t& env, real_t gamma, std::shared_ptr<cengine::rl::policies::DiscretePolicyBase> policy,
-                   std::shared_ptr<cengine::rl::policies::DiscretePolicyAdaptorBase> policy_adaptor);
+                   env_t& env, real_t gamma, std::shared_ptr<cubeai::rl::policies::DiscretePolicyBase> policy,
+                   std::shared_ptr<cubeai::rl::policies::DiscretePolicyAdaptorBase> policy_adaptor);
 
     ///
     /// \brief step
@@ -63,20 +63,20 @@ public:
     /// \brief policy_ptr
     /// \return
     ///
-    std::shared_ptr<cengine::rl::policies::DiscretePolicyBase> policy_ptr(){return  policy_;}
+    std::shared_ptr<cubeai::rl::policies::DiscretePolicyBase> policy_ptr(){return  policy_;}
 
     ///
     /// \brief update_policy_ptr
     /// \param ptr
     ///
-    void update_policy_ptr(std::shared_ptr<cengine::rl::policies::DiscretePolicyBase> ptr){policy_ = ptr;}
+    void update_policy_ptr(std::shared_ptr<cubeai::rl::policies::DiscretePolicyBase> ptr){policy_ = ptr;}
 
 private:
 
     ///
     /// \brief policy_
     ///
-    std::shared_ptr<cengine::rl::policies::DiscretePolicyBase> policy_;
+    std::shared_ptr<cubeai::rl::policies::DiscretePolicyBase> policy_;
 
     ///
     /// \brief policy_imp_
@@ -87,8 +87,8 @@ private:
 
 template<typename TimeStepTp>
 ValueIteration<TimeStepTp>::ValueIteration(uint_t n_max_iterations, real_t tolerance,
-                                           env_t& env, real_t gamma, std::shared_ptr<cengine::rl::policies::DiscretePolicyBase> policy,
-                                           std::shared_ptr<cengine::rl::policies::DiscretePolicyAdaptorBase> policy_adaptor)
+                                           env_t& env, real_t gamma, std::shared_ptr<cubeai::rl::policies::DiscretePolicyBase> policy,
+                                           std::shared_ptr<cubeai::rl::policies::DiscretePolicyAdaptorBase> policy_adaptor)
     :
    DPAlgoBase<TimeStepTp>(n_max_iterations, tolerance, gamma, env),
    policy_(policy),
