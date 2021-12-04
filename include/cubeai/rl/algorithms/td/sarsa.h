@@ -132,8 +132,8 @@ Sarsa<TimeStepTp, ActionSelector>::step(){
         }
         else{
 
-            update_q_table_(action, state, kernel::KernelConsts::invalid_size_type(),
-                            kernel::KernelConsts::invalid_size_type(), reward);
+            update_q_table_(action, state, CubeAIConsts::invalid_size_type(),
+                            CubeAIConsts::invalid_size_type(), reward);
 
             this->tmp_scores()[current_score_counter_++] = score;
 
@@ -179,15 +179,15 @@ Sarsa<TimeStepTp, ActionSelector>::update_q_table_(const action_t& action, const
     assert(action < this->env_ref_().n_actions() && "Inavlid action idx");
     assert(cstate < this->env_ref_().n_states() && "Inavlid state idx");
 
-    if(next_state != kernel::KernelConsts::invalid_size_type())
+    if(next_state != CubeAIConsts::invalid_size_type())
         assert(next_state < this->env_ref_().n_states() && "Inavlid next_state idx");
 
-    if(next_action != kernel::KernelConsts::invalid_size_type())
+    if(next_action != CubeAIConsts::invalid_size_type())
         assert(next_action < this->env_ref_().n_actions() && "Inavlid next_action idx");
 #endif
 
     auto q_current = this->q_table()[cstate][action];
-    auto q_next = next_state != kernel::KernelConsts::invalid_size_type() ? this->q_table()[next_state][next_action] : 0.0;
+    auto q_next = next_state != CubeAIConsts::invalid_size_type() ? this->q_table()[next_state][next_action] : 0.0;
     auto td_target = reward + this->gamma() * q_next;
     this->q_table()[cstate][action] = q_current + (this->eta() * (td_target - q_current));
 

@@ -141,7 +141,7 @@ QLearning<TimeStepTp, ActionSelector>::step(){
         }
         else{
 
-            update_q_table_(action, state, kernel::KernelConsts::invalid_size_type(),
+            update_q_table_(action, state, CubeAIConsts::invalid_size_type(),
                             CubeAIConsts::invalid_size_type(), reward);
 
             this->tmp_scores()[current_score_counter_++] = score;
