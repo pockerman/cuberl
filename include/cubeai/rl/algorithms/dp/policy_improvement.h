@@ -33,8 +33,8 @@ public:
     /// \brief IterativePolicyEval
     ///
     PolicyImprovement(uint_t n_max_itrs,  real_t gamma, const DynVec<real_t>& val_func,
-                      env_t& env, std::shared_ptr<cengine::rl::policies::DiscretePolicyBase> policy,
-                      std::shared_ptr<cengine::rl::policies::DiscretePolicyAdaptorBase> policy_adaptor);
+                      env_t& env, std::shared_ptr<cubeai::rl::policies::DiscretePolicyBase> policy,
+                      std::shared_ptr<cubeai::rl::policies::DiscretePolicyAdaptorBase> policy_adaptor);
 
     ///
     /// \brief step
@@ -45,25 +45,25 @@ public:
     /// \brief policy
     /// \return
     ///
-    const cengine::rl::policies::DiscretePolicyBase& policy()const{return  *policy_;}
+    const cubeai::rl::policies::DiscretePolicyBase& policy()const{return  *policy_;}
 
     ///
     /// \brief policy
     /// \return
     ///
-    cengine::rl::policies::DiscretePolicyBase& policy(){return  *policy_;}
+    cubeai::rl::policies::DiscretePolicyBase& policy(){return  *policy_;}
 
     ///
     /// \brief policy_ptr
     /// \return
     ///
-    std::shared_ptr<cengine::rl::policies::DiscretePolicyBase> policy_ptr(){return  policy_;}
+    std::shared_ptr<cubeai::rl::policies::DiscretePolicyBase> policy_ptr(){return  policy_;}
 
     ///
     /// \brief update_policy_ptr
     /// \param ptr
     ///
-    void update_policy_ptr(std::shared_ptr<cengine::rl::policies::DiscretePolicyBase> ptr){policy_ = ptr;}
+    void update_policy_ptr(std::shared_ptr<cubeai::rl::policies::DiscretePolicyBase> ptr){policy_ = ptr;}
 
 
 protected:
@@ -71,19 +71,19 @@ protected:
     ///
     /// \brief policy_
     ///
-    std::shared_ptr<cengine::rl::policies::DiscretePolicyBase> policy_;
+    std::shared_ptr<cubeai::rl::policies::DiscretePolicyBase> policy_;
 
     ///
     /// \brief policy_adaptor_
     ///
-    std::shared_ptr<cengine::rl::policies::DiscretePolicyAdaptorBase> policy_adaptor_;
+    std::shared_ptr<cubeai::rl::policies::DiscretePolicyAdaptorBase> policy_adaptor_;
 
 };
 
 template<typename TimeStepTp>
 PolicyImprovement<TimeStepTp>::PolicyImprovement(uint_t n_max_itrs,  real_t gamma, const DynVec<real_t>& val_func,
-                                                 env_t& env, std::shared_ptr<cengine::rl::policies::DiscretePolicyBase> policy,
-                                                 std::shared_ptr<cengine::rl::policies::DiscretePolicyAdaptorBase> policy_adaptor)
+                                                 env_t& env, std::shared_ptr<cubeai::rl::policies::DiscretePolicyBase> policy,
+                                                 std::shared_ptr<cubeai::rl::policies::DiscretePolicyAdaptorBase> policy_adaptor)
     :
       DPAlgoBase<TimeStepTp>(n_max_itrs, 1.0e-4, gamma, env),
       policy_(policy),

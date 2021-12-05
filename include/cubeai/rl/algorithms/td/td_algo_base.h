@@ -3,7 +3,7 @@
 
 #include "cubeai/rl/algorithms/algorithm_base.h"
 #include "cubeai/rl/worlds/discrete_world.h"
-#include "cubeai/utilities/csv_file_writer.h"
+#include "cubeai/base/csv_file_writer.h"
 
 #include <unordered_map>
 #include <deque>
@@ -235,7 +235,7 @@ TDAlgoBase<TimeStepTp>::TDAlgoBase(uint_t n_max_itrs, real_t tolerance, real_t g
     :
     AlgorithmBase(n_max_itrs, tolerance),
     plot_freq_(plot_f),
-    max_num_iterations_per_episode_(max_num_iterations_per_episode)
+    max_num_iterations_per_episode_(max_num_iterations_per_episode),
     gamma_(gamma),
     eta_(eta),
     env_(env),
@@ -300,7 +300,7 @@ TDAlgoBase<TimeStepTp>::save(const std::string& filename)const{
         return;
     }
 
-    kernel::utilities::CSVWriter writer(filename, ',', true);
+    CSVWriter writer(filename, ',', true);
 
     std::vector<std::string> columns(2);
     columns[0] = "State Id";
@@ -317,7 +317,7 @@ template<typename TimeStepTp>
 void
 TDAlgoBase<TimeStepTp>::save_avg_scores(const std::string& filename)const{
 
-    kernel::utilities::CSVWriter writer(filename, ',', true);
+    CSVWriter writer(filename, ',', true);
 
     std::vector<std::string> columns(2);
     columns[0] = "Episode Id";
@@ -334,7 +334,7 @@ template<typename TimeStepTp>
 void
 TDAlgoBase<TimeStepTp>::save_state_action_function(const std::string& filename)const{
 
-    kernel::utilities::CSVWriter writer(filename, ',', true);
+    CSVWriter writer(filename, ',', true);
 
     std::vector<std::string> columns(1 + env_ref_().n_actions());
     columns[0] = "State Id";

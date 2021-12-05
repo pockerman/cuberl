@@ -21,7 +21,7 @@ public:
     ///
     /// \brief The mathematical constant PI
     ///
-    constexpr static real_t PI = 3.14159265359;
+    static constexpr real_t PI = 3.14159265359;
 
 
 private:

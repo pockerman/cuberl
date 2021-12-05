@@ -1,13 +1,14 @@
 #ifndef EXPECTED_SARSA_H
 #define EXPECTED_SARSA_H
 
+#include "cubeai/base/cubeai_consts.h"
+#include "cubeai/base/cubeai_config.h"
 #include "cubeai/base/cubeai_types.h"
 #include "cubeai/rl/algorithms/td/td_algo_base.h"
 
-#include "cubeai/base/cubeai_consts.h"
-#include "cubeai/base/cubeai_config.h"
 
-#ifdef KERNEL_DEBUG
+
+#ifdef CUBEAI_DEBUG
 #include <cassert>
 #endif
 
@@ -68,6 +69,11 @@ private:
     action_selector_t action_selector_;
 
     ///
+    /// \brief current_score_counter_
+    ///
+    uint_t current_score_counter_;
+
+    ///
     /// \brief update_q_table_
     /// \param action
     ///
@@ -82,7 +88,8 @@ ExpectedSARSA<TimeStepTp, ActionSelector>::ExpectedSARSA(uint_t n_max_itrs, real
                                          env_t& env, uint_t max_num_iterations_per_episode, const ActionSelector& selector)
     :
       TDAlgoBase<TimeStepTp>(n_max_itrs, tolerance, gamma, eta, plot_f, max_num_iterations_per_episode, env),
-      action_selector_(selector)
+      action_selector_(selector),
+      current_score_counter_(0)
 {}
 
 template <typename TimeStepTp, typename ActionSelector>
@@ -104,7 +111,7 @@ ExpectedSARSA<TimeStepTp, ActionSelector>::step(){
         // select an action
         auto action = action_selector_(this->q_table(), state);
         if(this->is_verbose()){
-            std::cout<<"Episode iteration="<<itr<<" of="<<this->actions_after_training_iterations()<<std::endl;
+            std::cout<<"Episode iteration="<<itr<<" of="<<this->max_num_iterations_per_episode()<<std::endl;
             std::cout<<"State="<<state<<std::endl;
             std::cout<<"Action="<<action<<std::endl;
         }
@@ -127,8 +134,8 @@ ExpectedSARSA<TimeStepTp, ActionSelector>::step(){
         }
         else{
 
-            update_q_table_(action, state, kernel::KernelConsts::invalid_size_type(),
-                            kernel::KernelConsts::invalid_size_type(), reward);
+            update_q_table_(action, state, CubeAIConsts::invalid_size_type(),
+                            CubeAIConsts::invalid_size_type(), reward);
 
             this->tmp_scores()[current_score_counter_++] = score;
 
@@ -163,14 +170,14 @@ void
 ExpectedSARSA<TimeStepTp, ActionSelector>::update_q_table_(const action_t& action, const state_t& cstate,
                                                            const state_t& next_state, const  action_t& next_action, real_t reward){
 
-#ifdef KERNEL_DEBUG
+#ifdef CUBEAI_DEBUG
     assert(action < this->env_ref_().n_actions() && "Inavlid action idx");
     assert(cstate < this->env_ref_().n_states() && "Inavlid state idx");
 
-    if(next_state != kernel::KernelConsts::invalid_size_type())
+    if(next_state != CubeAIConsts::invalid_size_type())
         assert(next_state < this->env_ref_().n_states() && "Inavlid next_state idx");
 
-    if(next_action != kernel::KernelConsts::invalid_size_type())
+    if(next_action != CubeAIConsts::invalid_size_type())
         assert(next_action < this->env_ref_().n_actions() && "Inavlid next_action idx");
 #endif
 
@@ -185,7 +192,7 @@ ExpectedSARSA<TimeStepTp, ActionSelector>::update_q_table_(const action_t& actio
 
     auto q_next = state_action_values * policy_s;
     auto td_target = reward + this->gamma() * q_next;
-    this->q_table()[cstate][action] = q_current + (this->eta() * (td_target - q_current));
+    //this->q_table()[cstate][action] = q_current + (this->eta() * (td_target - q_current));
 }
 
 }

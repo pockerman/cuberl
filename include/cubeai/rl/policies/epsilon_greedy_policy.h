@@ -10,6 +10,9 @@ namespace rl {
 namespace policies {
 
 
+///
+/// \brief The EpsilonDecayOption enum. Enumerate various decaying options.
+///
 enum class EpsilonDecayOption{NONE, EXPONENTIAL, INVERSE_STEP, CONSTANT_RATE};
 
 ///
@@ -30,7 +33,7 @@ public:
                                  real_t min_eps = 0.01, real_t max_eps=1.0,  uint_t seed=0 );
 
     ///
-    ///
+    /// \brief operator()
     ///
     template<typename QMapTp>
     uint_t operator()(const QMapTp& q_map, uint_t state)const;

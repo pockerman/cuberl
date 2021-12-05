@@ -7,7 +7,7 @@
 #include "cubeai/base/cubeai_consts.h"
 #include "cubeai/base/cubeai_config.h"
 
-#ifdef KERNEL_DEBUG
+#ifdef CUBEAI_DEBUG
 #include <cassert>
 #endif
 
@@ -141,7 +141,7 @@ QLearning<TimeStepTp, ActionSelector>::step(){
         }
         else{
 
-            update_q_table_(action, state, kernel::KernelConsts::invalid_size_type(),
+            update_q_table_(action, state, CubeAIConsts::invalid_size_type(),
                             CubeAIConsts::invalid_size_type(), reward);
 
             this->tmp_scores()[current_score_counter_++] = score;
@@ -175,14 +175,14 @@ template <typename TimeStepTp, typename ActionSelector>
 void
 QLearning<TimeStepTp, ActionSelector>::update_q_table_(const action_t& action, const state_t& cstate,
                                                        const state_t& next_state, const  action_t& next_action, real_t reward){
-#ifdef KERNEL_DEBUG
+#ifdef CUBEAI_DEBUG
     assert(action < this->env_ref_().n_actions() && "Inavlid action idx");
     assert(cstate < this->env_ref_().n_states() && "Inavlid state idx");
 
-    if(next_state != kernel::KernelConsts::invalid_size_type())
+    if(next_state != CubeAIConsts::invalid_size_type())
         assert(next_state < this->env_ref_().n_states() && "Inavlid next_state idx");
 
-    if(next_action != kernel::KernelConsts::invalid_size_type())
+    if(next_action != CubeAIConsts::invalid_size_type())
         assert(next_action < this->env_ref_().n_actions() && "Inavlid next_action idx");
 #endif
 

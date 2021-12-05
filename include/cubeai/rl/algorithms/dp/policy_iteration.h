@@ -35,8 +35,8 @@ public:
     ///
     PolicyIteration(uint_t n_max_iterations, real_t tolerance, env_t& env,
                     real_t gamma, uint_t n_policy_eval_steps,
-                    std::shared_ptr<cengine::rl::policies::DiscretePolicyBase> policy,
-                    std::shared_ptr<cengine::rl::policies::DiscretePolicyAdaptorBase> policy_adaptor);
+                    std::shared_ptr<cubeai::rl::policies::DiscretePolicyBase> policy,
+                    std::shared_ptr<cubeai::rl::policies::DiscretePolicyAdaptorBase> policy_adaptor);
 
     ///
     /// \brief step
@@ -73,8 +73,8 @@ private:
 template<typename TimeStepTp>
 PolicyIteration<TimeStepTp>::PolicyIteration(uint_t n_max_iterations, real_t tolerance, env_t& env,
                                              real_t gamma, uint_t n_policy_eval_steps,
-                                             std::shared_ptr<cengine::rl::policies::DiscretePolicyBase> policy,
-                                             std::shared_ptr<cengine::rl::policies::DiscretePolicyAdaptorBase> policy_adaptor)
+                                             std::shared_ptr<cubeai::rl::policies::DiscretePolicyBase> policy,
+                                             std::shared_ptr<cubeai::rl::policies::DiscretePolicyAdaptorBase> policy_adaptor)
     :
     DPAlgoBase<TimeStepTp>(n_max_iterations, tolerance, gamma, env),
     policy_eval_(n_policy_eval_steps, tolerance, gamma, env, policy),
