@@ -94,7 +94,8 @@ INCLUDE_DIRECTORIES(${TORCH_INCLUDE_DIRS})
 INCLUDE_DIRECTORIES(include/)
 
 # collect the source files for the library
-FILE(GLOB SRCS src/cubeai/base/*.cpp src/cubeai/ml/*.cpp src/cubeai/ml/*/*.cpp src/cubeai/rl/*.cpp src/cubeai/rl/*/*.cpp)
+FILE(GLOB SRCS src/cubeai/base/*.cpp src/cubeai/ml/*.cpp src/cubeai/ml/*/*.cpp src/cubeai/rl/*.cpp src/cubeai/rl/*/*.cpp
+    src/cubeai/io/*.cpp)
 
 ADD_LIBRARY(cubeailib SHARED ${SRCS})
 SET_TARGET_PROPERTIES(cubeailib PROPERTIES LINKER_LANGUAGE CXX)
