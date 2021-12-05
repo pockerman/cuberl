@@ -39,7 +39,7 @@ public:
     typedef TimeStepTp time_step_t;
 
     ///
-    /// \brief Destructor
+    /// \brief ~WorldBase. Destructor
     ///
     virtual ~WorldBase() = default;
 
@@ -79,18 +79,18 @@ public:
     ///
     /// \brief name
     ///
-    std::string name()const{return name_;}
+    std::string name()const noexcept{return name_;}
 
     ///
     /// \brief is_built
     /// \return
     ///
-    bool is_built()const{return is_built_;}
+    bool is_built()const noexcept{return is_built_;}
 
     ///
     /// \brief make_is_built
     ///
-    void make_is_built(){is_built_ = true;}
+    void make_is_built()noexcept{is_built_ = true;}
 
 
 protected:
@@ -107,7 +107,7 @@ protected:
     std::string name_;
 
     ///
-    ///
+    /// \brief is_built_
     ///
     bool is_built_{false};
 

@@ -37,7 +37,7 @@ public:
     typedef typename WorldBase<uint_t, uint_t, TimeStepTp>::time_step_t time_step_t;
 
     ///
-    ///
+    /// \brief ~DiscreteWorldBase. Destructor
     ///
     virtual ~DiscreteWorldBase() = default;
 
@@ -47,7 +47,7 @@ public:
     virtual uint_t n_actions()const = 0;
 
     ///
-    /// \brief n_actions
+    /// \brief n_states
     ///
     virtual uint_t n_states()const = 0;
 

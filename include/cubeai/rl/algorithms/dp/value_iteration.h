@@ -113,7 +113,7 @@ ValueIteration<TimeStepTp>::step(){
         auto v = this->value_func()[s];
         auto max_val = blaze::max(state_actions_from_v(this->env_ref_(), this->value_func(), this->gamma(), s));
 
- #if defined (KERNEL_DEBUG) && defined (KERNEL_PRINT_DBG_MSGS)
+ #if defined (CUBEAI_DEBUG) && defined (CUBEAI_PRINT_DBG_MSGS)
         if(this->is_verbose()){
             std::cout<<"Max val for state="<<s<<" is "<<max_val<<std::endl;
         }
@@ -123,7 +123,7 @@ ValueIteration<TimeStepTp>::step(){
         delta = std::max(delta, std::fabs(this->value_func()[s] - v));
     }
 
-#if defined (KERNEL_DEBUG) && defined (KERNEL_PRINT_DBG_MSGS)
+#if defined (CUBEAI_DEBUG) && defined (CUBEAI_PRINT_DBG_MSGS)
     if(this->is_verbose()){
         std::cout<<"V="<<this->value_func()<<std::endl;
     }

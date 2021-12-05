@@ -8,20 +8,23 @@ namespace cubeai {
 namespace rl {
 namespace policies {
 
+///
+/// \brief The PolicyBase class
+///
 class PolicyBase
 {
 public:
 
     ///
-    ///
+    /// \brief ~PolicyBase. Destructor
     ///
     virtual ~PolicyBase() = default;
 
     ///
-    /// \brief type
+    /// \brief type. Returns the policy identifier type
     /// \return
     ///
-    PolicyType type()const{return type_;}
+    PolicyType type()const noexcept{return type_;}
 
     ///
     /// \brief print
