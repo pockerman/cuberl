@@ -1,3 +1,7 @@
+#include "cubeai/base/cubeai_config.h"
+
+#if defined(USE_PYTORCH) && defined(USE_GYMFCPP)
+
 #include "cubeai/base/cubeai_types.h"
 #include "cubeai/rl/utilities/experience_buffer.h"
 #include "cubeai/base/torch_tensor_utils.h"
@@ -23,7 +27,6 @@ using cubeai::torch_int_t;
 using cubeai::rl::ExperienceBuffer;
 
 
-
 // constants
 const uint_t BATCH_SIZE = 128;
 const real_t GAMMA = 0.999;
@@ -31,6 +34,9 @@ const real_t EPS_START = 0.9;
 const real_t EPS_END = 0.05;
 const real_t EPS_DECAY = 200;
 const uint_t TARGET_UPDATE = 10;
+
+const auto POLICY_NET_FILE = "policy_net.json";
+const auto TARGET_NET_FILE = "target_net.json";
 
 
 typedef gymfcpp::CartPole::time_step_t time_step_t;
@@ -40,7 +46,7 @@ typedef gymfcpp::CartPole::Screen screen_t;
 template<typename StateTp, typename ActionTp, typename RewardTp>
 struct BatchType
 {
-    typedef StateTp state_t;
+    typedef screen_t state_t;
     typedef ActionTp action_t;
     typedef RewardTp reward_t;
     std::vector<std::tuple<state_t, action_t, reward_t, state_t, bool>> batch;
@@ -56,6 +62,8 @@ struct BatchType
     torch_tensor_t get_actions_as_torch_tensor();
 
     torch_tensor_t get_rewards_as_torch_tensor();
+
+    torch_tensor_t get_non_final_next_states_mask();
 
 };
 
@@ -83,6 +91,27 @@ BatchType<StateTp, ActionTp, RewardTp>::get_non_final_next_states_as_torch_tenso
     return next_states;
 }
 
+
+template<typename StateTp, typename ActionTp, typename RewardTp>
+torch_tensor_t
+BatchType<StateTp, ActionTp, RewardTp>::get_non_final_next_states_mask(){
+
+    std::vector<int> next_states;
+
+    for(const auto& item : batch){
+
+        if(std::get<4>(item)){
+            next_states.push_back(0);
+        }
+        else{
+
+            next_states.push_back(1);
+        }
+    }
+
+    return cubeai::torch_utils::create_mask(next_states);
+}
+
 template<typename StateTp, typename ActionTp, typename RewardTp>
 std::vector<torch_tensor_t>
 BatchType<StateTp, ActionTp, RewardTp>::get_states_as_torch_tensor(){
@@ -92,6 +121,8 @@ BatchType<StateTp, ActionTp, RewardTp>::get_states_as_torch_tensor(){
     for(const auto& item : batch){
         states.push_back(std::get<0>(item).get_as_torch_tensor());
     }
+
+    return states;
 }
 
 template<typename StateTp, typename ActionTp, typename RewardTp>
@@ -126,6 +157,7 @@ BatchType<StateTp, ActionTp, RewardTp>::get_rewards_as_torch_tensor(){
 struct ExperienceType
 {
     gymfcpp::CartPole::Screen state;
+    uint_t action;
     gymfcpp::CartPole::Screen next_state;
     real_t reward;
     bool done;
@@ -150,7 +182,9 @@ public:
     gymfcpp::CartPole::Screen get_screen()const{return env_.get_screen();}
 
     template<typename ActionTp>
-    gymfcpp::TimeStep<time_step_t> step(const ActionTp& a){return env_.step(a);}
+    auto step(const ActionTp& a){return env_.step(a);}
+
+    auto reset(){return env_.reset();}
 
 
 private:
@@ -254,7 +288,10 @@ class CartPoleDQNAgent
 
 public:
 
-    CartPoleDQNAgent(torch::Device device, CartPoleDQN policy_net, CartPoleDQN target_net);
+    CartPoleDQNAgent(torch::Device device, CartPoleDQN policy_net,
+                     CartPoleDQN target_net, const std::string& policy_net_path,
+                     const std::string& target_net_path);
+
     void train_step();
     void train();
 
@@ -266,25 +303,39 @@ public:
 
 private:
 
+    // the device to use
     torch::Device device_;
+
+    // the target and policy networks
     CartPoleDQN policy_net_;
     CartPoleDQN target_net_;
 
+    // the optimizer
     torch::optim::RMSprop optimizer_;
+
+    // memory buffer
     ExperienceBuffer<experience_t> memory_;
     uint_t num_episodes_;
 
     Environment* env_ptr_;
 
+    std::string policy_net_path_;
+    std::string target_net_path_;
+
 };
 
-CartPoleDQNAgent::CartPoleDQNAgent(torch::Device device, CartPoleDQN policy_net, CartPoleDQN target_net)
+CartPoleDQNAgent::CartPoleDQNAgent(torch::Device device, CartPoleDQN policy_net,
+                                   CartPoleDQN target_net, const std::string& policy_net_path,
+                                   const std::string& target_net_path)
     :
     device_(device),
     policy_net_(policy_net),
     target_net_(target_net),
     optimizer_(policy_net_->parameters()),
-    memory_(10000)
+    memory_(10000),
+    env_ptr_(nullptr),
+    policy_net_path_(policy_net_path),
+    target_net_path_(target_net_path)
 {}
 
 
@@ -316,8 +367,7 @@ CartPoleDQNAgent::train_step(){
     auto state_batch =  torch::cat(batch.get_states_as_torch_tensor());
     auto action_batch = torch::cat(batch.get_actions_as_torch_tensor());
     auto reward_batch = torch::cat(batch.get_rewards_as_torch_tensor());
-
-    //auto non_final_mask = torch::tensor(tuple(map(lambda s: s is not None, batch.next_state)), device=self.device, dtype=torch.bool)
+    auto non_final_mask = batch.get_non_final_next_states_mask();
 
     // Compute Q(s_t, a) - the model computes Q(s_t), then we select the
     // columns of actions taken. These are the actions which would've been taken
@@ -330,7 +380,10 @@ CartPoleDQNAgent::train_step(){
     // This is merged based on the mask, such that we'll have either the expected
     // state value or 0 in case the state was final.
     auto next_state_values = torch::zeros(BATCH_SIZE, device_);
-    next_state_values = target_net_->forward(torch_non_final_next_states).max(1)[0].detach();
+    auto target_values = std::get<0>(target_net_->forward(torch_non_final_next_states).max(1)).detach();
+
+    // fill in the next state values according to the mask
+    next_state_values.index_put_({non_final_mask}, target_values);
 
     // Compute the expected Q values
     auto expected_state_action_values = (next_state_values * GAMMA) + reward_batch;
@@ -371,17 +424,16 @@ CartPoleDQNAgent::train(){
             last_screen = current_screen;
             current_screen = env_ptr_->get_screen();
 
-            i(!step_time.done()){
+            if(!step_time.done()){
                 auto next_state = current_screen - last_screen;
-                experience_t experience;
-                memory_.add(state, action, next_state, step_time.reward());
+                experience_t experience = {current_screen, action, last_screen, step_time.reward(), step_time.done()};
+                memory_.append(experience);
                 state = next_state;
             }
             else{
 
-               experience_t experience;
-               memory_.add(state, action, next_state, step_time.reward());
-               state = gymfcpp::CartPoleInvalidScreen();
+               experience_t experience = {current_screen, action, last_screen, step_time.reward(), step_time.done()};
+               memory_.append(experience);
             }
 
             // optimize the model
@@ -394,7 +446,8 @@ CartPoleDQNAgent::train(){
 
         // update the target
         if(e % TARGET_UPDATE == 0){
-            target_net_->load(policy_net_->parameters());
+            torch::save(policy_net_, POLICY_NET_FILE);
+            torch::load(target_net_, POLICY_NET_FILE);
         }
     }
 
@@ -432,15 +485,14 @@ int main(){
         auto n_actions = env.n_actions();
 
         auto policy_net = CartPoleDQN(screen_height, screen_width, n_actions);
+        torch::save(policy_net, POLICY_NET_FILE);
+
         auto target_net = CartPoleDQN(screen_height, screen_width, n_actions);
-        target_net->load(policy_net->named_parameters());
+
+        torch::load(target_net, POLICY_NET_FILE);
         target_net->eval();
 
-        // the optimizer
-        //auto optimizer = torch::optim::RMSprop(policy_net->parameters());
-        //auto memory = ExperienceBuffer<gymfcpp::TimeStep<time_step_t>>(10000);
-
-        CartPoleDQNAgent agent(device, policy_net, target_net);
+        CartPoleDQNAgent agent(device, policy_net, target_net, POLICY_NET_FILE, TARGET_NET_FILE);
         agent.train();
 
 
@@ -454,3 +506,11 @@ int main(){
     }
     return 0;
 }
+#else
+#include <iostream>
+int main(){
+
+    std::cout<<"This example requires PyTorch and gymfccp. Configure cubeai with PyTorch and gymfcpp support"<<std::endl;
+    return 0;
+}
+#endif
