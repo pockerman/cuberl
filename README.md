@@ -18,7 +18,7 @@ CubeAI is a C++ library containing implementations of various reinforcement lear
 ### PyTorch based examples
 
 - <a href="examples/example_11/example_11.cpp">Example 11: Simple linear regression</a>
-- <a href="#">Example 12: DQN on ```CartPole-v0```</a>
+- <a href="examples/example_12/example_12.cpp">Example 12: DQN on ```CartPole-v0```</a>
 - <a href="examples/example_13/example_13.cpp">Example 13: Reinforce algorithm on ```CartPole-v0```</a>
 
 
