@@ -44,7 +44,7 @@ public:
     virtual void step() = 0;
 
     ///
-    /// \brief reset
+    /// \brief reset. Reset the underlying data structures to the point when the constructor is called.
     ///
     virtual void reset();
 

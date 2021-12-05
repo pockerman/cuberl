@@ -13,8 +13,6 @@ namespace rl {
 namespace policies {
 
 
-//class DiscretePolicyBase;
-
 ///
 /// \brief The PolicyAdaptorBase class
 ///

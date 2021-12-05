@@ -5,7 +5,7 @@
 #include "cubeai/base/cubeai_consts.h"
 #include "cubeai/base/cubeai_config.h"
 
-#ifdef KERNEL_DEBUG
+#ifdef CUBEAI_DEBUG
 #include <cassert>
 #endif
 
@@ -175,7 +175,7 @@ void
 Sarsa<TimeStepTp, ActionSelector>::update_q_table_(const action_t& action, const state_t& cstate,
                                                    const state_t& next_state, const action_t& next_action, real_t reward){
 
-#ifdef KERNEL_DEBUG
+#ifdef CUBEAI_DEBUG
     assert(action < this->env_ref_().n_actions() && "Inavlid action idx");
     assert(cstate < this->env_ref_().n_states() && "Inavlid state idx");
 
