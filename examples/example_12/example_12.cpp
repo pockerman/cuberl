@@ -407,6 +407,7 @@ CartPoleDQNAgent::train(){
 
         env_ptr_->reset();
 
+        // these should be torch tensors
         auto last_screen = env_ptr_->get_screen();
         auto current_screen = env_ptr_->get_screen();
 

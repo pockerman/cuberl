@@ -9,6 +9,15 @@
 
 namespace cubeai {
 
+///
+/// \brief bin_index. Compute sequnce[i - 1] <= x sequnce[i] and returns the
+/// index. Sequence should be sorted
+///
+template<typename SequenceTp>
+uint_t bin_index(const typename SequenceTp::value_type& x, const SequenceTp& sequnce){
+
+}
+
 
 ///
 /// \brief Returns the index of the element that has the maximum

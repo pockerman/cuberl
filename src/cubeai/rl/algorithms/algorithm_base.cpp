@@ -24,7 +24,10 @@ AlgorithmBase::train(){
             std::cout<<"Iteration="<<itr_ctrl_.get_current_iteration()<<" of "<<itr_ctrl_.get_max_iterations()<<std::endl;
             std::cout<<"Residual="<<itr_ctrl_.get_residual()<<" Exit tolerance= "<<itr_ctrl_.get_exit_tolerance()<<std::endl;
         }
+
+        actions_before_training_episode();
         this->step();
+        actions_after_training_episode();
     }
 
     this->actions_after_training_iterations();
