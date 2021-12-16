@@ -1,7 +1,7 @@
 #include "cubeai/base/cubeai_types.h"
 #include "cubeai/rl/algorithms/algorithm_base.h"
 #include "cubeai/rl/policies/epsilon_greedy_policy.h"
-#include "cubeai/rl/utilities/experience_buffer.h"
+#include "cubeai/rl/utilities/vector_experience_buffer.h"
 #include "cubeai/utils/numpy_utils.h"
 
 #include "gymfcpp/gymfcpp_types.h"
@@ -19,10 +19,11 @@ namespace example{
 using cubeai::real_t;
 using cubeai::uint_t;
 using cubeai::rl::algos::AlgorithmBase;
-using cubeai::rl::ExperienceBuffer;
+using cubeai::rl::VectorExperienceBuffer;
 using gymfcpp::MountainCar;
 
 typedef gymfcpp::TimeStep<uint_t> time_step_t;
+typedef std::pair<real_t, real_t> state_type;
 
 const real_t GAMMA = 1.0;
 const uint_t N_EPISODES = 20000;
@@ -32,7 +33,14 @@ const real_t TOL = 1.0e-8;
 auto pos_bins = std::vector<real_t>();
 auto vel_bins = std::vector<real_t>();
 
-struct Transition{};
+struct Transition
+{
+
+    state_type state;
+    real_t reward;
+    uint_t action;
+    bool done;
+};
 
 struct Policy
 {
@@ -66,7 +74,7 @@ public:
     virtual void actions_before_training_iterations();
     virtual void actions_after_training_iterations() final override {}
     virtual void actions_before_training_episode() final override;
-    virtual void actions_after_training_episode() final override{}
+    virtual void actions_after_training_episode() final override;
     virtual void step() final override;
 
     ///
@@ -92,7 +100,7 @@ private:
     std::vector<real_t> near_exit_;
     std::vector<real_t> left_side_;
 
-    ExperienceBuffer<Transition> memory_;
+    VectorExperienceBuffer<Transition> memory_;
 
     Policy policy_;
 };
@@ -134,6 +142,42 @@ ApproxMC<Env>::actions_before_training_episode(){
 
     // clear any items in the memory
     memory_.clear();
+}
+
+template<typename Env>
+void
+ApproxMC<Env>::actions_after_training_episode(){
+
+    auto last = true;
+    auto G = 0.0;
+    std::vector<std::tuple<std::pair<real_t, real_t>, real_t>> states_returns;
+
+    auto rbegin = memory_.rbegin();
+    auto rend   = memory_.rend();
+
+    for(; rbegin != rend; ++rbegin){
+
+        const auto& experience = *rbegin;
+
+        if(last){
+            last = false;
+        }
+        else{
+            states_returns.push_back((experience.state, G));
+        }
+
+         G *= gamma_  + experience.reward;
+    }
+
+    states_returns.reverse()
+    std::vector<state_type> states_visited;
+                for state, G, in states_returns:
+                    if state not in states_visited:
+                        model.update_weights(total_return=G, state=state, t=dt)
+                        states_visited.append(state)
+
+
+
 }
 
 template<typename Env>

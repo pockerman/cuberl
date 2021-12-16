@@ -93,7 +93,7 @@ INCLUDE_DIRECTORIES(include/)
 
 # collect the source files for the library
 FILE(GLOB SRCS src/cubeai/base/*.cpp src/cubeai/ml/*.cpp src/cubeai/ml/*/*.cpp src/cubeai/rl/*.cpp src/cubeai/rl/*/*.cpp
-    src/cubeai/io/*.cpp)
+    src/cubeai/io/*.cpp src/cubeai/utils/*.cpp)
 
 ADD_LIBRARY(cubeailib SHARED ${SRCS})
 SET_TARGET_PROPERTIES(cubeailib PROPERTIES LINKER_LANGUAGE CXX)
@@ -116,7 +116,7 @@ ENDIF()
 MESSAGE(STATUS "Type make install to build cubeAI")
 
 IF(ENABLE_DOC_FLAG)
-	# Add the tests
+	# Add the documentation
 	ADD_SUBDIRECTORY(doc)
 ELSE()
 	MESSAGE(WARNING "Documentation will not be generated")

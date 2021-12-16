@@ -37,6 +37,9 @@ public:
     typedef ExperienceTp experience_t;
     typedef AllocatorTp allocator_t ;
 
+    typedef typename std::deque<experience_t, allocator_t>::iterator iterator;
+    typedef typename std::deque<experience_t, allocator_t>::const_iterator const_iterator;
+
     ///
     /// \brief ExperienceBuffer
     ///
@@ -60,11 +63,22 @@ public:
     bool empty()const noexcept{return experience_.empty();}
 
     ///
+    /// \brief clear
+    ///
+    void clear()noexcept{experience_.clear(); max_size_ = 0;}
+
+    ///
     /// \brief sample. Sample batch_size experiences from the
     /// buffer and transfer them in the BatchTp container.
     ///
     template<typename BatchTp>
-    void sample(uint_t batch_size, BatchTp& batch);
+    void sample(uint_t batch_size, BatchTp& batch)const;
+
+    iterator begin(){return experience_.begin();}
+    iterator end(){return experience_.end();}
+
+    const_iterator begin()const{return experience_.begin();}
+    const_iterator end()const{return experience_.end();}
 
 private:
 
@@ -97,8 +111,8 @@ ExperienceBuffer<ExperienceTp, AllocatorTp>::append(const experience_t& experien
 template<typename ExperienceTp, class AllocatorTp>
 template<typename BatchTp>
 void
-ExperienceBuffer<ExperienceTp, AllocatorTp>::sample(uint_t batch_size, BatchTp& batch){
-
+ExperienceBuffer<ExperienceTp, AllocatorTp>::sample(uint_t batch_size, BatchTp& batch)const{
+    throw std::logic_error("This function is not implemented!!!");
 }
 
 
