@@ -2,11 +2,13 @@
 #include "cubeai/rl/algorithms/algorithm_base.h"
 #include "cubeai/rl/policies/epsilon_greedy_policy.h"
 #include "cubeai/rl/utilities/vector_experience_buffer.h"
-#include "cubeai/utils/numpy_utils.h"
+#include "cubeai/utils/array_utils.h"
 
 #include "gymfcpp/gymfcpp_types.h"
 #include "gymfcpp/mountain_car.h"
 #include "gymfcpp/time_step.h"
+
+#include <boost/python.hpp>
 
 #include <vector>
 #include <iostream>
@@ -23,15 +25,16 @@ using cubeai::rl::VectorExperienceBuffer;
 using gymfcpp::MountainCar;
 
 typedef gymfcpp::TimeStep<uint_t> time_step_t;
-typedef std::pair<real_t, real_t> state_type;
+typedef std::pair<uint_t, uint_t> state_type;
 
 const real_t GAMMA = 1.0;
 const uint_t N_EPISODES = 20000;
 const uint_t N_ITRS_PER_EPISODE = 2000;
 const real_t TOL = 1.0e-8;
 
-auto pos_bins = std::vector<real_t>();
-auto vel_bins = std::vector<real_t>();
+// generate position and velocity bins
+auto pos_bins = std::vector<real_t>({-1.2, -0.95714286, -0.71428571, -0.47142857, -0.22857143, 0.01428571,  0.25714286,  0.5});
+auto vel_bins = std::vector<real_t>({-0.07, -0.05, -0.03, -0.01,  0.01,  0.03,  0.05,  0.07});
 
 template<typename ItrTp, typename StateTp>
 ItrTp is_state_included(ItrTp begin, ItrTp end, const StateTp& state){
@@ -60,11 +63,13 @@ struct Policy
     }
 };
 
-template<typename ObsType, typename BinType>
-std::pair<real_t, real_t>
-get_aggregated_state(const ObsType& obs, const BinType& pos_bin, const BinType& vel_bin){
+template<typename BinType>
+std::pair<uint_t, uint_t>
+get_aggregated_state(const std::pair<real_t, real_t>& obs, const BinType& pos_bins, const BinType& vel_bins){
 
-    return {0.0, 0.0};
+    auto pos = cubeai::bin_index(obs.first, pos_bins);
+    auto vel = cubeai::bin_index(obs.second, vel_bins);
+    return {pos, vel};
 }
 
 
@@ -81,15 +86,8 @@ public:
     virtual void actions_before_training_episode() final override;
     virtual void actions_after_training_episode() final override;
     virtual void step() final override;
-
-    ///
-    /// \brief reset. Reset the underlying data structures to the point when the constructor is called.
-    ///
     virtual void reset();
-
-
-    real_t state_value(real_t pos, real_t vel)const;
-
+    real_t state_value(uint_t pos, uint_t vel)const;
     void update_weights(real_t total_return, state_type state, real_t t);
 
 private:
@@ -100,7 +98,8 @@ private:
     real_t gamma_;
     real_t dt_{1.0};
 
-    std::vector<std::tuple<state_type, real_t>> weights_;
+    //std::vector<std::tuple<state_type, real_t>> weights_;
+    std::map<std::pair<uint_t, uint_t>, real_t> weights_;
 
     std::vector<real_t> near_exit_;
     std::vector<real_t> left_side_;
@@ -127,6 +126,13 @@ ApproxMC<Env>::ApproxMC(Env& env, uint_t n_episodes, uint_t n_itrs_per_episode,
 template<typename Env>
 void
 ApproxMC<Env>::actions_before_training_iterations(){
+   this->reset();
+}
+
+template<typename Env>
+void
+ApproxMC<Env>::reset(){
+
     this->AlgorithmBase::reset();
     env_.reset();
 }
@@ -139,9 +145,10 @@ ApproxMC<Env>::actions_before_training_episode(){
         dt_ += 0.1;
 
         auto idx = this->current_iteration() /  1000;
-        auto state = get_aggregated_state((0.43, 0.054), pos_bins, vel_bins);
+        auto state = get_aggregated_state(std::make_pair(0.43, 0.054), pos_bins, vel_bins);
         near_exit_[idx] = state_value(state.first, state.second);
-        state = get_aggregated_state((-1.1, 0.001), pos_bins, vel_bins);
+
+        state = get_aggregated_state(std::make_pair(-1.1, 0.001), pos_bins, vel_bins);
         left_side_[idx] = state_value(state.first, state.second);
     }
 
@@ -155,7 +162,7 @@ ApproxMC<Env>::actions_after_training_episode(){
 
     auto last = true;
     auto G = 0.0;
-    std::vector<std::tuple<std::pair<real_t, real_t>, real_t>> states_returns;
+    std::vector<std::tuple<std::pair<uint_t, uint_t>, real_t>> states_returns;
 
     auto rbegin = memory_.rbegin();
     auto rend   = memory_.rend();
@@ -177,7 +184,6 @@ ApproxMC<Env>::actions_after_training_episode(){
     auto r_state_begin = states_returns.rbegin();
     auto r_state_end = states_returns.rend();
 
-
     std::vector<state_type> states_visited;
     states_visited.reserve(states_returns.size());
 
@@ -195,22 +201,23 @@ ApproxMC<Env>::actions_after_training_episode(){
 
 template<typename Env>
 real_t
-ApproxMC<Env>::state_value(real_t pos, real_t vel)const{
+ApproxMC<Env>::state_value(uint_t pos, uint_t vel)const{
 
-    return 0.0; //weights_[std::make_pair(pos, vel)];
+    auto itr = weights_.find(std::make_pair(pos, vel));
+    return itr->second;
 }
 
 template<typename Env>
 void
 ApproxMC<Env>::update_weights(real_t total_return, state_type state, real_t t){
 
-    auto itr = is_state_included(weights_.begin(), weights_.end(), state);
+    auto itr = weights_.find(state); //is_state_included(weights_.begin(), weights_.end(), state);
     if( itr != weights_.end()){
 
         std::get<1>(*itr) = total_return;
     }
     else{
-        weights_.push_back(std::make_tuple(state, total_return));
+        weights_.insert({state, total_return});
     }
 }
 
@@ -222,7 +229,7 @@ ApproxMC<Env>::step(){
 
     for(uint_t itr=0; itr<n_itrs_per_episode_; ++itr){
 
-        auto state = get_aggregated_state(env_state.observation(), pos_bins, vel_bins);
+        auto state = get_aggregated_state({env_state.observation()[0], env_state.observation()[1]} , pos_bins, vel_bins);
         auto action = policy_(state.second);
 
         auto next_time_step = env_.step(action);
@@ -245,19 +252,21 @@ int main(){
         MountainCar env("v0", gym_namespace, false);
         env.make();
 
-        // generate position and velocity bins
-        pos_bins = cubeai::numpy_utils::linespace(-1.2, 0.5, 8);
-        vel_bins = cubeai::numpy_utils::linespace(-0.07, 0.07, 8);
-
         std::vector<real_t> lrs{0.1, 0.01, 0.001};
 
         for(const auto lr: lrs){
 
+
             auto model = ApproxMC<MountainCar>(env, N_EPISODES,
                                                N_ITRS_PER_EPISODE, TOL, lr, GAMMA);
+            model.do_verbose_output();
             model.train();
         }
 
+    }
+    catch(const boost::python::error_already_set&)
+    {
+            PyErr_Print();
     }
     catch(std::exception& e){
         std::cout<<e.what()<<std::endl;

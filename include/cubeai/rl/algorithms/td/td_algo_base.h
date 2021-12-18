@@ -3,7 +3,7 @@
 
 #include "cubeai/rl/algorithms/algorithm_base.h"
 #include "cubeai/rl/worlds/discrete_world.h"
-#include "cubeai/base/csv_file_writer.h"
+#include "cubeai/io/csv_file_writer.h"
 
 #include <unordered_map>
 #include <deque>

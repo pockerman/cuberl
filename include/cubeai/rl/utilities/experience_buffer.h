@@ -33,12 +33,14 @@ class ExperienceBuffer: private boost::noncopyable{
 
 public:
 
-    typedef ExperienceTp value_t ;
+    typedef ExperienceTp value_type ;
     typedef ExperienceTp experience_t;
     typedef AllocatorTp allocator_t ;
 
     typedef typename std::deque<experience_t, allocator_t>::iterator iterator;
     typedef typename std::deque<experience_t, allocator_t>::const_iterator const_iterator;
+    typedef typename std::deque<experience_t, allocator_t>::reverse_iterator reverse_iterator;
+    typedef typename std::deque<experience_t, allocator_t>::const_reverse_iterator const_reverse_iterator;
 
     ///
     /// \brief ExperienceBuffer
@@ -79,6 +81,12 @@ public:
 
     const_iterator begin()const{return experience_.begin();}
     const_iterator end()const{return experience_.end();}
+
+    reverse_iterator rbegin(){return experience_.rbegin();}
+    reverse_iterator rend(){return experience_.rend();}
+
+    const_reverse_iterator rbegin()const{return experience_.rbegin();}
+    const_reverse_iterator rend()const{return experience_.rend();}
 
 private:
 

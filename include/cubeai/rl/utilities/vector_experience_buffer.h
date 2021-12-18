@@ -24,6 +24,8 @@ public:
 
     typedef typename std::vector<value_type, allocator_type>::iterator iterator;
     typedef typename std::vector<value_type, allocator_type>::const_iterator const_iterator;
+    typedef typename std::vector<value_type, allocator_type>::reverse_iterator reverse_iterator;
+    typedef typename std::vector<value_type, allocator_type>::const_reverse_iterator const_reverse_iterator;
 
     ///
     ///
@@ -98,13 +100,13 @@ public:
     /// \brief begin
     /// \return
     ///
-    iterator rbegin(){return memory_.rbegin();}
+    reverse_iterator rbegin(){return memory_.rbegin();}
 
     ///
     /// \brief end
     /// \return
     ///
-    iterator rend(){return memory_.rend();}
+    reverse_iterator rend(){return memory_.rend();}
 
     ///
     /// \brief begin

@@ -1,7 +1,7 @@
 #ifndef FILE_WRITER_BASE_H
 #define FILE_WRITER_BASE_H
 
-#include "cubeai/base/file_formats.h"
+#include "cubeai/io/file_formats.h"
 
 #include "boost/noncopyable.hpp"
 #include <fstream>
