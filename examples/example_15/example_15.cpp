@@ -33,6 +33,11 @@ const real_t TOL = 1.0e-8;
 auto pos_bins = std::vector<real_t>();
 auto vel_bins = std::vector<real_t>();
 
+template<typename ItrTp, typename StateTp>
+ItrTp is_state_included(ItrTp begin, ItrTp end, const StateTp& state){
+    return begin;
+}
+
 struct Transition
 {
 
@@ -71,7 +76,7 @@ public:
     ApproxMC(Env& env, uint_t n_episodes, uint_t n_itrs_per_episode,
              real_t tolerance, real_t lr, real_t gamma);
 
-    virtual void actions_before_training_iterations();
+    virtual void actions_before_training_iterations() final override;
     virtual void actions_after_training_iterations() final override {}
     virtual void actions_before_training_episode() final override;
     virtual void actions_after_training_episode() final override;
@@ -85,7 +90,7 @@ public:
 
     real_t state_value(real_t pos, real_t vel)const;
 
-    void update_weights(real_t total_return, std::pair<real_t, real_t> state, real_t t);
+    void update_weights(real_t total_return, state_type state, real_t t);
 
 private:
 
@@ -95,7 +100,7 @@ private:
     real_t gamma_;
     real_t dt_{1.0};
 
-    std::unordered_map<std::pair<real_t, real_t>, real_t> weights_;
+    std::vector<std::tuple<state_type, real_t>> weights_;
 
     std::vector<real_t> near_exit_;
     std::vector<real_t> left_side_;
@@ -163,21 +168,29 @@ ApproxMC<Env>::actions_after_training_episode(){
             last = false;
         }
         else{
-            states_returns.push_back((experience.state, G));
+            states_returns.push_back(std::make_tuple(experience.state, G));
         }
 
          G *= gamma_  + experience.reward;
     }
 
-    states_returns.reverse()
+    auto r_state_begin = states_returns.rbegin();
+    auto r_state_end = states_returns.rend();
+
+
     std::vector<state_type> states_visited;
-                for state, G, in states_returns:
-                    if state not in states_visited:
-                        model.update_weights(total_return=G, state=state, t=dt)
-                        states_visited.append(state)
+    states_visited.reserve(states_returns.size());
 
+    for(; r_state_begin != r_state_end; ++r_state_begin){
 
+        const auto& state = std::get<0>(*r_state_begin);
+        const auto G = std::get<1>(*r_state_begin);
 
+        if(is_state_included(states_visited.begin(), states_visited.end(), state) == states_visited.end()){
+             update_weights(G, state, dt_);
+             states_visited.push_back(state);
+        }
+    }
 }
 
 template<typename Env>
@@ -189,9 +202,16 @@ ApproxMC<Env>::state_value(real_t pos, real_t vel)const{
 
 template<typename Env>
 void
-ApproxMC<Env>::update_weights(real_t total_return, std::pair<real_t, real_t> state, real_t t){
+ApproxMC<Env>::update_weights(real_t total_return, state_type state, real_t t){
 
+    auto itr = is_state_included(weights_.begin(), weights_.end(), state);
+    if( itr != weights_.end()){
 
+        std::get<1>(*itr) = total_return;
+    }
+    else{
+        weights_.push_back(std::make_tuple(state, total_return));
+    }
 }
 
 template<typename Env>
@@ -206,7 +226,6 @@ ApproxMC<Env>::step(){
         auto action = policy_(state.second);
 
         auto next_time_step = env_.step(action);
-
     }
 }
 
@@ -218,8 +237,6 @@ int main(){
     using namespace example;
 
     try{
-
-
 
         Py_Initialize();
         auto gym_module = boost::python::import("gym");
@@ -236,14 +253,10 @@ int main(){
 
         for(const auto lr: lrs){
 
-            auto model = ApproxMC<MountainCar>(env, N_EPISODES, N_ITRS_PER_EPISODE,
-                                               TOL, lr, GAMMA);
+            auto model = ApproxMC<MountainCar>(env, N_EPISODES,
+                                               N_ITRS_PER_EPISODE, TOL, lr, GAMMA);
             model.train();
         }
-
-
-
-
 
     }
     catch(std::exception& e){
