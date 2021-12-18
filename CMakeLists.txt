@@ -69,8 +69,11 @@ ENDIF()
 
 
 LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
+
+IF(USE_PYTORCH)
 LIST(APPEND CMAKE_PREFIX_PATH /home/alex/MySoftware/libtorch)
 FIND_PACKAGE(Torch REQUIRED CONFIG)
+ENDIF()
 
 MESSAGE(STATUS "TORCH Include directory ${TORCH_INCLUDE_DIRS}")
 MESSAGE(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
@@ -88,12 +91,16 @@ INCLUDE_DIRECTORIES(${BOOST_INCLUDEDIR})
 INCLUDE_DIRECTORIES(/home/alex/MySoftware/nlohman_json/install/include)
 INCLUDE_DIRECTORIES(${BLAZE_INCL_DIR})
 INCLUDE_DIRECTORIES(${BOOST_INCLUDEDIR})
+
+IF(USE_PYTORCH)
 INCLUDE_DIRECTORIES(${TORCH_INCLUDE_DIRS})
+ENDIF()
+
 INCLUDE_DIRECTORIES(include/)
 
 # collect the source files for the library
 FILE(GLOB SRCS src/cubeai/base/*.cpp src/cubeai/ml/*.cpp src/cubeai/ml/*/*.cpp src/cubeai/rl/*.cpp src/cubeai/rl/*/*.cpp
-    src/cubeai/io/*.cpp)
+    src/cubeai/io/*.cpp src/cubeai/planning/*.cpp, src/cubeai/geom_primitives/*.cpp)
 
 ADD_LIBRARY(cubeailib SHARED ${SRCS})
 SET_TARGET_PROPERTIES(cubeailib PROPERTIES LINKER_LANGUAGE CXX)
