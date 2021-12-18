@@ -25,7 +25,7 @@ SET(CUBEAILIB_VERSION "${CUBEAILIB_VERSION_MAJOR}.${CUBEAILIB_VERSION_MINOR}.${C
 MESSAGE(STATUS "CubeAI lib Version ${CUBEAILIB_VERSION}")
 
 SET(CMAKE_BUILD_TYPE "Debug")
-SET(CMAKE_CXX_COMPILER gcc)
+SET(CMAKE_CXX_COMPILER g++-11)
 SET(CMAKE_CXX_STANDARD 20)
 SET(CMAKE_CXX_STANDARD_REQUIRED True)
 SET(CMAKE_C_COMPILER gcc)
@@ -41,8 +41,8 @@ SET(USE_OPENCV OFF)
 SET(USE_GYMFCPP ON)
 
 SET(ENABLE_EXAMPLES_FLAG ON)
-SET(ENABLE_TESTS_FLAG OFF)
-SET(ENABLE_DOC_FLAG ON)
+SET(ENABLE_TESTS_FLAG ON)
+SET(ENABLE_DOC_FLAG OFF)
 
 IF(CMAKE_BUILD_TYPE STREQUAL "Debug")
 SET(CUBEAI_DEBUG ON)
@@ -93,7 +93,7 @@ INCLUDE_DIRECTORIES(include/)
 
 # collect the source files for the library
 FILE(GLOB SRCS src/cubeai/base/*.cpp src/cubeai/ml/*.cpp src/cubeai/ml/*/*.cpp src/cubeai/rl/*.cpp src/cubeai/rl/*/*.cpp
-    src/cubeai/io/*.cpp)
+    src/cubeai/io/*.cpp src/cubeai/utils/*.cpp)
 
 ADD_LIBRARY(cubeailib SHARED ${SRCS})
 SET_TARGET_PROPERTIES(cubeailib PROPERTIES LINKER_LANGUAGE CXX)
@@ -116,7 +116,7 @@ ENDIF()
 MESSAGE(STATUS "Type make install to build cubeAI")
 
 IF(ENABLE_DOC_FLAG)
-	# Add the tests
+	# Add the documentation
 	ADD_SUBDIRECTORY(doc)
 ELSE()
 	MESSAGE(WARNING "Documentation will not be generated")

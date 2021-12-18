@@ -2,7 +2,7 @@
 #define DP_ALGO_BASE_H
 
 #include "cubeai/base/cubeai_types.h"
-#include "cubeai/base/csv_file_writer.h"
+#include "cubeai/io/csv_file_writer.h"
 #include "cubeai/rl/algorithms/algorithm_base.h"
 #include "cubeai/rl/worlds/discrete_world.h"
 

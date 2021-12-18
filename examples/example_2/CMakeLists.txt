@@ -5,25 +5,25 @@ SET(SOURCE ${EXECUTABLE}.cpp)
 
 
 # find Boost
-FIND_PACKAGE(Boost 1.65.0 REQUIRED)
-IF(Boost_FOUND)
-	MESSAGE( STATUS  "Found needed Boost C++ library.")
-	SET(Boost_USE_SHARED_LIBS ON)
-ELSE()
-	MESSAGE( FATAL_ERROR  "Boost C++ library is required but not found.")
-ENDIF()
+#FIND_PACKAGE(Boost 1.65.0 REQUIRED)
+#IF(Boost_FOUND)
+#	MESSAGE( STATUS  "Found needed Boost C++ library.")
+#	SET(Boost_USE_SHARED_LIBS ON)
+#ELSE()
+#	MESSAGE( FATAL_ERROR  "Boost C++ library is required but not found.")
+#ENDIF()
 
 
 # find OpenBLAS
-FIND_PACKAGE(BLAS REQUIRED)
-IF(NOT BLAS_FOUND)
-	MESSAGE( FATAL_ERROR  "Could not find OpenBLAS library.")
-ELSE()
-	MESSAGE( STATUS  "Found needed BLAS library.")
-ENDIF()
+#FIND_PACKAGE(BLAS REQUIRED)
+#IF(NOT BLAS_FOUND)
+#	MESSAGE( FATAL_ERROR  "Could not find OpenBLAS library.")
+#ELSE()
+#	MESSAGE( STATUS  "Found needed BLAS library.")
+#ENDIF()
 
-LIST(APPEND CMAKE_PREFIX_PATH /home/alex/MySoftware/libtorch)
-FIND_PACKAGE(Torch REQUIRED CONFIG)
+#LIST(APPEND CMAKE_PREFIX_PATH /home/alex/MySoftware/libtorch)
+#FIND_PACKAGE(Torch REQUIRED CONFIG)
 
 
 SET(CMAKE_CXX_COMPILER g++)

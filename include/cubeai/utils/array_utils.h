@@ -2,12 +2,44 @@
 #define ARRAY_UTILS_H
 
 #include "cubeai/base/cubeai_types.h"
+#include "cubeai/base/cubeai_consts.h"
 
 #include <vector>
 #include <algorithm> // for std::max/min_element
 #include <iterator> // for std::distance
 
 namespace cubeai {
+
+///
+/// \brief bin_index. Compute sequnce[i - 1] <= x sequnce[i] and returns the
+/// index. Sequence should be sorted
+///
+template<typename SequenceTp>
+uint_t bin_index(const typename SequenceTp::value_type& x, const SequenceTp& sequence){
+
+    if(sequence.size() <= 1){
+        return CubeAIConsts::invalid_size_type();
+    }
+
+    auto index = 1;
+    auto begin = sequence.begin();
+    auto prev_val = *begin;
+    ++begin;
+    auto end = sequence.end();
+
+    for(; begin != end; ++begin, ++index){
+
+        auto current_val = *begin;
+
+        if( (prev_val <= x) && (x < current_val)){
+            return index;
+        }
+
+        prev_val = current_val;
+    }
+
+    return CubeAIConsts::invalid_size_type();
+}
 
 
 ///

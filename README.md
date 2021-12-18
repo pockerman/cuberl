@@ -14,6 +14,7 @@ CubeAI is a C++ library containing implementations of various reinforcement lear
 - <a href="examples/example_9/example_9.cpp">Example 9: SARSA on ```CliffWalking-v0```</a>
 - <a href="examples/example_10/example_10.cpp">Example 10: Q-learning on ```CliffWalking-v0```</a>
 - <a href="examples/example_14/example_14.cpp">Example 14: Expected SARSA on ```CliffWalking-v0```</a>
+- <a href="examples/example_15/example_15.cpp">Example 15: Approximate Monte Carlo on ```MountainCar-v0```</a>
 
 ### PyTorch based examples
 

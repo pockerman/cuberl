@@ -39,6 +39,16 @@ public:
     virtual void actions_after_training_iterations() = 0;
 
     ///
+    /// \brief actions_before_training_episode
+    ///
+    virtual void actions_before_training_episode(){}
+
+    ///
+    /// \brief actions_after_training_episode
+    ///
+    virtual void actions_after_training_episode(){}
+
+    ///
     /// \brief step Do one step of the algorithm
     ///
     virtual void step() = 0;
