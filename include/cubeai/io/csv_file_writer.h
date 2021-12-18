@@ -2,7 +2,7 @@
 #define CSV_FILE_WRITER_H
 
 #include "cubeai/base/cubeai_types.h"
-#include "cubeai/base/file_writer_base.h"
+#include "cubeai/io/file_writer_base.h"
 
 #include <vector>
 #include <tuple>
