@@ -4,7 +4,7 @@
 #include "cubeai/base/cubeai_types.h"
 #include "cubeai/base/iterative_algorithm_controller.h"
 #include "cubeai/base/iterative_algorithm_result.h"
-
+#include "cubeai/rl/algorithms/rl_algo_config.h"
 #include <boost/noncopyable.hpp>
 
 
@@ -80,6 +80,18 @@ public:
     bool is_verbose()const{return itr_ctrl_.show_iterations();}
 
     ///
+    /// \brief render_environment
+    /// \return
+    ///
+    bool render_environment()const noexcept{return render_env_;}
+
+    ///
+    /// \brief render_env_frequency
+    /// \return
+    ///
+    uint_t render_env_frequency()const noexcept{return render_env_frequency_;}
+
+    ///
     /// \brief current_iteration
     /// \return
     ///
@@ -98,6 +110,13 @@ protected:
     ///
     AlgorithmBase(uint_t n_max_itrs, real_t tolerance);
 
+
+    ///
+    /// \brief AlgorithmBase
+    /// \param config
+    ///
+    explicit AlgorithmBase(RLAlgoConfig config);
+
     ///
     /// \brief iter_controller
     /// \return
@@ -105,6 +124,16 @@ protected:
     IterativeAlgorithmController& iter_controller_(){return itr_ctrl_;}
 
 private:
+
+    ///
+    /// \brief render_env_
+    ///
+    bool render_env_;
+
+    ///
+    /// \brief render_env_frequency_
+    ///
+    uint_t render_env_frequency_;
 
     ///
     /// \brief itr_ctrl_. The object controlling the iterations

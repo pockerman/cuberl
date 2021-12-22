@@ -17,12 +17,15 @@ class CubeAIConsts: private boost::noncopyable
 
 public:
 
+    ///
+    /// \brief INVALID_SIZE_TYPE
+    ///
     static constexpr uint_t INVALID_SIZE_TYPE = static_cast<uint_t>(-1);
 
     ///
     /// \brief Returns a string describing the library version
     ///
-    static std::string kernel_version(){return std::string(KERNELLIB_VERSION);}
+    static std::string version(){return std::string(CUBEAILIB_VERSION);}
 
     ///
     /// \brief Returns the value of the tolerance constant.

@@ -65,7 +65,8 @@ struct Policy
 
 template<typename BinType>
 std::pair<uint_t, uint_t>
-get_aggregated_state(const std::pair<real_t, real_t>& obs, const BinType& pos_bins, const BinType& vel_bins){
+get_aggregated_state(const std::pair<real_t, real_t>& obs, const BinType& pos_bins,
+                     const BinType& vel_bins){
 
     auto pos = cubeai::bin_index(obs.first, pos_bins);
     auto vel = cubeai::bin_index(obs.second, vel_bins);
@@ -135,6 +136,7 @@ ApproxMC<Env>::reset(){
 
     this->AlgorithmBase::reset();
     env_.reset();
+    dt_ = 1.0;
 }
 
 template<typename Env>
@@ -211,7 +213,7 @@ template<typename Env>
 void
 ApproxMC<Env>::update_weights(real_t total_return, state_type state, real_t t){
 
-    auto itr = weights_.find(state); //is_state_included(weights_.begin(), weights_.end(), state);
+    auto itr = weights_.find(state);
     if( itr != weights_.end()){
 
         std::get<1>(*itr) = total_return;
@@ -255,7 +257,6 @@ int main(){
         std::vector<real_t> lrs{0.1, 0.01, 0.001};
 
         for(const auto lr: lrs){
-
 
             auto model = ApproxMC<MountainCar>(env, N_EPISODES,
                                                N_ITRS_PER_EPISODE, TOL, lr, GAMMA);
