@@ -21,7 +21,7 @@ LINK_DIRECTORIES(${Boost_LIBRARY_DIRS})
 LINK_DIRECTORIES(/home/alex/qi3/cubeAI/gymcpp/install/)
 LINK_DIRECTORIES(/usr/lib/python3.8/config-3.8-x86_64-linux-gnu/)
 
-
+ADD_SUBDIRECTORY(example_0)
 ADD_SUBDIRECTORY(example_1)
 ADD_SUBDIRECTORY(example_2)
 ADD_SUBDIRECTORY(example_3)
