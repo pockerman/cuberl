@@ -12,6 +12,15 @@ AlgorithmBase::AlgorithmBase(uint_t n_max_itrs, real_t tolerance)
     itr_ctrl_(n_max_itrs, tolerance)
 {}
 
+AlgorithmBase::AlgorithmBase(RLAlgoConfig config)
+    :
+    AlgorithmBase(config.n_episodes, config.tolerance)
+
+{
+    render_env_ = config.render_environment;
+    render_env_frequency_ = config.render_env_frequency;
+}
+
 
 IterativeAlgorithmResult
 AlgorithmBase::train(){
