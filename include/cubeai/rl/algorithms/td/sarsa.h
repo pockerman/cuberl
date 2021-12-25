@@ -115,7 +115,7 @@ Sarsa<TimeStepTp, ActionSelector>::on_episode(){
         }
 
         // Take a on_episode
-        auto step_type_result = this->env_ref_().on_episode(action);
+        auto step_type_result = this->env_ref_().step(action);
 
         auto next_state = step_type_result.observation();
         auto reward = step_type_result.reward();

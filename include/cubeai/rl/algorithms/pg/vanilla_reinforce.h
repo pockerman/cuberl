@@ -232,7 +232,7 @@ void Reinforce<WorldTp, PolicyTp, OptimizerTp>::do_step_(){
             }
 
             saved_log_probs_.push_back(log_prob);
-            auto time_step = world_ptr_ ->on_episode(action);
+            auto time_step = world_ptr_ ->step(action);
             state = time_step.observation();
 
             rewards_.push_back(time_step.reward());
@@ -285,7 +285,7 @@ void Reinforce<WorldTp, PolicyTp, OptimizerTp>::on_episode(){
 
     // backward propagate policy loss i.e. policy_loss.backward();
     policy_ptr_ -> step_backward_policy_loss();
-    opt_ptr_ -> on_episode();
+    opt_ptr_ -> step();
 
     auto scores_mean = std::accumulate(scores_deque_.begin(), scores_deque_.end(), 0.0);
     scores_mean /= std::distance(scores_deque_.begin(), scores_deque_.end());

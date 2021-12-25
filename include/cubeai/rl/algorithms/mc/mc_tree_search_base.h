@@ -8,13 +8,16 @@
 
 #include <vector>
 #include <memory>
+#include <cmath>
 
 namespace cubeai{
 namespace rl{
 namespace algos{
 
 
-
+///
+/// \brief The MCTreeSearchConfig struct
+///
 struct MCTreeSearchConfig: public RLAlgoConfig
 {
     uint_t max_tree_depth = 1000;
@@ -27,6 +30,9 @@ class MCTreeNodeBase
 {
 public:
 
+    ///
+    ///
+    ///
     virtual ~MCTreeNodeBase()=default;
 
     ///
@@ -41,12 +47,35 @@ public:
     void update_visits()noexcept{total_visits_ += 1;}
 
     ///
+    /// \brief update_total_score
+    /// \param score
+    ///
+    void update_total_score(real_t score)noexcept {total_score_ + score;}
+
+    ///
     /// \brief ucb
     /// \param temperature
     /// \return
     ///
     real_t ucb(real_t temperature )const;
 
+    ///
+    /// \brief win_pct
+    /// \return
+    ///
+    real_t win_pct()const{return total_score_ / total_visits_ ;}
+
+    ///
+    /// \brief total_visits
+    /// \return
+    ///
+    uint_t total_visits()const noexcept{return total_visits_;}
+
+    ///
+    /// \brief parent
+    /// \return
+    ///
+    std::shared_ptr<MCTreeNodeBase> parent(){return parent_;}
 
 protected:
 
@@ -72,6 +101,19 @@ protected:
 
 };
 
+template<typename ActionTp, typename StateTp>
+void
+MCTreeNodeBase<ActionTp, StateTp>::add_child(std::shared_ptr<MCTreeNodeBase<ActionTp, StateTp>> child){
+
+}
+
+template<typename ActionTp, typename StateTp>
+real_t
+MCTreeNodeBase<ActionTp, StateTp>::ucb(real_t temperature )const{
+
+    return win_pct() + std::sqrt(std::log(parent_ -> total_visits()) / total_visits_);
+}
+
 ///
 /// \brief MCTreeSearchBase.
 ///
@@ -81,7 +123,7 @@ class MCTreeSearchBase: public AlgorithmBase
 public:
 
     static_assert (std::is_default_constructible<typename EnvTp::action_type>::value, "Action type is not default constructible");
-    static_assert (std::is_default_constructible<typename EnvTp::action_type>::state_type, "State type is not default constructible");
+    static_assert (std::is_default_constructible<typename EnvTp::state_type>::value, "State type is not default constructible");
 
     ///
     /// \brief env_type
@@ -119,8 +161,7 @@ public:
     ///
     /// \brief backprop
     ///
-    virtual void backprop(std::shared_ptr<node_type> node);
-
+    virtual void backprop(std::shared_ptr<node_type> node)=0;
 
 protected:
 
@@ -155,11 +196,17 @@ MCTreeSearchBase<EnvTp, NodeTp>::MCTreeSearchBase(MCTreeSearchConfig config, env
       env_(env)
 {}
 
+template<typename EnvTp, typename NodeTp>
+void
+MCTreeSearchBase<EnvTp, NodeTp>::actions_after_training_episodes(){
+
+    //this->AlgorithmBase::actions_after_training_episodes();
+}
 
 template<typename EnvTp, typename NodeTp>
 void
 MCTreeSearchBase<EnvTp, NodeTp>::actions_before_training_episodes(){
-    this->AlgorithmBase::actions_before_training_episodes();
+    //this->AlgorithmBase::actions_before_training_episodes();
 }
 
 template<typename EnvTp, typename NodeTp>

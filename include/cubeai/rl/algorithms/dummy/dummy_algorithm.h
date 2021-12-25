@@ -111,7 +111,7 @@ DummyAlgorithm<EnvTp>::on_episode(){
     for(uint_t episode_itr=0; episode_itr < n_itrs_per_episode_; ++episode_itr){
         auto action = env_.sample();
 
-        auto time_step = env_.on_episode(action);
+        auto time_step = env_.step(action);
         episode_rewards += time_step.reward();
 
         if((this->render_environment()) && ((episode_itr % this->render_env_frequency()) == 0)){

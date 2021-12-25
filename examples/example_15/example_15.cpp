@@ -234,7 +234,7 @@ ApproxMC<Env>::on_episode(){
         auto state = get_aggregated_state({env_state.observation()[0], env_state.observation()[1]} , pos_bins, vel_bins);
         auto action = policy_(state.second);
 
-        auto next_time_step = env_.on_episode(action);
+        auto next_time_step = env_.step(action);
     }
 }
 
