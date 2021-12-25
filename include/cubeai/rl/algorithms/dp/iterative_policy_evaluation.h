@@ -36,13 +36,13 @@ public:
     ///
     /// \brief IterativePolicyEval
     ///
-    IterativePolicyEval(uint_t n_max_itrs, real_t tolerance, real_t gamma,
+    IterativePolicyEval(uint_t n_episodes, real_t tolerance, real_t gamma,
                         env_t& env, std::shared_ptr<policy_t> policy);
 
     ///
-    /// \brief step
+    /// \brief on_episode
     ///
-    virtual void step()override final;
+    virtual void on_episode()override final;
 
     ///
     /// \brief policy
@@ -77,16 +77,16 @@ protected:
 };
 
 template<typename TimeStepTp>
-IterativePolicyEval<TimeStepTp>::IterativePolicyEval(uint_t n_max_itrs, real_t tolerance, real_t gamma,
+IterativePolicyEval<TimeStepTp>::IterativePolicyEval(uint_t n_episodes, real_t tolerance, real_t gamma,
                                          env_t& env, std::shared_ptr<policy_t> policy)
     :
-      DPAlgoBase<TimeStepTp>(n_max_itrs, tolerance, gamma, env),
+      DPAlgoBase<TimeStepTp>(n_episodes, tolerance, gamma, env),
       policy_(policy)
 {}
 
 template<typename TimeStepTp>
 void
-IterativePolicyEval<TimeStepTp>::step(){
+IterativePolicyEval<TimeStepTp>::on_episode(){
 
     auto delta = 0.0;
 

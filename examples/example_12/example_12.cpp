@@ -182,7 +182,7 @@ public:
     gymfcpp::CartPole::Screen get_screen()const{return env_.get_screen();}
 
     template<typename ActionTp>
-    auto step(const ActionTp& a){return env_.step(a);}
+    auto on_episode(const ActionTp& a){return env_.on_episode(a);}
 
     auto reset(){return env_.reset();}
 
@@ -296,7 +296,7 @@ public:
     void train();
 
     template<typename ActionTp>
-    gymfcpp::TimeStep<time_step_t> step(const ActionTp& a){return env_ptr_->step(a);}
+    gymfcpp::TimeStep<time_step_t> on_episode(const ActionTp& a){return env_ptr_->on_episode(a);}
 
     template<typename StateTp>
     uint_t select_action(const StateTp& state);
@@ -397,7 +397,7 @@ CartPoleDQNAgent::train_step(){
     loss.backward();
     for(auto& param : policy_net_->parameters())
         param.grad().data().clamp_(-1, 1);
-    optimizer_.step();
+    optimizer_.on_episode();
 }
 
 void
@@ -418,8 +418,8 @@ CartPoleDQNAgent::train(){
             // select an action
             auto action = select_action(state);
 
-            // step in the environment
-            auto step_time = env_ptr_->step(action);
+            // on_episode in the environment
+            auto step_time = env_ptr_->on_episode(action);
 
             // update states
             last_screen = current_screen;

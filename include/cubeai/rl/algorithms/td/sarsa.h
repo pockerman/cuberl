@@ -51,14 +51,14 @@ public:
     ///
     /// \brief Sarsa
     ///
-    Sarsa(uint_t n_max_itrs, real_t tolerance,
+    Sarsa(uint_t n_episodes, real_t tolerance,
           real_t gamma, real_t eta, uint_t plot_f,
           env_t& env, uint_t max_num_iterations_per_episode, const ActionSelector& selector);
 
     ///
-    /// \brief step
+    /// \brief on_episode
     ///
-    virtual void step()override final;
+    virtual void on_episode()override final;
 
 private:
 
@@ -81,11 +81,11 @@ private:
 };
 
 template <typename TimeStepTp, typename ActionSelector>
-Sarsa<TimeStepTp, ActionSelector>::Sarsa(uint_t n_max_itrs, real_t tolerance, real_t gamma,
+Sarsa<TimeStepTp, ActionSelector>::Sarsa(uint_t n_episodes, real_t tolerance, real_t gamma,
                                          real_t eta, uint_t plot_f,
                                          env_t& env, uint_t max_num_iterations_per_episode, const ActionSelector& selector)
     :
-      TDAlgoBase<TimeStepTp>(n_max_itrs, tolerance, gamma, eta, plot_f, max_num_iterations_per_episode, env),
+      TDAlgoBase<TimeStepTp>(n_episodes, tolerance, gamma, eta, plot_f, max_num_iterations_per_episode, env),
       current_score_counter_(0),
       action_selector_(selector)
 {}
@@ -93,10 +93,10 @@ Sarsa<TimeStepTp, ActionSelector>::Sarsa(uint_t n_max_itrs, real_t tolerance, re
 
 template <typename TimeStepTp, typename ActionSelector>
 void
-Sarsa<TimeStepTp, ActionSelector>::step(){
+Sarsa<TimeStepTp, ActionSelector>::on_episode(){
 
 
-     std::cout<<"Starting episode="<<this->current_iteration()<<std::endl;
+     std::cout<<"Starting episode="<<this->current_episode_idx()<<std::endl;
 
     // total score for the episode
     auto score = 0.0;
@@ -114,8 +114,8 @@ Sarsa<TimeStepTp, ActionSelector>::step(){
             std::cout<<"Action="<<action<<std::endl;
         }
 
-        // Take a step
-        auto step_type_result = this->env_ref_().step(action);
+        // Take a on_episode
+        auto step_type_result = this->env_ref_().on_episode(action);
 
         auto next_state = step_type_result.observation();
         auto reward = step_type_result.reward();
@@ -143,7 +143,7 @@ Sarsa<TimeStepTp, ActionSelector>::step(){
 
             if(this->is_verbose()){
                 std::cout<<"============================================="<<std::endl;
-                std::cout<<"Break out from episode="<<this->current_iteration()<<std::endl;
+                std::cout<<"Break out from episode="<<this->current_episode_idx()<<std::endl;
                 std::cout<<"============================================="<<std::endl;
             }
 
@@ -151,23 +151,23 @@ Sarsa<TimeStepTp, ActionSelector>::step(){
         }
     }
 
-    if(this->current_iteration() % this->plot_frequency() == 0){
+    if(this->current_episode_idx() % this->plot_frequency() == 0){
 
         boost::accumulators::accumulator_set<real_t, boost::accumulators::stats<boost::accumulators::tag::mean > > acc;
         std::for_each(this->tmp_scores().begin(), this->tmp_scores().end(), boost::bind<void>( boost::ref(acc), _1 ) );
-        this->avg_scores()[this->current_iteration()] = boost::accumulators::mean(acc);
+        this->avg_scores()[this->current_episode_idx()] = boost::accumulators::mean(acc);
     }
 
 
     // make any adjustments to the way
     // actions are selected given the experience collected
     // in the episode
-    action_selector_.adjust_on_episode(this->current_iteration());
+    action_selector_.adjust_on_episode(this->current_episode_idx());
     if(current_score_counter_ >= this->plot_frequency()){
         current_score_counter_ = 0;
     }
 
-    std::cout<<"Finished step="<<this->current_iteration()<<std::endl;
+    std::cout<<"Finished on_episode="<<this->current_episode_idx()<<std::endl;
 }
 
 template <typename TimeStepTp, typename ActionSelector>

@@ -27,16 +27,16 @@ public:
     virtual ~AlgorithmBase() = default;
 
     ///
-    /// \brief actions_before_training_iterations. Execute any actions the
+    /// \brief actions_before_training_episodes. Execute any actions the
     /// algorithm needs before starting the iterations
     ///
-    virtual void actions_before_training_iterations() = 0;
+    virtual void actions_before_training_episodes() = 0;
 
     ///
-    /// \brief actions_after_training_iterations. Actions to execute after
+    /// \brief actions_after_training_episodes. Actions to execute after
     /// the training iterations have finisehd
     ///
-    virtual void actions_after_training_iterations() = 0;
+    virtual void actions_after_training_episodes() = 0;
 
     ///
     /// \brief actions_before_training_episode
@@ -49,9 +49,9 @@ public:
     virtual void actions_after_training_episode(){}
 
     ///
-    /// \brief step Do one step of the algorithm
+    /// \brief on_episode Do one on_episode of the algorithm
     ///
-    virtual void step() = 0;
+    virtual void on_episode() = 0;
 
     ///
     /// \brief reset. Reset the underlying data structures to the point when the constructor is called.
@@ -92,23 +92,23 @@ public:
     uint_t render_env_frequency()const noexcept{return render_env_frequency_;}
 
     ///
-    /// \brief current_iteration
+    /// \brief current_episode_idx
     /// \return
     ///
-    uint_t current_iteration()const{return itr_ctrl_.get_current_iteration();}
+    uint_t current_episode_idx()const{return itr_ctrl_.get_current_iteration();}
 
     ///
-    /// \brief n_max_itrs
+    /// \brief n_episodes
     /// \return
     ///
-    uint_t n_max_itrs()const{return this->itr_ctrl_.get_max_iterations();}
+    uint_t n_episodes()const{return this->itr_ctrl_.get_max_iterations();}
 
 protected:
 
     ///
     /// \brief AlgorithmBase
     ///
-    AlgorithmBase(uint_t n_max_itrs, real_t tolerance);
+    AlgorithmBase(uint_t n_episodes, real_t tolerance);
 
 
     ///

@@ -97,7 +97,7 @@ int main(){
            loss.backward();
 
            // update parameters
-           sgd.step();
+           sgd.on_episode();
            std::cout<<"Epoch="<<e<<" loss="<<loss<<std::endl;
          }
     }

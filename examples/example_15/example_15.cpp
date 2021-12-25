@@ -82,11 +82,11 @@ public:
     ApproxMC(Env& env, uint_t n_episodes, uint_t n_itrs_per_episode,
              real_t tolerance, real_t lr, real_t gamma);
 
-    virtual void actions_before_training_iterations() final override;
-    virtual void actions_after_training_iterations() final override {}
+    virtual void actions_before_training_episodes() final override;
+    virtual void actions_after_training_episodes() final override {}
     virtual void actions_before_training_episode() final override;
     virtual void actions_after_training_episode() final override;
-    virtual void step() final override;
+    virtual void on_episode() final override;
     virtual void reset();
     real_t state_value(uint_t pos, uint_t vel)const;
     void update_weights(real_t total_return, state_type state, real_t t);
@@ -126,7 +126,7 @@ ApproxMC<Env>::ApproxMC(Env& env, uint_t n_episodes, uint_t n_itrs_per_episode,
 
 template<typename Env>
 void
-ApproxMC<Env>::actions_before_training_iterations(){
+ApproxMC<Env>::actions_before_training_episodes(){
    this->reset();
 }
 
@@ -143,10 +143,10 @@ template<typename Env>
 void
 ApproxMC<Env>::actions_before_training_episode(){
 
-    if(this->current_iteration() % 1000 ==0){
+    if(this->current_episode_idx() % 1000 ==0){
         dt_ += 0.1;
 
-        auto idx = this->current_iteration() /  1000;
+        auto idx = this->current_episode_idx() /  1000;
         auto state = get_aggregated_state(std::make_pair(0.43, 0.054), pos_bins, vel_bins);
         near_exit_[idx] = state_value(state.first, state.second);
 
@@ -225,7 +225,7 @@ ApproxMC<Env>::update_weights(real_t total_return, state_type state, real_t t){
 
 template<typename Env>
 void
-ApproxMC<Env>::step(){
+ApproxMC<Env>::on_episode(){
 
     auto env_state = env_.reset();
 
@@ -234,7 +234,7 @@ ApproxMC<Env>::step(){
         auto state = get_aggregated_state({env_state.observation()[0], env_state.observation()[1]} , pos_bins, vel_bins);
         auto action = policy_(state.second);
 
-        auto next_time_step = env_.step(action);
+        auto next_time_step = env_.on_episode(action);
     }
 }
 

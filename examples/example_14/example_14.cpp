@@ -37,7 +37,7 @@ public:
     virtual uint_t n_states()const override final {return env_impl_.n_states();}
 
     virtual std::vector<std::tuple<real_t, uint_t, real_t, bool>> transition_dynamics(uint_t s, uint_t aidx)const override final;
-    virtual time_step_t step(const action_t&)override final;
+    virtual time_step_t on_episode(const action_t&)override final;
     virtual time_step_t reset() override final;
     virtual  void build(bool reset) override final;
 
@@ -68,8 +68,8 @@ CliffWalkingEnv::build(bool reset_){
 }
 
 CliffWalkingEnv::time_step_t
-CliffWalkingEnv::step(const action_t& action){
-    return env_impl_.step(action);
+CliffWalkingEnv::on_episode(const action_t& action){
+    return env_impl_.on_episode(action);
 }
 
 CliffWalkingEnv::time_step_t

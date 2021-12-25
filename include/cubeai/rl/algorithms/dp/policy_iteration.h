@@ -39,21 +39,21 @@ public:
                     std::shared_ptr<cubeai::rl::policies::DiscretePolicyAdaptorBase> policy_adaptor);
 
     ///
-    /// \brief step
+    /// \brief on_episode
     ///
-    virtual void step() override final;
+    virtual void on_episode() override final;
 
     ///
-    /// \brief actions_before_training_iterations. Execute any actions the
+    /// \brief actions_before_training_episodes. Execute any actions the
     /// algorithm needs before starting the iterations
     ///
-    virtual void actions_before_training_iterations() override final;
+    virtual void actions_before_training_episodes() override final;
 
     ///
-    /// \brief actions_after_training_iterations. Actions to execute after
+    /// \brief actions_after_training_episodes. Actions to execute after
     /// the training iterations have finisehd
     ///
-    virtual void actions_after_training_iterations()override final{this->value_func() = policy_eval_.value_func();}
+    virtual void actions_after_training_episodes()override final{this->value_func() = policy_eval_.value_func();}
 
 private:
 
@@ -84,16 +84,16 @@ PolicyIteration<TimeStepTp>::PolicyIteration(uint_t n_max_iterations, real_t tol
 
 template<typename TimeStepTp>
 void
-PolicyIteration<TimeStepTp>::actions_before_training_iterations(){
+PolicyIteration<TimeStepTp>::actions_before_training_episodes(){
 
-    this->DPAlgoBase<TimeStepTp>::actions_before_training_iterations();
-    policy_eval_.actions_before_training_iterations();
-    policy_imp_.actions_before_training_iterations();
+    this->DPAlgoBase<TimeStepTp>::actions_before_training_episodes();
+    policy_eval_.actions_before_training_episodes();
+    policy_imp_.actions_before_training_episodes();
 }
 
 template<typename TimeStepTp>
 void
-PolicyIteration<TimeStepTp>::step(){
+PolicyIteration<TimeStepTp>::on_episode(){
 
     // make a copy of the policy already obtained
     auto old_policy = policy_eval_.policy().make_copy();

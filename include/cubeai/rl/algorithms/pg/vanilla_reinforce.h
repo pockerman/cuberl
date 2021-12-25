@@ -61,21 +61,21 @@ public:
     Reinforce(ReinforceOpts opts, world_t& world, policy_t& policy, optimizer_t& opt);
 
     ///
-    /// \brief actions_before_training_iterations. Execute any actions the
+    /// \brief actions_before_training_episodes. Execute any actions the
     /// algorithm needs before starting the iterations
     ///
-    virtual void actions_before_training_iterations() override;
+    virtual void actions_before_training_episodes() override;
 
     ///
-    /// \brief actions_after_training_iterations. Actions to execute after
+    /// \brief actions_after_training_episodes. Actions to execute after
     /// the training iterations have finisehd
     ///
-    virtual void actions_after_training_iterations() override{}
+    virtual void actions_after_training_episodes() override{}
 
     ///
-    /// \brief step Do one step of the algorithm
+    /// \brief on_episode Do one on_episode of the algorithm
     ///
-    virtual void step() override;
+    virtual void on_episode() override;
 
     ///
     /// \brief print_frequency
@@ -173,7 +173,7 @@ Reinforce<WorldTp, PolicyTp, OptimizerTp>::Reinforce(ReinforceOpts opts, world_t
 
 template<typename WorldTp, typename PolicyTp, typename OptimizerTp>
 void
-Reinforce<WorldTp, PolicyTp, OptimizerTp>::actions_before_training_iterations(){
+Reinforce<WorldTp, PolicyTp, OptimizerTp>::actions_before_training_episodes(){
 
     world_ptr_-> reset();
     scores_.clear();
@@ -232,7 +232,7 @@ void Reinforce<WorldTp, PolicyTp, OptimizerTp>::do_step_(){
             }
 
             saved_log_probs_.push_back(log_prob);
-            auto time_step = world_ptr_ ->step(action);
+            auto time_step = world_ptr_ ->on_episode(action);
             state = time_step.observation();
 
             rewards_.push_back(time_step.reward());
@@ -245,7 +245,7 @@ void Reinforce<WorldTp, PolicyTp, OptimizerTp>::do_step_(){
 }
 
 template<typename WorldTp, typename PolicyTp, typename OptimizerTp>
-void Reinforce<WorldTp, PolicyTp, OptimizerTp>::step(){
+void Reinforce<WorldTp, PolicyTp, OptimizerTp>::on_episode(){
 
     //  for every episode reset the environment
     //auto state = world_ptr_ ->reset().observation();
@@ -285,18 +285,18 @@ void Reinforce<WorldTp, PolicyTp, OptimizerTp>::step(){
 
     // backward propagate policy loss i.e. policy_loss.backward();
     policy_ptr_ -> step_backward_policy_loss();
-    opt_ptr_ -> step();
+    opt_ptr_ -> on_episode();
 
     auto scores_mean = std::accumulate(scores_deque_.begin(), scores_deque_.end(), 0.0);
     scores_mean /= std::distance(scores_deque_.begin(), scores_deque_.end());
 
 
-    if(this->current_iteration() % print_frequency() == 0){
-        std::cout<<"Episode: "<<this->current_iteration()<<" average score: "<<scores_mean<<std::endl;
+    if(this->current_episode_idx() % print_frequency() == 0){
+        std::cout<<"Episode: "<<this->current_episode_idx()<<" average score: "<<scores_mean<<std::endl;
     }
 
     if(scores_mean > exit_score_level_){
-        std::cout<<"Environment solved in "<<this->current_iteration()<<". Average score: "<<scores_mean<<std::endl;
+        std::cout<<"Environment solved in "<<this->current_episode_idx()<<". Average score: "<<scores_mean<<std::endl;
         auto res = this->iter_controller_().get_residual();
         this->iter_controller_().update_residual(res * 1.0e-2);
     }
