@@ -72,9 +72,9 @@ public:
     ///
     virtual void write_header();
 
-    /// \
+    ///
     /// \brief Returns the type of the file
-    /// \
+    ///
     FileFormats::Type get_type()const{return t_;}
     
     ///
