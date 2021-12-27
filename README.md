@@ -29,9 +29,20 @@ CubeAI is a C++ library containing implementations of various reinforcement lear
 ## Dependencies
 
 - CMake
+- Python >= 3.8
 - PyTorch
-- Blaze
+- Blaze (3.8)
 - gymfcpp
+
+### Documentation dependencies
+
+There are extra dependencies if you want to generate the documentation. Namely,
+
+- Doxygen
+- Sphinx
+- sphinx_rtd_theme
+- breathe
+- m2r2
 
 ## Installation
 
@@ -45,6 +56,16 @@ If you are using ```gymfcpp``` you need to export the path to the Python version
 ```
 export CPLUS_INCLUDE_PATH="$CPLUS_INCLUDE_PATH:/usr/include/python3.8/"
 ```
+
+## Issues
+
+### ```pyconfig.h``` not found
+
+- Export the path to your Python library directory as shown above
+
+### Problems with Blaze includes
+
+- ```cubeai``` is using Blaze-3.8. As of this version the ```FIND_PACKAGE( blaze )``` command does not populate ```BLAZE_INCLUDE_DIRS``` therefore you manually have to set the variable appropriately for your system.
 
 
 
