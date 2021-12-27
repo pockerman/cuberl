@@ -12,7 +12,7 @@
 #include "boost/accumulators/accumulators.hpp"
 #include <boost/accumulators/statistics/stats.hpp>
 #include "boost/accumulators/statistics/mean.hpp"
-#include "boost/bind.hpp"
+#include "boost/bind/bind.hpp"
 #include "boost/ref.hpp"
 
 #include <iostream>
@@ -21,6 +21,8 @@ namespace cubeai{
 namespace rl {
 namespace algos {
 namespace td {
+
+using namespace boost::placeholders;
 
 
 template <typename TimeStepTp, typename ActionSelector>
