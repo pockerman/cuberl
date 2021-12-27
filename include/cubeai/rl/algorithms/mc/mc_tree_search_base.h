@@ -6,9 +6,16 @@
 #include "cubeai/rl/algorithms/rl_algo_config.h"
 #include "cubeai/utils/iteration_mixin.h"
 
+#include "cubeai/base/cubeai_config.h"
+
+#ifdef CUBEAI_DEBUG
+#include <cassert>
+#endif
+
 #include <vector>
 #include <memory>
 #include <cmath>
+#include <algorithm>
 
 namespace cubeai{
 namespace rl{
@@ -30,6 +37,16 @@ class MCTreeNodeBase
 {
 public:
 
+    typedef ActionTp action_type;
+    typedef StateTp state_type;
+
+    ///
+    /// \brief MCTreeNodeBase
+    /// \param parent
+    /// \param action
+    ///
+    MCTreeNodeBase(std::shared_ptr<MCTreeNodeBase> parent, action_type action);
+
     ///
     ///
     ///
@@ -42,15 +59,57 @@ public:
     void add_child(std::shared_ptr<MCTreeNodeBase<ActionTp, StateTp>> child);
 
     ///
+    /// \brief add_child
+    /// \param parent
+    /// \param action
+    ///
+    void add_child(std::shared_ptr<MCTreeNodeBase<ActionTp, StateTp>> parent, action_type action);
+
+    ///
+    /// \brief has_children
+    /// \return
+    ///
+    bool has_children()const noexcept{return children_.empty() != true;}
+
+    ///
+    /// \brief get_child
+    /// \param cidx
+    /// \return
+    ///
+    std::shared_ptr<MCTreeNodeBase> get_child(uint_t cidx){return children_[cidx];}
+
+    ///
+    /// \brief n_children
+    /// \return
+    ///
+    uint_t n_children()const noexcept{return children_.size();}
+
+    ///
+    /// \brief shuffle_children
+    ///
+    void shuffle_children()noexcept;
+
+    ///
+    /// \brief explored_children
+    /// \return
+    ///
+    uint_t n_explored_children()const noexcept{return explored_children_;}
+
+    ///
     /// \brief update_visits
     ///
     void update_visits()noexcept{total_visits_ += 1;}
 
     ///
+    ///
+    ///
+    void update_explored_children()noexcept{explored_children_ += 1;}
+
+    ///
     /// \brief update_total_score
     /// \param score
     ///
-    void update_total_score(real_t score)noexcept {total_score_ + score;}
+    void update_total_score(real_t score)noexcept {total_score_ += score;}
 
     ///
     /// \brief ucb
@@ -58,6 +117,12 @@ public:
     /// \return
     ///
     real_t ucb(real_t temperature )const;
+
+    ///
+    /// \brief max_ucb_child
+    /// \return
+    ///
+    std::shared_ptr<MCTreeNodeBase> max_ucb_child(real_t temperature)const;
 
     ///
     /// \brief win_pct
@@ -72,12 +137,20 @@ public:
     uint_t total_visits()const noexcept{return total_visits_;}
 
     ///
+    /// \brief get_action
+    /// \return
+    ///
+    uint_t get_action()const noexcept{return action_;}
+
+    ///
     /// \brief parent
     /// \return
     ///
     std::shared_ptr<MCTreeNodeBase> parent(){return parent_;}
 
 protected:
+
+
 
     ///
     /// \brief total_score_
@@ -88,6 +161,16 @@ protected:
     /// \brief total_visits_
     ///
     uint_t total_visits_;
+
+    ///
+    /// \brief explored_children_
+    ///
+    uint_t explored_children_;
+
+    ///
+    /// \brief action_
+    ///
+    action_type action_;
 
     ///
     /// \brief parent_
@@ -102,16 +185,79 @@ protected:
 };
 
 template<typename ActionTp, typename StateTp>
+MCTreeNodeBase<ActionTp, StateTp>::MCTreeNodeBase(std::shared_ptr<MCTreeNodeBase> parent, action_type action)
+    :
+    total_score_(0.0),
+    total_visits_(0),
+    explored_children_(0),
+    action_(action),
+    parent_(parent),
+    children_()
+{}
+
+
+template<typename ActionTp, typename StateTp>
 void
 MCTreeNodeBase<ActionTp, StateTp>::add_child(std::shared_ptr<MCTreeNodeBase<ActionTp, StateTp>> child){
 
+#ifdef CUBEAI_DEBUG
+    assert(child != nullptr && "Cannot add null children");
+#endif
+
+   children_.push_back(child);
+
+}
+
+template<typename ActionTp, typename StateTp>
+void
+MCTreeNodeBase<ActionTp, StateTp>::shuffle_children()noexcept{
+
+    if(children_.empty()){
+        return;
+    }
+
+    std::random_shuffle(children_.begin(), children_.end());
+}
+
+template<typename ActionTp, typename StateTp>
+void
+MCTreeNodeBase<ActionTp, StateTp>::add_child(std::shared_ptr<MCTreeNodeBase<ActionTp, StateTp>> parent, action_type action){
+
+    add_child(std::make_shared<MCTreeNodeBase<ActionTp, StateTp>>(parent, action));
+}
+
+template<typename ActionTp, typename StateTp>
+std::shared_ptr<MCTreeNodeBase<ActionTp, StateTp>>
+MCTreeNodeBase<ActionTp, StateTp>::max_ucb_child(real_t temperature)const{
+
+    if(children_.empty()){
+        return std::shared_ptr<MCTreeNodeBase>();
+    }
+
+    auto current_ucb = children_[0]->ucb(temperature);
+    auto current_idx = 0;
+    auto dummy_idx = 0;
+    for(auto node : children_){
+
+        auto node_ucb = node->ucb(temperature);
+
+        if(node_ucb > current_ucb){
+
+            current_idx = dummy_idx;
+            current_ucb = node_ucb;
+        }
+
+        dummy_idx += 1;
+    }
+
+    return children_[current_idx];
 }
 
 template<typename ActionTp, typename StateTp>
 real_t
 MCTreeNodeBase<ActionTp, StateTp>::ucb(real_t temperature )const{
 
-    return win_pct() + std::sqrt(std::log(parent_ -> total_visits()) / total_visits_);
+    return win_pct() + temperature * std::sqrt(std::log(parent_ -> total_visits()) / total_visits_);
 }
 
 ///
@@ -153,15 +299,27 @@ public:
     virtual void on_episode() = 0;
 
     ///
+    /// \brief simulate_node
+    /// \param node
+    ///
+    virtual typename env_type::time_step_type simulate_node(std::shared_ptr<node_type> node, env_type& env)=0;
+
+    ///
     /// \brief expand_node
     /// \param node
     ///
-    virtual void expand_node(std::shared_ptr<node_type> node)=0;
+    virtual void expand_node(std::shared_ptr<node_type> node, env_type& env)=0;
 
     ///
     /// \brief backprop
     ///
     virtual void backprop(std::shared_ptr<node_type> node)=0;
+
+    ///
+    /// \brief max_depth_tree
+    /// \return
+    ///
+    uint_t max_depth_tree()const noexcept{return max_depth_tree_;}
 
 protected:
 
@@ -186,6 +344,16 @@ protected:
     ///
     std::shared_ptr<node_type> root_;
 
+    ///
+    /// \brief max_depth_tree_
+    ///
+    uint_t max_depth_tree_;
+
+    ///
+    /// \brief temperature_
+    ///
+    real_t temperature_;
+
 };
 
 template<typename EnvTp, typename NodeTp>
@@ -193,7 +361,10 @@ MCTreeSearchBase<EnvTp, NodeTp>::MCTreeSearchBase(MCTreeSearchConfig config, env
     :
       AlgorithmBase(config.n_episodes, config.tolerance),
       itr_mix_(config.n_itrs_per_episode, config.render_episode),
-      env_(env)
+      env_(env),
+      root_(nullptr),
+      max_depth_tree_(config.max_tree_depth),
+      temperature_(config.temperature)
 {}
 
 template<typename EnvTp, typename NodeTp>
