@@ -7,9 +7,9 @@ namespace cubeai{
 namespace rl {
 namespace algos {
 
-AlgorithmBase::AlgorithmBase(uint_t n_max_itrs, real_t tolerance)
+AlgorithmBase::AlgorithmBase(uint_t n_episodes, real_t tolerance)
     :
-    itr_ctrl_(n_max_itrs, tolerance)
+    itr_ctrl_(n_episodes, tolerance)
 {}
 
 AlgorithmBase::AlgorithmBase(RLAlgoConfig config)
@@ -25,7 +25,7 @@ AlgorithmBase::AlgorithmBase(RLAlgoConfig config)
 IterativeAlgorithmResult
 AlgorithmBase::train(){
 
-    this->actions_before_training_iterations();
+    this->actions_before_training_episodes();
 
     while(itr_ctrl_.continue_iterations()){
 
@@ -35,11 +35,11 @@ AlgorithmBase::train(){
         }
 
         actions_before_training_episode();
-        this->step();
+        this->on_episode();
         actions_after_training_episode();
     }
 
-    this->actions_after_training_iterations();
+    this->actions_after_training_episodes();
 
     return itr_ctrl_.get_state();
 

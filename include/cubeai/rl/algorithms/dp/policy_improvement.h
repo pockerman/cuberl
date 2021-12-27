@@ -32,14 +32,14 @@ public:
     ///
     /// \brief IterativePolicyEval
     ///
-    PolicyImprovement(uint_t n_max_itrs,  real_t gamma, const DynVec<real_t>& val_func,
+    PolicyImprovement(uint_t n_episodes,  real_t gamma, const DynVec<real_t>& val_func,
                       env_t& env, std::shared_ptr<cubeai::rl::policies::DiscretePolicyBase> policy,
                       std::shared_ptr<cubeai::rl::policies::DiscretePolicyAdaptorBase> policy_adaptor);
 
     ///
-    /// \brief step
+    /// \brief on_episode
     ///
-    virtual void step()override final;
+    virtual void on_episode()override final;
 
     ///
     /// \brief policy
@@ -81,11 +81,11 @@ protected:
 };
 
 template<typename TimeStepTp>
-PolicyImprovement<TimeStepTp>::PolicyImprovement(uint_t n_max_itrs,  real_t gamma, const DynVec<real_t>& val_func,
+PolicyImprovement<TimeStepTp>::PolicyImprovement(uint_t n_episodes,  real_t gamma, const DynVec<real_t>& val_func,
                                                  env_t& env, std::shared_ptr<cubeai::rl::policies::DiscretePolicyBase> policy,
                                                  std::shared_ptr<cubeai::rl::policies::DiscretePolicyAdaptorBase> policy_adaptor)
     :
-      DPAlgoBase<TimeStepTp>(n_max_itrs, 1.0e-4, gamma, env),
+      DPAlgoBase<TimeStepTp>(n_episodes, 1.0e-4, gamma, env),
       policy_(policy),
       policy_adaptor_(policy_adaptor)
 {
@@ -94,7 +94,7 @@ PolicyImprovement<TimeStepTp>::PolicyImprovement(uint_t n_max_itrs,  real_t gamm
 
 template<typename TimeStepTp>
 void
-PolicyImprovement<TimeStepTp>::step(){
+PolicyImprovement<TimeStepTp>::on_episode(){
 
     std::map<std::string, std::any> options;
     for(uint_t s=0; s<this->env_ref_().n_states(); ++s){

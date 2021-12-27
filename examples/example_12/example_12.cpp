@@ -418,7 +418,7 @@ CartPoleDQNAgent::train(){
             // select an action
             auto action = select_action(state);
 
-            // step in the environment
+            // on_episode in the environment
             auto step_time = env_ptr_->step(action);
 
             // update states

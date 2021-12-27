@@ -43,21 +43,21 @@ public:
     virtual void reset() final override;
 
     ///
-    /// \brief actions_before_training_iterations. Execute any actions the
+    /// \brief actions_before_training_episodes. Execute any actions the
     /// algorithm needs before starting the iterations
     ///
-    virtual void actions_before_training_iterations() override final;
+    virtual void actions_before_training_episodes() override final;
 
     ///
-    /// \brief actions_after_training_iterations. Actions to execute after
+    /// \brief actions_after_training_episodes. Actions to execute after
     /// the training iterations have finisehd
     ///
-    virtual void actions_after_training_iterations() override final{}
+    virtual void actions_after_training_episodes() override final{}
 
     ///
-    /// \brief step Do one step of the algorithm
+    /// \brief on_episode Do one on_episode of the algorithm
     ///
-    virtual void step()override final;
+    virtual void on_episode()override final;
 
 protected:
 
@@ -98,14 +98,14 @@ DummyAlgorithm<EnvTp>::reset(){
 
 template<typename EnvTp>
 void
-DummyAlgorithm<EnvTp>::actions_before_training_iterations(){
+DummyAlgorithm<EnvTp>::actions_before_training_episodes(){
     this->reset();   
 }
 
 
 template<typename EnvTp>
 void
-DummyAlgorithm<EnvTp>::step(){
+DummyAlgorithm<EnvTp>::on_episode(){
 
     real_t episode_rewards = 0.0;
     for(uint_t episode_itr=0; episode_itr < n_itrs_per_episode_; ++episode_itr){
@@ -125,7 +125,7 @@ DummyAlgorithm<EnvTp>::step(){
            break;
         }
 
-     rewards_[this->current_iteration()] = episode_rewards;
+     rewards_[this->current_episode_idx()] = episode_rewards;
 
 }
 

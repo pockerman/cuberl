@@ -58,10 +58,10 @@ public:
     MCControl(const RLIterativeAlgoInput& input);
 
     ///
-    /// \brief step. Performs the iterations for
+    /// \brief on_episode. Performs the iterations for
     /// one training episode
     ///
-    virtual void step()override final;
+    virtual void on_episode()override final;
 
     ///
     /// \brief Initialize the underlying data structures
@@ -125,15 +125,15 @@ MCControl<WorldTp, PolicySamplerTp, TargetPolicyTp>::initialize(world_t& world, 
 
 template<typename WorldTp, typename PolicySamplerTp, typename TargetPolicyTp>
 void
-MCControl<WorldTp, PolicySamplerTp, TargetPolicyTp>::step(){
+MCControl<WorldTp, PolicySamplerTp, TargetPolicyTp>::on_episode(){
 
     for(uint_t itr=0; itr< this->get_total_itrs_per_episode(); ++itr){
 
         // get the action from the behavior
         auto action = behavior_policy_.get_action_index(*this->state_);
 
-        // step in the world
-        auto [new_state, reward, finished, info] = this->world_ptr_->step(static_cast<action_t>(action));
+        // on_episode in the world
+        auto [new_state, reward, finished, info] = this->world_ptr_->on_episode(static_cast<action_t>(action));
         episodes_.push_back(std::make_tuple(new_state, static_cast<action_t>(action), reward));
 
         if(finished){
