@@ -43,21 +43,21 @@ public:
                    std::shared_ptr<cubeai::rl::policies::DiscretePolicyAdaptorBase> policy_adaptor);
 
     ///
-    /// \brief step
+    /// \brief on_episode
     ///
-    virtual void step() override final;
+    virtual void on_episode() override final;
 
     ///
-    /// \brief actions_before_training_iterations. Execute any actions the
+    /// \brief actions_before_training_episodes. Execute any actions the
     /// algorithm needs before starting the iterations
     ///
-    virtual void actions_before_training_iterations() override final;
+    virtual void actions_before_training_episodes() override final;
 
     ///
-    /// \brief actions_after_training_iterations. Actions to execute after
+    /// \brief actions_after_training_episodes. Actions to execute after
     /// the training iterations have finisehd
     ///
-    virtual void actions_after_training_iterations() override final;
+    virtual void actions_after_training_episodes() override final;
 
     ///
     /// \brief policy_ptr
@@ -98,14 +98,14 @@ ValueIteration<TimeStepTp>::ValueIteration(uint_t n_max_iterations, real_t toler
 
 template<typename TimeStepTp>
 void
-ValueIteration<TimeStepTp>::actions_before_training_iterations(){
-    this->DPAlgoBase<TimeStepTp>::actions_before_training_iterations();
-    policy_imp_.actions_before_training_iterations();
+ValueIteration<TimeStepTp>::actions_before_training_episodes(){
+    this->DPAlgoBase<TimeStepTp>::actions_before_training_episodes();
+    policy_imp_.actions_before_training_episodes();
 }
 
 template<typename TimeStepTp>
 void
-ValueIteration<TimeStepTp>::step(){
+ValueIteration<TimeStepTp>::on_episode(){
 
     auto delta = 0.0;
     for(uint_t s=0; s< this->env_ref_().n_states(); ++s){
@@ -135,10 +135,10 @@ ValueIteration<TimeStepTp>::step(){
 
 template<typename TimeStepTp>
 void
-ValueIteration<TimeStepTp>::actions_after_training_iterations(){
+ValueIteration<TimeStepTp>::actions_after_training_episodes(){
 
     policy_imp_.value_func() = this->value_func();
-    policy_imp_.step();
+    policy_imp_.on_episode();
     policy_ = policy_imp_.policy().make_copy();
 
 }

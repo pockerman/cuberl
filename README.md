@@ -5,6 +5,8 @@ CubeAI is a C++ library containing implementations of various reinforcement lear
 
 ## Examples
 
+
+- <a href="examples/example_0/example_0.cpp">Example 0: DummyAgent on  ```MountainCar-v0```</a>
 - <a href="examples/example_1/example_1.cpp">Example 1: Toy Markov chain</a>
 - <a href="examples/example_2/example_2.cpp">Example 2: Multi-armed bandit with epsilon-greedy policy</a>
 - <a href="examples/example_3/example_3.cpp">Example 3: Multi-armed bandit with soft-max policy</a>
@@ -14,11 +16,12 @@ CubeAI is a C++ library containing implementations of various reinforcement lear
 - <a href="examples/example_9/example_9.cpp">Example 9: SARSA on ```CliffWalking-v0```</a>
 - <a href="examples/example_10/example_10.cpp">Example 10: Q-learning on ```CliffWalking-v0```</a>
 - <a href="examples/example_14/example_14.cpp">Example 14: Expected SARSA on ```CliffWalking-v0```</a>
-- <a href="#">Example 9: </a> A* search
-- <a href="#">TODO: </a> D* search
-- <a href="#">Example 29:</a> Path planning with rapidly-exploring random trees
-- <a href="#">Example 35:</a> Path planning with dynamic windows  
-
+- <a href="examples/example_15/example_15.cpp">Example 15: Approximate Monte Carlo on ```MountainCar-v0```</a>
+- <a href="examples/example_16/example_13.cpp">Example 16: Monte Carlo tree search on ```Taxi-v3```</a>
+- <a href="#">Example 17: A* search</a> 
+- <a href="#">Example 18: D* search</a> 
+- <a href="#">Example 19: Path planning with rapidly-exploring random trees</a> 
+- <a href="#">Example 20: Path planning with dynamic windows</a>   
 
 ### PyTorch based examples
 
@@ -30,9 +33,20 @@ CubeAI is a C++ library containing implementations of various reinforcement lear
 ## Dependencies
 
 - CMake
+- Python >= 3.8
 - PyTorch
-- Blaze
+- Blaze (3.8)
 - gymfcpp
+
+### Documentation dependencies
+
+There are extra dependencies if you want to generate the documentation. Namely,
+
+- Doxygen
+- Sphinx
+- sphinx_rtd_theme
+- breathe
+- m2r2
 
 ## Installation
 
@@ -46,6 +60,16 @@ If you are using ```gymfcpp``` you need to export the path to the Python version
 ```
 export CPLUS_INCLUDE_PATH="$CPLUS_INCLUDE_PATH:/usr/include/python3.8/"
 ```
+
+## Issues
+
+### ```pyconfig.h``` not found
+
+- Export the path to your Python library directory as shown above
+
+### Problems with Blaze includes
+
+- ```cubeai``` is using Blaze-3.8. As of this version the ```FIND_PACKAGE( blaze )``` command does not populate ```BLAZE_INCLUDE_DIRS``` therefore you manually have to set the variable appropriately for your system.
 
 
 

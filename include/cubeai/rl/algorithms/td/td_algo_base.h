@@ -3,7 +3,7 @@
 
 #include "cubeai/rl/algorithms/algorithm_base.h"
 #include "cubeai/rl/worlds/discrete_world.h"
-#include "cubeai/base/csv_file_writer.h"
+#include "cubeai/io/csv_file_writer.h"
 
 #include <unordered_map>
 #include <deque>
@@ -54,16 +54,16 @@ public:
     virtual ~TDAlgoBase() = default;
 
     ///
-    /// \brief actions_before_training_iterations. Execute any actions the
+    /// \brief actions_before_training_episodes. Execute any actions the
     /// algorithm needs before starting the iterations
     ///
-    virtual void actions_before_training_iterations();
+    virtual void actions_before_training_episodes();
 
     ///
-    /// \brief actions_after_training_iterations. Actions to execute after
+    /// \brief actions_after_training_episodes. Actions to execute after
     /// the training iterations have finisehd
     ///
-    virtual void actions_after_training_iterations();
+    virtual void actions_after_training_episodes();
 
     ///
     /// \brief gamma
@@ -154,7 +154,7 @@ protected:
      /// \brief DPAlgoBase
      /// \param name
      ///
-     TDAlgoBase(uint_t n_max_itrs, real_t tolerance, real_t gamma,
+     TDAlgoBase(uint_t n_episodes, real_t tolerance, real_t gamma,
                 real_t eta, uint_t plot_f, uint_t max_num_iterations_per_episode, env_t& env);
 
      ///
@@ -230,10 +230,10 @@ private:
 };
 
 template<typename TimeStepTp>
-TDAlgoBase<TimeStepTp>::TDAlgoBase(uint_t n_max_itrs, real_t tolerance, real_t gamma,
+TDAlgoBase<TimeStepTp>::TDAlgoBase(uint_t n_episodes, real_t tolerance, real_t gamma,
                                    real_t eta, uint_t plot_f, uint_t max_num_iterations_per_episode, env_t& env)
     :
-    AlgorithmBase(n_max_itrs, tolerance),
+    AlgorithmBase(n_episodes, tolerance),
     plot_freq_(plot_f),
     max_num_iterations_per_episode_(max_num_iterations_per_episode),
     gamma_(gamma),
@@ -259,19 +259,19 @@ TDAlgoBase<TimeStepTp>::reset(){
     tmp_scores_.clear();
     tmp_scores_.resize(plot_freq_);
     avg_scores_.clear();
-    avg_scores_.resize(this->n_max_itrs());
+    avg_scores_.resize(this->n_episodes());
 }
 
 template<typename TimeStepTp>
 void
-TDAlgoBase<TimeStepTp>::actions_before_training_iterations(){
+TDAlgoBase<TimeStepTp>::actions_before_training_episodes(){
     reset();
 }
 
 
 template<typename TimeStepTp>
 void
-TDAlgoBase<TimeStepTp>::actions_after_training_iterations(){
+TDAlgoBase<TimeStepTp>::actions_after_training_episodes(){
     make_value_function();
 }
 

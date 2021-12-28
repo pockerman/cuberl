@@ -20,20 +20,27 @@ ENDIF(COMMAND cmake_policy)
 
 SET(CUBEAILIB_VERSION_MAJOR 0)
 SET(CUBEAILIB_VERSION_MINOR 0)
-SET(CUBEAILIB_VERSION_PATCH 2)
+SET(CUBEAILIB_VERSION_PATCH 5)
 SET(CUBEAILIB_VERSION "${CUBEAILIB_VERSION_MAJOR}.${CUBEAILIB_VERSION_MINOR}.${CUBEAILIB_VERSION_PATCH}")
 MESSAGE(STATUS "CubeAI lib Version ${CUBEAILIB_VERSION}")
 
 SET(CMAKE_BUILD_TYPE "Debug")
-SET(CMAKE_CXX_COMPILER gcc)
+SET(CMAKE_CXX_COMPILER g++-11)
 SET(CMAKE_CXX_STANDARD 20)
 SET(CMAKE_CXX_STANDARD_REQUIRED True)
 SET(CMAKE_C_COMPILER gcc)
 SET(CMAKE_INSTALL_PREFIX /home/alex/qi3/cubeAI/install)
 SET(CMAKE_LINKER_FLAGS "-pthread")
 
-SET(BLAZE_INCL_DIR "/home/alex/MySoftware/blaze-3.8/install/include")
+# explicitly specify where the blaze c++ headers are
+SET(BLAZE_INCLUDE_DIRS "/home/alex/MySoftware/blaze-3.8/install/include")
+
+# external JSON library
 SET(NLOHMANN_JSON_INCL_DIR "/home/alex/MySoftware/nlohman_json/install/include")
+
+# configuration for Python3
+SET(PYTHON_CONFIG_LIBS_PATH "/usr/lib/python3.8/config-3.8-x86_64-linux-gnu/")
+
 SET(USE_OPENMP ON)
 SET(USE_LOG ON)
 SET(USE_PYTORCH ON)
@@ -41,12 +48,29 @@ SET(USE_OPENCV OFF)
 SET(USE_GYMFCPP ON)
 
 SET(ENABLE_EXAMPLES_FLAG ON)
-SET(ENABLE_TESTS_FLAG OFF)
-SET(ENABLE_DOC_FLAG ON)
+SET(ENABLE_TESTS_FLAG ON)
+SET(ENABLE_DOC_FLAG OFF)
+
+
+IF(USE_GYMFCPP)
+	SET(GYMFCPP_INCLUDE_DIRS "/home/alex/qi3/cubeAI/gymcpp/src")
+	SET(GYMFCPP_LIB_DIRS "/home/alex/qi3/cubeAI/gymcpp/install/")
+ENDIF()
+
+IF(PYTHON_CONFIG_LIBS_PATH MATCHES " ")
+	MESSAGE( FATAL_ERROR  "Python3 was not found.")
+ENDIF()
+
+IF(ENABLE_TESTS_FLAG)
+	# if not manually populated we do a 
+	# system scan in the CMakeLists of the tests directory
+	SET(GTEST_INCLUDE_DIRS "/home/alex/MySoftware/gtest/install/include")
+	SET(GTEST_BOTH_LIBRARIES "/home/alex/MySoftware/gtest/install/lib")
+ENDIF()
 
 IF(CMAKE_BUILD_TYPE STREQUAL "Debug")
-SET(CUBEAI_DEBUG ON)
-SET(CUBEAI_PRINT_DBG_MSGS ON)
+	SET(CUBEAI_DEBUG ON)
+	SET(CUBEAI_PRINT_DBG_MSGS ON)
 ENDIF()
 
 # find Boost
@@ -65,6 +89,29 @@ IF(NOT BLAS_FOUND)
 	MESSAGE( FATAL_ERROR  "Could not find OpenBLAS library.")
 ELSE()
 	MESSAGE( STATUS  "Found needed BLAS library.")
+ENDIF()
+
+# attempt to find blaze in the usr system
+IF(BLAZE_INCLUDE_DIRS MATCHES " ")
+
+	FIND_PACKAGE( blaze REQUIRED )
+	
+	IF(NOT blaze_FOUND)
+		MESSAGE( FATAL_ERROR  "Could not find Blaze C++ library.")
+	ELSE()
+		INCLUDE_DIRECTORIES(${BLAZE_INCLUDE_DIRS})
+	ENDIF()
+ELSE()
+	INCLUDE_DIRECTORIES(${BLAZE_INCLUDE_DIRS})
+ENDIF()
+
+IF(NLOHMANN_JSON_INCL_DIR MATCHES " ")
+
+	FIND_PACKAGE( nlohmann_json REQUIRED )
+	INCLUDE_DIRECTORIES(${INTERFACE_INCLUDE_DIRECTORIES})
+ELSE()
+	INCLUDE_DIRECTORIES(${NLOHMANN_JSON_INCL_DIR})
+
 ENDIF()
 
 
@@ -86,10 +133,6 @@ configure_file(config.h.in ${PROJECT_SOURCE_DIR}/include/cubeai/base/cubeai_conf
 configure_file(version.h.in ${PROJECT_SOURCE_DIR}/include/cubeai/base/cubeai_version.h @ONLY)
 
 # include directories
-INCLUDE_DIRECTORIES(/home/alex/MySoftware/blaze-3.8/install/include)
-INCLUDE_DIRECTORIES(${BOOST_INCLUDEDIR})
-INCLUDE_DIRECTORIES(/home/alex/MySoftware/nlohman_json/install/include)
-INCLUDE_DIRECTORIES(${BLAZE_INCL_DIR})
 INCLUDE_DIRECTORIES(${BOOST_INCLUDEDIR})
 
 IF(USE_PYTORCH)
@@ -100,12 +143,12 @@ INCLUDE_DIRECTORIES(include/)
 
 # collect the source files for the library
 FILE(GLOB SRCS src/cubeai/base/*.cpp src/cubeai/ml/*.cpp src/cubeai/ml/*/*.cpp src/cubeai/rl/*.cpp src/cubeai/rl/*/*.cpp
-    src/cubeai/io/*.cpp src/cubeai/planning/*.cpp, src/cubeai/geom_primitives/*.cpp)
+    src/cubeai/io/*.cpp src/cubeai/planning/*.cpp, src/cubeai/geom_primitives/*.cpp src/cubeai/utils/*.cpp)
+
 
 ADD_LIBRARY(cubeailib SHARED ${SRCS})
 SET_TARGET_PROPERTIES(cubeailib PROPERTIES LINKER_LANGUAGE CXX)
 INSTALL(TARGETS cubeailib DESTINATION ${CMAKE_INSTALL_PREFIX})
-MESSAGE(STATUS "Installation destination at: ${CMAKE_INSTALL_PREFIX}")
 
 IF(ENABLE_EXAMPLES_FLAG)
 	# Add the examples
@@ -120,11 +163,13 @@ IF(ENABLE_TESTS_FLAG)
 ELSE()
 	MESSAGE(WARNING "Tests have not been enabled")
 ENDIF()
-MESSAGE(STATUS "Type make install to build cubeAI")
 
 IF(ENABLE_DOC_FLAG)
-	# Add the tests
+	# Add the documentation
 	ADD_SUBDIRECTORY(doc)
 ELSE()
 	MESSAGE(WARNING "Documentation will not be generated")
 ENDIF()
+
+MESSAGE(STATUS "Installation destination at: ${CMAKE_INSTALL_PREFIX}")
+MESSAGE(STATUS "Type make install to build cubeAI")

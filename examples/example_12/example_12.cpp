@@ -156,9 +156,9 @@ BatchType<StateTp, ActionTp, RewardTp>::get_rewards_as_torch_tensor(){
 
 struct ExperienceType
 {
-    gymfcpp::CartPole::Screen state;
+    torch_tensor_t state;
     uint_t action;
-    gymfcpp::CartPole::Screen next_state;
+    torch_tensor_t next_state;
     real_t reward;
     bool done;
 
@@ -407,8 +407,9 @@ CartPoleDQNAgent::train(){
 
         env_ptr_->reset();
 
-        auto last_screen = env_ptr_->get_screen();
-        auto current_screen = env_ptr_->get_screen();
+        // these should be torch tensors
+        auto last_screen = env_ptr_->get_screen().get_as_torch_tensor();
+        auto current_screen = env_ptr_->get_screen().get_as_torch_tensor();
 
         auto state = current_screen - last_screen;
 
@@ -417,12 +418,12 @@ CartPoleDQNAgent::train(){
             // select an action
             auto action = select_action(state);
 
-            // step in the environment
+            // on_episode in the environment
             auto step_time = env_ptr_->step(action);
 
             // update states
             last_screen = current_screen;
-            current_screen = env_ptr_->get_screen();
+            current_screen = env_ptr_->get_screen().get_as_torch_tensor();
 
             if(!step_time.done()){
                 auto next_state = current_screen - last_screen;

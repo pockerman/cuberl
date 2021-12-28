@@ -88,10 +88,10 @@ public:
     output_t train(PolicyTp& policy, PolicyEvaluatorTp& policy_evaluator);
 
     ///
-    /// \brief Performs one step of the training on the given world
+    /// \brief Performs one on_episode of the training on the given world
     ///
     template<typename PolicyTp, typename PolicyEvaluatorTp>
-    void step(PolicyTp& policy, PolicyEvaluatorTp& policy_evaluator);
+    void on_episode(PolicyTp& policy, PolicyEvaluatorTp& policy_evaluator);
 
     ///
     /// \brief Initialize the underlying data structures
@@ -142,7 +142,7 @@ PolicyIteration<WorldTp>::PolicyIteration(const input_t& in)
 template<typename WorldTp>
 template<typename PolicyTp, typename PolicyEvaluatorTp>
 void
-PolicyIteration<WorldTp>::step(PolicyTp& policy, PolicyEvaluatorTp& policy_evaluator){
+PolicyIteration<WorldTp>::on_episode(PolicyTp& policy, PolicyEvaluatorTp& policy_evaluator){
 
    // Evaluate the current policy
    auto value_func_table = policy_evaluator(*world_, policy, input_.gamma, input_.tol);
@@ -156,7 +156,7 @@ PolicyIteration<WorldTp>::step(PolicyTp& policy, PolicyEvaluatorTp& policy_evalu
        // The best action we would take under the current policy
        auto chosen_a = policy.get_best_policy_at_state(world_->get_state(s));
 
-       // Find the best action by one-step lookahead
+       // Find the best action by one-on_episode lookahead
        // Ties are resolved arbitarily
        auto action_values = one_step_lookahead_(s, value_func_table);
        auto best_a = blaze::max(action_values);
@@ -193,7 +193,7 @@ PolicyIteration<WorldTp>::train(PolicyTp& policy, PolicyEvaluatorTp& policy_eval
         if(input_.show_iterations){
             std::cout<<itr_controller_.get_state()<<std::endl;
         }
-        step(policy, policy_evaluator);
+        on_episode(policy, policy_evaluator);
     }
 
     auto state = itr_controller_.get_state();

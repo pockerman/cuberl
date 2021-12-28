@@ -2,7 +2,7 @@
 #define DP_ALGO_BASE_H
 
 #include "cubeai/base/cubeai_types.h"
-#include "cubeai/base/csv_file_writer.h"
+#include "cubeai/io/csv_file_writer.h"
 #include "cubeai/rl/algorithms/algorithm_base.h"
 #include "cubeai/rl/worlds/discrete_world.h"
 
@@ -39,16 +39,16 @@ public:
     virtual ~DPAlgoBase() = default;
 
     ///
-    /// \brief actions_before_training_iterations. Execute any actions the
+    /// \brief actions_before_training_episodes. Execute any actions the
     /// algorithm needs before starting the iterations
     ///
-    virtual void actions_before_training_iterations();
+    virtual void actions_before_training_episodes();
 
     ///
-    /// \brief actions_after_training_iterations. Actions to execute after
+    /// \brief actions_after_training_episodes. Actions to execute after
     /// the training iterations have finisehd
     ///
-    virtual void actions_after_training_iterations(){}
+    virtual void actions_after_training_episodes(){}
 
     ///
     /// \brief gamma
@@ -84,7 +84,7 @@ protected:
     /// \brief DPAlgoBase
     /// \param name
     ///
-    DPAlgoBase(uint_t n_max_itrs, real_t tolerance, real_t gamma, env_t& env);
+    DPAlgoBase(uint_t n_episodes, real_t tolerance, real_t gamma, env_t& env);
 
     ///
     /// \brief env_ref_
@@ -112,9 +112,9 @@ private:
 };
 
 template<typename TimeStepTp>
-DPAlgoBase<TimeStepTp>::DPAlgoBase(uint_t n_max_itrs, real_t tolerance, real_t gamma, env_t& env)
+DPAlgoBase<TimeStepTp>::DPAlgoBase(uint_t n_episodes, real_t tolerance, real_t gamma, env_t& env)
     :
-    AlgorithmBase(n_max_itrs, tolerance),
+    AlgorithmBase(n_episodes, tolerance),
     gamma_(gamma),
     env_(env),
     v_()
@@ -133,7 +133,7 @@ DPAlgoBase<TimeStepTp>::reset(){
 
 template<typename TimeStepTp>
 void
-DPAlgoBase<TimeStepTp>::actions_before_training_iterations(){
+DPAlgoBase<TimeStepTp>::actions_before_training_episodes(){
     reset();
 }
 
