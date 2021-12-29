@@ -1,36 +1,52 @@
 #ifndef CIRCLE_H
 #define CIRCLE_H
 
-#include "kernel/base/types.h"
-#include "kernel/base/kernel_consts.h"
-#include "kernel/geometry/geom_point.h"
-#include "kernel/maths/constants.h"
+#include "cubeai/base/cubeai_types.h"
+#include "cubeai/base/cubeai_consts.h"
+#include "cubeai/geom_primitives/geom_point.h"
+#include "cubeai/base/math_constants.h"
+
 #include <cmath>
 
-namespace kernel{
+namespace cubeai{
+namespace geom_primitives{
 
+///
 /// \brief The Circle class. Models a common circle
+///
 class Circle
 {
 public:
 
+    ///
     /// \brief Construct a circle centerd at the origin
-    Circle(real_t r);
+    ///
+    explicit Circle(real_t r);
 
+    ///
     /// \brief Construct a circle given its radius and center
+    ///
     Circle(real_t r, const GeomPoint<2>& center);
 
+    ///
     /// \brief Returns the radius of the circle
-    real_t radius()const{return r_;}
+    ///
+    real_t radius()const noexcept{return r_;}
 
+    ///
     /// \brief Returns the center of the circle
-    GeomPoint<2> center()const{return center_;}
+    ///
+    GeomPoint<2> center()const noexcept{return center_;}
 
+    ///
     /// \brief Returns the area
+    ///
     real_t area()const;
 
+    ///
     /// \brief Returns true if the given point lies inside the circle
-    bool is_inside(const GeomPoint<2>& point, real_t tol = KernelConsts::tolerance())const;
+    ///
+    bool is_inside(const GeomPoint<2>& point, real_t tol = CubeAIConsts::tolerance())const;
 
 private:
 
@@ -81,5 +97,5 @@ Circle::is_inside(const GeomPoint<2>& point, real_t tol)const{
 
 
 }
-
+}
 #endif // CIRCLE_H

@@ -1,7 +1,7 @@
 #ifndef GEOM_POINT_H
 #define GEOM_POINT_H
 
-#include "kernel/base/types.h"
+#include "cubeai/base/cubeai_types.h"
 
 #include <vector>
 #include <array>
@@ -10,7 +10,8 @@
 #include <algorithm>
 #include <string>
 
-namespace kernel{
+namespace cubeai{
+namespace geom_primitives{
 
 /// A class that describes a point with spacedim spatial dimension space.
 template<int spacedim, typename T=real_t>
@@ -500,5 +501,5 @@ bool operator!=(const GeomPoint<spacedim,T>& t1, const GeomPoint<spacedim,T>& t2
 }
 
 }
-
+}
 #endif // GEOM_POINT_H

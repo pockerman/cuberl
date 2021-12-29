@@ -1,18 +1,19 @@
 #ifndef GEOMETRY_UTILS_H
 #define GEOMETRY_UTILS_H
 
-#include "kernel/base/types.h"
-#include "kernel/base/kernel_consts.h"
-#include "kernel/geometry/geom_point.h"
-#include "kernel/geometry/generic_line.h"
-#include "kernel/geometry/shapes/circle.h"
+#include "cubeai/base/cubeai_types.h"
+#include "cubeai/base/cubeai_consts.h"
+#include "cubeai/geom_primitives/geom_point.h"
+#include "cubeai/geom_primitives/generic_line.h"
+#include "cubeai/geom_primitives/shapes/circle.h"
 
 #include <stdexcept>
 #include <cmath>
 #include <utility>
 #include <tuple>
 
-namespace kernel{
+namespace cubeai{
+namespace geom_primitives{
 
 const GeomPoint<3>
 cross_product(const GeomPoint<3>& o1, const GeomPoint<3>& o2);
@@ -28,7 +29,7 @@ template<int dim, typename ContainerTp>
 const GeomPoint<dim>
 get_point_with_min_distance(const GeomPoint<dim>& p,
                             const ContainerTp& c,
-                            real_t tol= KernelConsts::tolerance()){
+                            real_t tol= CubeAIConsts::tolerance()){
 
     if(c.empty()){
         throw std::logic_error("Empty points list");
@@ -54,12 +55,12 @@ std::pair<bool, real_t>
 has_intersection(real_t discriminant, real_t b, real_t a);
 
 template<typename LineTp>
-const kernel::GeomPoint<LineTp::dimension>
+const GeomPoint<LineTp::dimension>
 find_point_on_line_closest_to(const LineTp& element, const GeomPoint<LineTp::dimension>& p,
                                  uint_t nsamples, real_t tol){
 
     static_assert (LineTp::dimension == 2, "Line dimension is not 2");
-    typedef kernel::GeomPoint<LineTp::dimension> point_t;
+    typedef GeomPoint<LineTp::dimension> point_t;
 
     std::vector<point_t> points_on_segment(nsamples + 2);
 
@@ -124,7 +125,7 @@ find_point_on_line_at_delta_distance(const LineTp& line,
                                      real_t tol){
 
     static_assert (LineTp::dimension == 2, "Line dimension is not 2");
-    typedef kernel::GeomPoint<LineTp::dimension> point_t;
+    typedef GeomPoint<LineTp::dimension> point_t;
     std::vector<point_t> points_on_segment(nsamples + 2);
 
     auto& v0 = line.get_vertex(0);
@@ -247,5 +248,5 @@ distance_from(const LineTp& element,
 }
 
 }
-
+}
 #endif // GEOMETRY_UTILS_H

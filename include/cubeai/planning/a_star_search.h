@@ -12,22 +12,8 @@
 #include <map>
 
 namespace cubeai{
+namespace astar_impl{
 
-
-    namespace astar_impl{
-
-    /*template<typename T,typename Container,typename Compare>
-    bool
-    searchable_priority_queue<T,Container,Compare>::contains(const T& val)const{
-
-       auto itr = std::find(this->c.cbegin(), this->c.cend(),val);
-       if(itr == this->c.end())
-       {
-            return false;
-       }
-
-       return true;
-    }*/
 
 
 ///
@@ -73,7 +59,7 @@ template<typename NodeTp>
 bool
 fcost_astar_node_compare::operator()(const NodeTp& n1,const NodeTp& n2)const{
 
-   if(n1.data.fcost > n2.data.fcost){
+   if(n1.data.f_cost > n2.data.f_cost){
        return true;
    }
 
@@ -105,7 +91,7 @@ id_astar_node_compare::operator()(const NodeTp& n1,const NodeTp& n2)const{
 ///
 template<typename GraphTp, typename H>
 std::multimap<uint_t, uint_t>
-astar_search(GraphTp& g, typename GraphTp::vertex_t& start, typename GraphTp::vertex_t& end, const H& h){
+a_star_search(GraphTp& g, typename GraphTp::vertex_type& start, typename GraphTp::vertex_type& end, const H& h){
 
    // for each node hodls where it
    // came form
@@ -114,27 +100,27 @@ astar_search(GraphTp& g, typename GraphTp::vertex_t& start, typename GraphTp::ve
    if(start == end){
 
      //we don't have to search for anything
-     came_from.insert(came_from,start.id,start.id);
+     came_from.insert(start.id, start.id);
      return came_from;
    }
 
-   typedef typename H::cost_t cost_t;
-   typedef typename GraphTp::vertex_t vertex_t;
+   typedef typename H::cost_type cost_t;
+   typedef typename GraphTp::vertex_type vertex_t;
    typedef typename GraphTp::adjacency_iterator adjacency_iterator;
-   typedef typename GraphTp::vertex_t node_t;
-   typedef std::priority_queue<node_t, std::vector<node_t>, astar_impl::fcost_astar_node_compare>::priority_queue searchable_priority_queue;
+   typedef typename GraphTp::vertex_type node_t;
+   typedef std::priority_queue<node_t, std::vector<node_t>, astar_impl::fcost_astar_node_compare> searchable_priority_queue;
 
    std::set<node_t,astar_impl::id_astar_node_compare> explored;
    searchable_priority_queue open;
 
    //the cost of the path so far leading to this
    //node is obviously zero at the start node
-   start.data.gcost = 0.0;
+   start.data.g_cost = 0.0;
 
    //calculate the fCost from start node to the goal
    //at the moment this can be done only heuristically
    //start.data.fcost = h(start.data.position, end.data.position);
-   start.data.fcost = h(start, end);
+   start.data.f_cost = h(start, end);
    open.push(start);
 
    while(!open.empty()){
@@ -156,7 +142,7 @@ astar_search(GraphTp& g, typename GraphTp::vertex_t& start, typename GraphTp::ve
       std::pair<adjacency_iterator,adjacency_iterator> neighbors = g.get_vertex_neighbors(cv);
       auto itr = neighbors.first;
 
-      ///loop over the neighbors
+      // loop over the neighbors
       for(; itr != neighbors.second; itr++){
 
          node_t& nv = g.get_vertex(itr);
@@ -186,12 +172,11 @@ astar_search(GraphTp& g, typename GraphTp::vertex_t& start, typename GraphTp::ve
             continue;
          }
 
-
          //this actually the cost of the path from the current node
          //to reach its neighbor
-         cost_t tg_cost = cv.data.gcost + h(cv, nv);//h(cv.data.position, nv.data.position);
+         cost_t tg_cost = cv.data.g_cost + h(cv, nv);//h(cv.data.position, nv.data.position);
 
-         if (tg_cost >= nv.data.gcost) {
+         if (tg_cost >= nv.data.g_cost) {
             continue; //this is not a better path
          }
 
@@ -199,10 +184,10 @@ astar_search(GraphTp& g, typename GraphTp::vertex_t& start, typename GraphTp::ve
          astar_impl::add_or_update_map(came_from,nv.id,cv.id);
 
          //came_from.put(nv.id,cv.id);
-         nv.data.gcost = tg_cost;
+         nv.data.g_cost = tg_cost;
 
          //acutally calculate f(nn) = g(nn)+h(nn)
-         nv.data.fcost = nv.data.gcost + h(nv, end);//h(nv.data.position, end.data.position);
+         nv.data.f_cost = nv.data.g_cost + h(nv, end);//h(nv.data.position, end.data.position);
 
          //if the neighbor not in open set add it
          open.push(nv);
@@ -228,9 +213,6 @@ reconstruct_a_star_path(const std::multimap<IdTp, IdTp>& map, const IdTp& start)
 
     if(next_itr == map.end()){
 
-#ifdef USE_LOG
-        kernel::Logger::log_error("Key: "+std::to_string(start)+" does not exist");
-#endif
         //such a key does not exist
         throw std::logic_error("Key: "+std::to_string(start)+" does not exist");
     }

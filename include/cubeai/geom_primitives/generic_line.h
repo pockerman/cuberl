@@ -1,13 +1,14 @@
 #ifndef GENERIC_LINE_H
 #define GENERIC_LINE_H
 
-#include "kernel/base/types.h"
-#include "kernel/base/kernel_consts.h"
+#include "cubeai/base/cubeai_types.h"
+#include "cubeai/base/cubeai_consts.h"
 
 #include <stdexcept>
 
-namespace kernel{
-namespace kernel_detail{
+namespace cubeai{
+namespace geom_primitives{
+namespace cubeai_detail{
 
   template<typename NodeTp>
   struct generic_line_base
@@ -30,7 +31,7 @@ namespace kernel_detail{
       generic_line_base(const NodeTp& p1,const NodeTp& p2, uint_t id);
 
       /// \brief Returns true iff id_ != kernel_consts::invalid_size_type()
-      bool has_valid_id()const noexcept{return (id_ != KernelConsts::invalid_size_type());}
+      bool has_valid_id()const noexcept{return (id_ != CubeAIConsts::invalid_size_type());}
 
       /// \brief Returns the id of the line
       uint_t get_id()const noexcept{return id_;}
@@ -57,7 +58,7 @@ namespace kernel_detail{
   :
   start_(),
   end_(),
-  id_(KernelConsts::invalid_size_type())
+  id_(CubeAIConsts::invalid_size_type())
   {}
 
   template<typename NodeTp>
@@ -79,14 +80,14 @@ namespace kernel_detail{
 /// either single or double precision floating point number.
 
 template<typename NodeTp, typename DataTp=real_t>
-class GenericLine: private kernel_detail::generic_line_base<NodeTp>
+class GenericLine: private cubeai_detail::generic_line_base<NodeTp>
 {
 
 public:
 
     static const int dimension = NodeTp::dimension;
     typedef DataTp data_t;
-    typedef kernel_detail::generic_line_base<NodeTp> base;
+    typedef cubeai_detail::generic_line_base<NodeTp> base;
     typedef typename base::node_type node_type;
     typedef NodeTp point_t;
 
@@ -146,7 +147,7 @@ private:
 template<typename NodeTp,typename DataTp>
 GenericLine<NodeTp,DataTp>::GenericLine()
 :
-kernel_detail::generic_line_base<NodeTp>(),
+cubeai_detail::generic_line_base<NodeTp>(),
 cost_()
 {}
 
@@ -154,14 +155,14 @@ template<typename NodeTp,typename DataTp>
 GenericLine<NodeTp, DataTp>::GenericLine(const NodeTp& p1,const NodeTp& p2,
                                          uint_t id, const DataTp& cost)
 :
-kernel_detail::generic_line_base<NodeTp>(p1,p2,id),
+cubeai_detail::generic_line_base<NodeTp>(p1,p2,id),
 cost_(cost)
 {}
 
 template<typename NodeTp,typename DataTp>
 GenericLine<NodeTp, DataTp>::GenericLine(const NodeTp& p1,const NodeTp& p2)
 :
-GenericLine<NodeTp, DataTp>(p1,p2,kernel::KernelConsts::invalid_size_type(), DataTp())
+GenericLine<NodeTp, DataTp>(p1,p2, CubeAIConsts::invalid_size_type(), DataTp())
 {}
 
 template<typename NodeTp,typename DataTp>
@@ -198,12 +199,12 @@ GenericLine<NodeTp, DataTp>::get_vertex(uint_t v){
 /// \brief Partial specialization for lines having no Data
 ///
 template<typename NodeTp>
-class GenericLine<NodeTp, void>: private kernel_detail::generic_line_base<NodeTp>
+class GenericLine<NodeTp, void>: private cubeai_detail::generic_line_base<NodeTp>
 {
 public:
 
     static const int dimension = NodeTp::dimension;
-    typedef kernel_detail::generic_line_base<NodeTp> base;
+    typedef cubeai_detail::generic_line_base<NodeTp> base;
     typedef typename base::node_type node_type;
     typedef NodeTp point_t;
 
@@ -242,19 +243,19 @@ public:
 template<typename NodeTp>
 GenericLine<NodeTp,void>::GenericLine()
 :
-kernel_detail::generic_line_base<NodeTp>()
+cubeai_detail::generic_line_base<NodeTp>()
 {}
 
 template<typename NodeTp>
 GenericLine<NodeTp,void>::GenericLine(const NodeTp& p1, const NodeTp& p2, uint_t id)
 :
-kernel_detail::generic_line_base<NodeTp>(p1,p2,id)
+cubeai_detail::generic_line_base<NodeTp>(p1,p2,id)
 {}
 
 template<typename NodeTp>
 GenericLine<NodeTp,void>::GenericLine(const NodeTp& p1, const NodeTp& p2)
 :
-GenericLine<NodeTp, void>(p1,p2,kernel::KernelConsts::invalid_size_type())
+GenericLine<NodeTp, void>(p1, p2, CubeAIConsts::invalid_size_type())
 {}
 
 template<typename NodeTp>
@@ -289,5 +290,5 @@ GenericLine<NodeTp, void>::get_vertex(uint_t v){
 
 
 }
-
+}
 #endif // GENERIC_LINE_H
