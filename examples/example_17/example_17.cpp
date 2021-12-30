@@ -14,11 +14,12 @@
 #include <boost/python.hpp>
 
 #include <vector>
+#include <map>
+#include <queue>
+#include <set>
 #include <iostream>
-#include <unordered_map>
 #include <utility>
 #include <limits>
-#include <map>
 #include <cmath>
 
 
@@ -34,7 +35,9 @@ struct Node
     uint_t id;
     real_t x;
     real_t y;
-    uint_t stret_count;
+    uint_t street_count;
+    real_t f_cost{0.0};
+    real_t g_cost{0.0};
 };
 
 // the heuristic to use for A*
@@ -65,7 +68,7 @@ DistanceHeuristic::operator()(const Node& n1, const Node& n2)const{
     auto y2 = r*std::cos(lat2)*std::sin(long2);
     auto z2 = r*std::sin(lat2);
 
-    auto d = (std::pow(x2-x1, 2) + std::pow(y2-y1, 2) + std::pow(z2-z1, 2);
+    auto d = std::pow(x2-x1, 2) + std::pow(y2-y1, 2) + std::pow(z2-z1, 2);
     return std::sqrt(d);
 }
 
@@ -84,8 +87,8 @@ public:
 
     uint_t n_nodes()const noexcept{return nodes_.size();}
 
-    void get_path();
-
+    // build the A* path
+    void get_a_star_path();
 
 
 private:
@@ -133,7 +136,7 @@ Graph::build_nodes_list_(){
         n.id = boost::python::extract<uint_t>(node_tuple()[0]);
         n.x = boost::python::extract<real_t>(node_tuple()[1]["x"]);
         n.y = boost::python::extract<real_t>(node_tuple()[1]["y"]);
-        n.stret_count = n.x = boost::python::extract<uint_t>(node_tuple()[1]["street_count"]);
+        n.street_count = n.x = boost::python::extract<uint_t>(node_tuple()[1]["street_count"]);
         nodes_.push_back(n);
     }
 }
@@ -152,7 +155,6 @@ Graph::build(){
     std::string origin_str = "origin = ox.get_nearest_node(map_graph, (37.8743, -122.277))\n";
     boost::python::exec(origin_str.c_str(), py_namespace_);
 
-
     uint_t start_node_id = boost::python::extract<uint_t>(py_namespace_["origin"]);
     std::string destination_str = "destination = list(map_graph.nodes())[-1]";
 
@@ -166,10 +168,108 @@ Graph::build(){
 }
 
 void
-Graph::get_path(){
+Graph::get_a_star_path(){
 
     DistanceHeuristic dist_h;
+
     //cubeai::a_star_search(*this, start_node_, end_node_, dist_h);
+
+    auto compare_op = [&](const vertex_type& n1, const vertex_type& n2){
+        if(n1.f_cost > n2.f_cost){
+            return true;
+        }
+
+        return false;
+    };
+
+    typedef std::priority_queue<vertex_type, std::vector<vertex_type>, compare_op> searchable_priority_queue;
+    std::set<vertex_type, astar_impl::id_astar_node_compare> explored;
+
+    searchable_priority_queue open;
+
+    //the cost of the path so far leading to this
+    //node is obviously zero at the start node
+    start_node_.g_cost = 0.0;
+
+    //calculate the fCost from start node to the goal
+    //at the moment this can be done only heuristically
+    //start.data.fcost = h(start.data.position, end.data.position);
+    start_node_.f_cost = dist_h(start_node_, end_node_);
+    open.push(start_node_);
+
+    while(!open.empty()){
+
+       //the vertex currently examined
+       const vertex_type cv = open.top();
+       open.pop();
+
+       //check if this is the goal
+       if(cv == end){
+          break;
+       }
+
+       //current node is not the goal so proceed
+       //add it to the explored (or else called closed) set
+       explored.insert(cv);
+
+       //get the adjacent neighbors
+       std::pair<adjacency_iterator,adjacency_iterator> neighbors = g.get_vertex_neighbors(cv);
+       auto itr = neighbors.first;
+
+       // loop over the neighbors
+       for(; itr != neighbors.second; itr++){
+
+          node_t& nv = g.get_vertex(itr);
+
+          if(open.contains(nv)){
+              continue;
+          }
+          else{
+
+              // we cannot move to the neighbor
+              // so no reason checking
+              if(!nv.data.can_move()){
+                 explored.insert(nv);
+                 continue;
+              }
+          }
+
+          // node id
+          uint_t nid = nv.id;
+
+          //search explored set by id
+          auto itr = std::find_if(explored.begin(), explored.end(),
+                                  [=](const node_t& n){return (n.id == nid);});
+
+          //the node has been explored
+          if(itr != explored.end()){
+             continue;
+          }
+
+          //this actually the cost of the path from the current node
+          //to reach its neighbor
+          cost_t tg_cost = cv.data.g_cost + h(cv, nv);//h(cv.data.position, nv.data.position);
+
+          if (tg_cost >= nv.data.g_cost) {
+             continue; //this is not a better path
+          }
+
+          // This path is the best until now. Record it!
+          astar_impl::add_or_update_map(came_from,nv.id,cv.id);
+
+          //came_from.put(nv.id,cv.id);
+          nv.data.g_cost = tg_cost;
+
+          //acutally calculate f(nn) = g(nn)+h(nn)
+          nv.data.f_cost = nv.data.g_cost + h(nv, end);//h(nv.data.position, end.data.position);
+
+          //if the neighbor not in open set add it
+          open.push(nv);
+
+       }
+    }
+
+
 }
 
 }
