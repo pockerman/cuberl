@@ -8,7 +8,6 @@
 
 
 #include "cubeai/base/cubeai_types.h"
-//#include "cubeai/planning/a_star_search.h"
 #include "cubeai/base/math_constants.h"
 
 #include <boost/python.hpp>
@@ -18,9 +17,10 @@
 #include <queue>
 #include <set>
 #include <iostream>
-#include <utility>
 #include <limits>
 #include <cmath>
+#include <exception>
+#include <algorithm>
 
 
 namespace example{
@@ -29,6 +29,122 @@ typedef boost::python::api::object obj_t;
 using cubeai::real_t;
 using cubeai::uint_t;
 
+template<typename IdTp>
+std::vector<IdTp>
+reconstruct_a_star_path(const std::multimap<IdTp, IdTp>& map, const IdTp& start){
+
+    if(map.empty()){
+        return std::vector<IdTp>();
+    }
+
+    std::vector<IdTp> path;
+    path.push_back(start);
+
+    auto next_itr = map.find(start);
+
+    if(next_itr == map.end()){
+
+        //such a key does not exist
+        throw std::logic_error("Key: "+std::to_string(start)+" does not exist");
+    }
+
+    IdTp next = next_itr->second;
+    path.push_back(next);
+
+    while(next_itr!=map.end()){
+
+        next_itr = map.find(next);
+        if(next_itr != map.end()){
+            next = next_itr->second;
+            path.push_back(next);
+        }
+    }
+
+    //let's reverse the path
+    std::vector<IdTp> the_path;
+    the_path.reserve(path.size());
+    auto itrb = path.rbegin();
+    auto itre = path.rend();
+
+    while(itrb != itre){
+        the_path.push_back(*itrb++);
+    }
+
+    return the_path;
+}
+
+
+template<
+    class T,
+    class Container = std::vector<T>,
+    class Compare = std::less<typename Container::value_type> >
+class searchable_priority_queue: public std::priority_queue<T, Container, Compare>
+{
+
+public:
+
+    using std::priority_queue<T, Container, Compare>::priority_queue;
+
+   /// \brief Returns true if the given value is contained
+   /// internally it calls std::find.
+   bool contains(const T& val)const;
+};
+
+template<typename T,typename Container,typename Compare>
+bool
+searchable_priority_queue<T,Container,Compare>::contains(const T& val)const{
+
+    auto itr = std::find_if(this->c.cbegin(), this->c.cend(), [&](const auto& node){
+        if(node.id == val.id){
+            return true;
+        }
+
+        return false;
+    });
+
+   if(itr == this->c.end())
+   {
+        return false;
+   }
+
+   return true;
+}
+
+
+struct fcost_comparison
+{
+   template<typename NodeTp>
+   bool operator()(const NodeTp& n1,const NodeTp& n2)const;
+};
+
+template<typename NodeTp>
+bool
+fcost_comparison::operator()(const NodeTp& n1,const NodeTp& n2)const{
+
+   if(n1.f_cost > n2.f_cost){
+       return true;
+   }
+
+   return false;
+}
+
+struct id_comparison
+{
+   template<typename NodeTp>
+   bool operator()(const NodeTp& n1,const NodeTp& n2)const;
+};
+
+template<typename NodeTp>
+bool
+id_comparison::operator()(const NodeTp& n1,const NodeTp& n2)const{
+
+   if(n1.id > n2.id){
+       return true;
+   }
+
+   return false;
+}
+
 struct Node
 {
 
@@ -36,8 +152,21 @@ struct Node
     real_t x;
     real_t y;
     uint_t street_count;
+
+    // holds the heuristic cost for the node
     real_t f_cost{0.0};
     real_t g_cost{0.0};
+};
+
+bool operator==(const Node& n1, const Node& n2){
+    return n1.id == n2.id;
+}
+
+struct Edge
+{
+    uint_t in_vertex;
+    uint_t out_vertex;
+    real_t length;
 };
 
 // the heuristic to use for A*
@@ -85,11 +214,19 @@ public:
     // build the OSNX graph
     void build();
 
+    // number of nodes
     uint_t n_nodes()const noexcept{return nodes_.size();}
 
-    // build the A* path
-    void get_a_star_path();
+    uint_t start_node()const{return start_node_.id;}
 
+    // returns the edge associated with the given node
+    std::vector<Edge> get_node_edges(const Node node)const;
+
+    // get the node with the given idx
+    Node& get_node(uint_t idx);
+
+    // build the A* path
+    std::multimap<uint_t, uint_t> get_a_star_path();
 
 private:
 
@@ -99,7 +236,7 @@ private:
     obj_t map_graph_;
 
     Node start_node_;
-    Node  end_node_;
+    Node end_node_;
 
     std::vector<Node> nodes_;
 
@@ -141,6 +278,48 @@ Graph::build_nodes_list_(){
     }
 }
 
+// get the node with the given idx
+Node&
+Graph::get_node(uint_t idx){
+
+    for(auto& node : nodes_){
+        if(node.id == idx){
+            return node;
+        }
+    }
+
+
+    throw std::logic_error("Invalid node id");
+}
+
+std::vector<Edge>
+Graph::get_node_edges(const Node node)const{
+
+     std::string edges_list_str = "edges = map_graph.out_edges([" + std::to_string(node.id) + "], data=True)\n";
+     edges_list_str += "edges = list(edges))\n";
+     boost::python::exec(edges_list_str.c_str(), py_namespace_);
+
+     std::vector<Edge> edges;
+     auto edges_list = boost::python::extract<boost::python::list>(py_namespace_["edges"]);
+
+     edges.reserve(boost::python::len(edges_list));
+
+     for(auto i=0; i<boost::python::len(edges_list); ++i){
+
+         Edge e;
+         auto edge_tuple = boost::python::extract<boost::python::tuple>(edges_list()[i]);
+
+         e.in_vertex  = boost::python::extract<uint_t>(edge_tuple()[0]);
+         e.out_vertex = boost::python::extract<uint_t>(edge_tuple()[1]);
+         e.length = boost::python::extract<real_t>(edge_tuple()[2]["length"]);
+
+         edges.push_back(e);
+     }
+
+     return edges;
+
+}
+
 void
 Graph::build(){
 
@@ -165,27 +344,34 @@ Graph::build(){
     end_node_.id = end_node_id;
 
     build_nodes_list_();
+
+    auto& start_node = get_node(start_node_id);
+    start_node_ = start_node;
+
+    auto& end_node = get_node(end_node_id);
+    end_node_ = end_node;
 }
 
-void
+std::multimap<uint_t, uint_t>
 Graph::get_a_star_path(){
 
+    // for each node hodls where it
+    // came form
+    std::multimap<uint_t, uint_t> came_from;
+
+    // start and goal node are the same
+    if(start_node_ == end_node_){
+        came_from.insert({start_node_.id, start_node_.id});
+        return came_from;
+    }
+
+    // the object to use for the
     DistanceHeuristic dist_h;
 
-    //cubeai::a_star_search(*this, start_node_, end_node_, dist_h);
+    searchable_priority_queue<vertex_type, std::vector<vertex_type>, fcost_comparison> open;
 
-    auto compare_op = [&](const vertex_type& n1, const vertex_type& n2){
-        if(n1.f_cost > n2.f_cost){
-            return true;
-        }
-
-        return false;
-    };
-
-    typedef std::priority_queue<vertex_type, std::vector<vertex_type>, compare_op> searchable_priority_queue;
-    std::set<vertex_type, astar_impl::id_astar_node_compare> explored;
-
-    searchable_priority_queue open;
+    // set of explored vertices
+    std::set<uint_t> explored;
 
     //the cost of the path so far leading to this
     //node is obviously zero at the start node
@@ -197,6 +383,7 @@ Graph::get_a_star_path(){
     start_node_.f_cost = dist_h(start_node_, end_node_);
     open.push(start_node_);
 
+    bool goal_found = true;
     while(!open.empty()){
 
        //the vertex currently examined
@@ -204,71 +391,70 @@ Graph::get_a_star_path(){
        open.pop();
 
        //check if this is the goal
-       if(cv == end){
+       if(cv == end_node_){
+          goal_found = true;
           break;
+       }
+
+       // the cost for the cv
+       auto cv_g_cost = cv.g_cost;
+
+       //get the adjacent neighbors
+       auto edges = get_node_edges(cv);
+       auto edge_itr_begin = edges.begin();
+       auto edge_itr_end = edges.end();
+
+       // loop over the neighbors
+       for(; edge_itr_begin != edge_itr_end; ++edge_itr_begin){
+
+          auto& edge = *edge_itr_begin;
+
+          auto out_vertex = edge.out_vertex;
+
+          if(explored.contains(out_vertex)){
+              continue;
+          }
+
+          // get the node associated with the
+          // out vertex
+          auto& node = get_node(out_vertex);
+
+          // what is the length of the edge
+          auto edge_length = edge.length;
+
+          // if the out vertex is not in the
+          // open set
+          if(!open.contains(node)){
+
+              // the cost for the out vertex
+              node.g_cost = cv_g_cost + edge_length;
+              node.f_cost = cv_g_cost + edge_length + dist_h( node, end_node_);
+              open.push(node);
+              came_from.insert({out_vertex, cv.id});
+          }
+          else{
+
+              auto v_cost = node.g_cost;
+
+              if(cv_g_cost + edge_length < v_cost ){
+                    node.g_cost = cv_g_cost + edge_length;
+                    node.f_cost = cv_g_cost + edge_length + dist_h( node, end_node_);
+                    came_from.insert({out_vertex, cv.id});
+              }
+          }
        }
 
        //current node is not the goal so proceed
        //add it to the explored (or else called closed) set
-       explored.insert(cv);
+       explored.insert(cv.id);
 
-       //get the adjacent neighbors
-       std::pair<adjacency_iterator,adjacency_iterator> neighbors = g.get_vertex_neighbors(cv);
-       auto itr = neighbors.first;
-
-       // loop over the neighbors
-       for(; itr != neighbors.second; itr++){
-
-          node_t& nv = g.get_vertex(itr);
-
-          if(open.contains(nv)){
-              continue;
-          }
-          else{
-
-              // we cannot move to the neighbor
-              // so no reason checking
-              if(!nv.data.can_move()){
-                 explored.insert(nv);
-                 continue;
-              }
-          }
-
-          // node id
-          uint_t nid = nv.id;
-
-          //search explored set by id
-          auto itr = std::find_if(explored.begin(), explored.end(),
-                                  [=](const node_t& n){return (n.id == nid);});
-
-          //the node has been explored
-          if(itr != explored.end()){
-             continue;
-          }
-
-          //this actually the cost of the path from the current node
-          //to reach its neighbor
-          cost_t tg_cost = cv.data.g_cost + h(cv, nv);//h(cv.data.position, nv.data.position);
-
-          if (tg_cost >= nv.data.g_cost) {
-             continue; //this is not a better path
-          }
-
-          // This path is the best until now. Record it!
-          astar_impl::add_or_update_map(came_from,nv.id,cv.id);
-
-          //came_from.put(nv.id,cv.id);
-          nv.data.g_cost = tg_cost;
-
-          //acutally calculate f(nn) = g(nn)+h(nn)
-          nv.data.f_cost = nv.data.g_cost + h(nv, end);//h(nv.data.position, end.data.position);
-
-          //if the neighbor not in open set add it
-          open.push(nv);
-
-       }
     }
 
+    if(!goal_found){
+        throw std::logic_error("Goal not found");
+    }
+
+    return came_from;
 
 }
 
@@ -291,7 +477,8 @@ int main(){
 
         std::cout<<"Number of nodes="<<graph.n_nodes()<<std::endl;
 
-        graph.get_path();
+        auto path_map = graph.get_a_star_path();
+        auto path = reconstruct_a_star_path(path_map, graph.start_node());
     }
     catch(const boost::python::error_already_set&)
     {
