@@ -117,20 +117,20 @@ void
 Sarsa<EnvTp, ActionSelector>::on_episode(){
 
 
-     std::cout<<"Starting episode="<<this->current_episode_idx()<<std::endl;
+    //std::cout<<"Starting episode="<<this->current_episode_idx()<<std::endl;
 
     // total score for the episode
     auto score = 0.0;
     auto state = this->env_ref_().reset().observation();
 
     uint_t itr=0;
-    for(;  itr < this->max_num_iterations_per_episode(); ++itr){
+    for(;  itr < this->n_iterations_per_episode(); ++itr){
 
         // select an action
         auto action = action_selector_(this->q_table(), state);
 
         if(this->is_verbose()){
-            std::cout<<"Episode iteration="<<itr<<" of="<<this->max_num_iterations_per_episode()<<std::endl;
+            std::cout<<"Episode iteration="<<itr<<" of="<<this->n_iterations_per_episode()<<std::endl;
             std::cout<<"State="<<state<<std::endl;
             std::cout<<"Action="<<action<<std::endl;
         }
@@ -158,7 +158,7 @@ Sarsa<EnvTp, ActionSelector>::on_episode(){
 
             this->tmp_scores()[current_score_counter_++] = score;
 
-            if(current_score_counter_ >= this->plot_frequency()){
+            if(current_score_counter_ >= this->render_env_frequency_){
                 current_score_counter_ = 0;
             }
 
@@ -172,7 +172,7 @@ Sarsa<EnvTp, ActionSelector>::on_episode(){
         }
     }
 
-    if(this->current_episode_idx() % this->plot_frequency() == 0){
+    if(this->current_episode_idx() % this->render_env_frequency_ == 0){
 
         boost::accumulators::accumulator_set<real_t, boost::accumulators::stats<boost::accumulators::tag::mean > > acc;
         std::for_each(this->tmp_scores().begin(), this->tmp_scores().end(), boost::bind<void>( boost::ref(acc), _1 ) );
@@ -184,11 +184,11 @@ Sarsa<EnvTp, ActionSelector>::on_episode(){
     // actions are selected given the experience collected
     // in the episode
     action_selector_.adjust_on_episode(this->current_episode_idx());
-    if(current_score_counter_ >= this->plot_frequency()){
+    if(current_score_counter_ >= this->render_env_frequency_){
         current_score_counter_ = 0;
     }
 
-    std::cout<<"Finished on_episode="<<this->current_episode_idx()<<std::endl;
+    //std::cout<<"Finished on_episode="<<this->current_episode_idx()<<std::endl;
 }
 
 template<envs::discrete_world_concept EnvTp, typename ActionSelector>

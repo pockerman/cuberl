@@ -95,13 +95,19 @@ public:
     /// \brief current_episode_idx
     /// \return
     ///
-    uint_t current_episode_idx()const{return itr_ctrl_.get_current_iteration();}
+    uint_t current_episode_idx()const noexcept{return itr_ctrl_.get_current_iteration();}
 
     ///
     /// \brief n_episodes
     /// \return
     ///
-    uint_t n_episodes()const{return this->itr_ctrl_.get_max_iterations();}
+    uint_t n_episodes()const noexcept{return this->itr_ctrl_.get_max_iterations();}
+
+    ///
+    /// \brief n_iterations_per_episode
+    /// \return
+    ///
+    uint_t n_iterations_per_episode()const noexcept{return n_itrs_per_episode_;}
 
 protected:
 
@@ -123,8 +129,6 @@ protected:
     ///
     IterativeAlgorithmController& iter_controller_(){return itr_ctrl_;}
 
-private:
-
     ///
     /// \brief render_env_
     ///
@@ -139,6 +143,8 @@ private:
     /// \brief n_itrs_per_episode_
     ///
     uint_t n_itrs_per_episode_;
+
+private:
 
     ///
     /// \brief itr_ctrl_. The object controlling the iterations

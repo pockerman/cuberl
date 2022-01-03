@@ -128,12 +128,12 @@ QLearning<EnvTp, ActionSelector>::on_episode(){
     auto action = action_selector_(this->q_table(), state);
 
     uint_t itr=0;
-    for(;  itr < this->max_num_iterations_per_episode(); ++itr){
+    for(;  itr < this->n_iterations_per_episode(); ++itr){
 
         // select an action
         auto action = action_selector_(this->q_table(), state);
         if(this->is_verbose()){
-            std::cout<<"Episode iteration="<<itr<<" of="<<this->max_num_iterations_per_episode()<<std::endl;
+            std::cout<<"Episode iteration="<<itr<<" of="<<this->n_iterations_per_episode()<<std::endl;
             std::cout<<"State="<<state<<std::endl;
             std::cout<<"Action="<<action<<std::endl;
         }
@@ -161,7 +161,7 @@ QLearning<EnvTp, ActionSelector>::on_episode(){
 
             this->tmp_scores()[current_score_counter_++] = score;
 
-            if(current_score_counter_ >= this->plot_frequency()){
+            if(current_score_counter_ >= this->render_env_frequency_){
                 current_score_counter_ = 0;
             }
 
@@ -179,7 +179,7 @@ QLearning<EnvTp, ActionSelector>::on_episode(){
     // actions are selected given the experience collected
     // in the episode
     action_selector_.adjust_on_episode(this->current_episode_idx());
-    if(current_score_counter_ >= this->plot_frequency()){
+    if(current_score_counter_ >= this->render_env_frequency_){
         current_score_counter_ = 0;
     }
 

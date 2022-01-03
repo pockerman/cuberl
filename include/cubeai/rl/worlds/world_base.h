@@ -74,7 +74,7 @@ public:
     ///
     /// \brief n_copies Returns the  number of copies of the environment
     ///
-    virtual uint_t n_copies()const = 0;
+    virtual uint_t n_copies()const {return 1;}
 
     ///
     /// \brief name

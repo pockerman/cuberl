@@ -186,17 +186,7 @@ protected:
      ///
      const std::deque<real_t>& tmp_scores()const{return tmp_scores_;}
 
-     ///
-     ///
-     ///
-     uint_t max_num_iterations_per_episode()const noexcept{return max_num_iterations_per_episode_;}
-
 private:
-
-     ///
-     /// \brief max_num_iterations_per_episode_
-     ///
-     uint_t max_num_iterations_per_episode_;
 
      ///
      /// \brief gamma_

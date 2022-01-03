@@ -20,25 +20,23 @@ using cubeai::rl::policies::EpsilonGreedyPolicy;
 using cubeai::rl::algos::td::ExpectedSARSA;
 using cubeai::rl::policies::EpsilonDecayOption;
 
-typedef gymfcpp::TimeStep<uint_t> time_step_t;
+typedef gymfcpp::TimeStep<uint_t> time_step_type;
 
-class CliffWalkingEnv: public DiscreteWorldBase<time_step_t>
+class CliffWalkingEnv: public DiscreteWorldBase<time_step_type>
 {
 public:
 
-    typedef  DiscreteWorldBase<time_step_t>::time_step_t time_step_t;
-    typedef  DiscreteWorldBase<time_step_t>::action_t action_t;
+    typedef  DiscreteWorldBase<time_step_type>::time_step_type time_step_type;
+    typedef  DiscreteWorldBase<time_step_type>::action_type action_type;
 
     CliffWalkingEnv(gymfcpp::obj_t gym_namespace);
     ~CliffWalkingEnv()=default;
 
     virtual uint_t n_actions()const override final {return env_impl_.n_actions();}
-    virtual uint_t n_copies()const override final{return 1;}
     virtual uint_t n_states()const override final {return env_impl_.n_states();}
 
-    virtual std::vector<std::tuple<real_t, uint_t, real_t, bool>> transition_dynamics(uint_t s, uint_t aidx)const override final;
-    virtual time_step_t step(const action_t&)override final;
-    virtual time_step_t reset() override final;
+    virtual time_step_type step(const action_type&)override final;
+    virtual time_step_type reset() override final;
     virtual  void build(bool reset) override final;
 
 private:
@@ -49,14 +47,9 @@ private:
 
 CliffWalkingEnv::CliffWalkingEnv(gymfcpp::obj_t gym_namespace)
     :
-      DiscreteWorldBase<time_step_t>("Cliffwalking"),
+      DiscreteWorldBase<time_step_type>("Cliffwalking"),
       env_impl_("v0", gym_namespace, false)
 {}
-
-std::vector<std::tuple<real_t, uint_t, real_t, bool>>
-CliffWalkingEnv::transition_dynamics(uint_t s, uint_t aidx)const{
-    return std::vector<std::tuple<real_t, uint_t, real_t, bool>>();
-}
 
 void
 CliffWalkingEnv::build(bool reset_){
@@ -67,12 +60,12 @@ CliffWalkingEnv::build(bool reset_){
     }
 }
 
-CliffWalkingEnv::time_step_t
-CliffWalkingEnv::step(const action_t& action){
+CliffWalkingEnv::time_step_type
+CliffWalkingEnv::step(const action_type& action){
     return env_impl_.step(action);
 }
 
-CliffWalkingEnv::time_step_t
+CliffWalkingEnv::time_step_type
 CliffWalkingEnv::reset(){
     return env_impl_.reset();
 }
@@ -97,7 +90,7 @@ int main(){
         std::cout<<"Number of actions="<<env.n_actions()<<std::endl;
 
         EpsilonGreedyPolicy policy(0.005, env.n_actions(), EpsilonDecayOption::NONE);
-        ExpectedSARSA<time_step_t, EpsilonGreedyPolicy> expected_sarsa(5000, 1.0e-8,
+        ExpectedSARSA<CliffWalkingEnv, EpsilonGreedyPolicy> expected_sarsa(5000, 1.0e-8,
                                                                              1.0, 0.01, 100, env, 1000, policy);
 
         expected_sarsa.do_verbose_output();
