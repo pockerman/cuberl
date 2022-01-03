@@ -5,6 +5,7 @@
 #include "cubeai/base/cubeai_types.h"
 #include "cubeai/rl/algorithms/dp/iterative_policy_evaluation.h"
 #include "cubeai/rl/worlds/discrete_world.h"
+#include "cubeai/rl/worlds/with_dynamics_mixin.h"
 #include "cubeai/rl/policies/uniform_discrete_policy.h"
 
 #include "gymfcpp/gymfcpp_types.h"
@@ -26,19 +27,20 @@ namespace exe
 using cubeai::real_t;
 using cubeai::uint_t;
 using cubeai::rl::envs::DiscreteWorldBase;
+using cubeai::rl::envs::with_dynamics_mixin;
 using cubeai::rl::policies::UniformDiscretePolicy;
 using cubeai::rl::algos::dp::IterativePolicyEval;
 
 typedef gymfcpp::TimeStep<uint_t> time_step_t;
 
 
-class FrozenLakeEnv: public DiscreteWorldBase<gymfcpp::TimeStep<uint_t>>
+class FrozenLakeEnv: public DiscreteWorldBase<gymfcpp::TimeStep<uint_t>>, public with_dynamics_mixin
 {
 
 public:
 
-    typedef DiscreteWorldBase<time_step_t>::action_t action_t;
-    typedef DiscreteWorldBase<time_step_t>::time_step_t time_step_t;
+    typedef DiscreteWorldBase<time_step_t>::action_type action_type;
+    typedef DiscreteWorldBase<time_step_t>::time_step_type time_step_type;
 
     //
     FrozenLakeEnv(gymfcpp::obj_t gym_namespace);
@@ -49,9 +51,9 @@ public:
     virtual uint_t n_states()const override final {return env_impl_.n_states();}
     virtual std::vector<std::tuple<real_t, uint_t, real_t, bool>> transition_dynamics(uint_t s, uint_t aidx)const override final;
 
-    virtual time_step_t step(const action_t&)override final {return time_step_t();}
+    virtual time_step_type step(const action_type&)override final {return time_step_type();}
 
-    virtual time_step_t reset() override final;
+    virtual time_step_type reset() override final;
     virtual  void build(bool reset) override final;
     virtual uint_t n_copies()const override final{return 1;}
 
@@ -69,7 +71,7 @@ FrozenLakeEnv::FrozenLakeEnv(gymfcpp::obj_t gym_namespace)
 {}
 
 
-FrozenLakeEnv::time_step_t
+FrozenLakeEnv::time_step_type
 FrozenLakeEnv::reset(){
     return env_impl_.reset();
 }

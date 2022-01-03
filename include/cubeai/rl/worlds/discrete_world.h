@@ -24,17 +24,17 @@ public:
     ///
     /// \brief state_t
     ///
-    typedef typename WorldBase<uint_t, uint_t, TimeStepTp>::state_t state_t;
+    typedef typename WorldBase<uint_t, uint_t, TimeStepTp>::state_type state_type;
 
     ///
     /// \brief action_t
     ///
-    typedef typename WorldBase<uint_t, uint_t, TimeStepTp>::action_t action_t;
+    typedef typename WorldBase<uint_t, uint_t, TimeStepTp>::action_type action_type;
 
     ///
     /// \brief time_step_t
     ///
-    typedef typename WorldBase<uint_t, uint_t, TimeStepTp>::time_step_t time_step_t;
+    typedef typename WorldBase<uint_t, uint_t, TimeStepTp>::time_step_type time_step_type;
 
     ///
     /// \brief ~DiscreteWorldBase. Destructor

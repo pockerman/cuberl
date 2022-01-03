@@ -136,6 +136,11 @@ private:
     uint_t render_env_frequency_;
 
     ///
+    /// \brief n_itrs_per_episode_
+    ///
+    uint_t n_itrs_per_episode_;
+
+    ///
     /// \brief itr_ctrl_. The object controlling the iterations
     ///
     IterativeAlgorithmController itr_ctrl_;

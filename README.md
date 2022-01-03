@@ -18,8 +18,8 @@ CubeAI is a C++ library containing implementations of various reinforcement lear
 - <a href="examples/example_14/example_14.cpp">Example 14: Expected SARSA on ```CliffWalking-v0```</a>
 - <a href="examples/example_15/example_15.cpp">Example 15: Approximate Monte Carlo on ```MountainCar-v0```</a>
 - <a href="examples/example_16/example_16.cpp">Example 16: Monte Carlo tree search on ```Taxi-v3```</a>
-- <a href="examples/example_17/example_17.cpp">Example 17: A* search on on a road network  from Open Street Map data</a> 
-- <a href="#">Example 18: D* search (TODO) </a> 
+- <a href="examples/example_17/example_17.cpp">Example 17: A* search on a road network  from Open Street Map data</a> 
+- <a href="examples/example_18/example_18.cpp">Example 18: Double Q-learning on  ```CartPole-v0``` </a> 
 - <a href="#">Example 19: Path planning with rapidly-exploring random trees (TODO)</a> 
 - <a href="#">Example 20: Path planning with dynamic windows (TODO) </a>   
 

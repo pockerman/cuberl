@@ -3,6 +3,7 @@
 
 #include "cubeai/base/cubeai_types.h"
 #include "cubeai/rl/algorithms/td/td_algo_base.h"
+#include "cubeai/rl/worlds/envs_concepts.h"
 
 #include "cubeai/base/cubeai_consts.h"
 #include "cubeai/base/cubeai_config.h"
@@ -30,8 +31,8 @@ using namespace boost::placeholders;
 /// The implementation also allows for exponential decay
 /// of the used epsilon
 ///
-template <typename TimeStepTp, typename ActionSelector>
-class QLearning: public TDAlgoBase<TimeStepTp>
+template<envs::discrete_world_concept EnvTp, typename ActionSelector>
+class QLearning: public TDAlgoBase<EnvTp>
 {
 
 public:
@@ -39,29 +40,34 @@ public:
     ///
     /// \brief env_t
     ///
-    typedef typename TDAlgoBase<TimeStepTp>::env_t env_t;
+    typedef typename TDAlgoBase<EnvTp>::env_type env_type;
 
     ///
     /// \brief action_t
     ///
-    typedef typename TDAlgoBase<TimeStepTp>::action_t action_t;
+    typedef typename TDAlgoBase<EnvTp>::action_type action_type;
 
     ///
     /// \brief state_t
     ///
-    typedef typename TDAlgoBase<TimeStepTp>::state_t state_t;
+    typedef typename TDAlgoBase<EnvTp>::state_type state_type;
 
     ///
     /// \brief action_selector_t
     ///
-    typedef ActionSelector action_selector_t;
+    typedef ActionSelector action_selector_type;
 
     ///
     /// \brief Constructor
     ///
     QLearning(uint_t n_episodes, real_t tolerance,
               real_t gamma, real_t eta, uint_t plot_f,
-              env_t& env, uint_t max_num_iterations_per_episode, const ActionSelector& selector);
+              env_type& env, uint_t max_num_iterations_per_episode, const ActionSelector& selector);
+
+    ///
+    /// \brief Constructor
+    ///
+    QLearning(TDAlgoConfig config, env_type& env, const ActionSelector& selector);
 
     ///
     /// \brief on_episode. Performs the iterations for
@@ -79,31 +85,38 @@ private:
     ///
     /// \brief action_selector_
     ///
-    action_selector_t action_selector_;
+    action_selector_type action_selector_;
 
     ///
     /// \brief update_q_table_
     /// \param action
     ///
-    void update_q_table_(const action_t& action, const state_t& cstate,
-                         const state_t& next_state, const  action_t& next_action, real_t reward);
+    void update_q_table_(const action_type& action, const state_type& cstate,
+                         const state_type& next_state, const  action_type& next_action, real_t reward);
 
 };
 
-template <typename TimeStepTp, typename ActionSelector>
-QLearning<TimeStepTp, ActionSelector>::QLearning(uint_t n_episodes, real_t tolerance,
+template <envs::discrete_world_concept EnvTp, typename ActionSelector>
+QLearning<EnvTp, ActionSelector>::QLearning(uint_t n_episodes, real_t tolerance,
                                                  real_t gamma, real_t eta, uint_t plot_f,
-                                                 env_t& env, uint_t max_num_iterations_per_episode, const ActionSelector& selector)
+                                                 env_type& env, uint_t max_num_iterations_per_episode, const ActionSelector& selector)
     :
-      TDAlgoBase<TimeStepTp>(n_episodes, tolerance, gamma, eta, plot_f, max_num_iterations_per_episode, env),
+      TDAlgoBase<EnvTp>(n_episodes, tolerance, gamma, eta, plot_f, max_num_iterations_per_episode, env),
       current_score_counter_(0),
       action_selector_(selector)
 {}
 
+template <envs::discrete_world_concept EnvTp, typename ActionSelector>
+QLearning<EnvTp, ActionSelector>::QLearning(TDAlgoConfig config, env_type& env, const ActionSelector& selector)
+    :
+     TDAlgoBase<EnvTp>(config, env),
+     action_selector_(selector)
+{}
 
-template <typename TimeStepTp, typename ActionSelector>
+
+template<envs::discrete_world_concept EnvTp, typename ActionSelector>
 void
-QLearning<TimeStepTp, ActionSelector>::on_episode(){
+QLearning<EnvTp, ActionSelector>::on_episode(){
 
     std::cout<<"Starting episode="<<this->current_episode_idx()<<std::endl;
 
@@ -173,10 +186,10 @@ QLearning<TimeStepTp, ActionSelector>::on_episode(){
     std::cout<<"Finished on_episode="<<this->current_episode_idx()<<std::endl;
 }
 
-template <typename TimeStepTp, typename ActionSelector>
+template <envs::discrete_world_concept EnvTp, typename ActionSelector>
 void
-QLearning<TimeStepTp, ActionSelector>::update_q_table_(const action_t& action, const state_t& cstate,
-                                                       const state_t& next_state, const  action_t& next_action, real_t reward){
+QLearning<EnvTp, ActionSelector>::update_q_table_(const action_type& action, const state_type& cstate,
+                                                       const state_type& next_state, const  action_type& next_action, real_t reward){
 #ifdef CUBEAI_DEBUG
     assert(action < this->env_ref_().n_actions() && "Inavlid action idx");
     assert(cstate < this->env_ref_().n_states() && "Inavlid state idx");
