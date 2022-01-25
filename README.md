@@ -34,9 +34,9 @@ CubeAI is a C++ library containing implementations of various reinforcement lear
 
 - CMake
 - Python >= 3.8
-- PyTorch
+- PyTorch C++ bindings
 - Blaze (3.8)
-- gymfcpp
+- <a href="#">gymfcpp</a>
 
 ### Documentation dependencies
 
