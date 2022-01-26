@@ -35,7 +35,8 @@ CubeAI is a C++ library containing implementations of various reinforcement lear
 - CMake
 - Python >= 3.8
 - PyTorch C++ bindings
-- Blaze (3.8)
+- <a href="https://bitbucket.org/blaze-lib/blaze/src/master/">Blaze</a> (version >= 3.8)
+- Blas library, e.g. OpenBLAS (required by Blaze)
 - <a href="#">gymfcpp</a>
 
 ### Documentation dependencies
@@ -61,6 +62,8 @@ If you are using ```gymfcpp``` you need to export the path to the Python version
 export CPLUS_INCLUDE_PATH="$CPLUS_INCLUDE_PATH:/usr/include/python3.8/"
 ```
 
+Depending on the values of the ```CMAKE_BUILD_TYPE```, the produced shared library will be installed in ```CMAKE_INSTALL_PREFIX/dbg/``` or ```CMAKE_INSTALL_PREFIX/opt/``` directories.
+
 ## Issues
 
 ### ```pyconfig.h``` not found
@@ -69,7 +72,8 @@ export CPLUS_INCLUDE_PATH="$CPLUS_INCLUDE_PATH:/usr/include/python3.8/"
 
 ### Problems with Blaze includes
 
-- ```cubeai``` is using Blaze-3.8. As of this version the ```FIND_PACKAGE( blaze )``` command does not populate ```BLAZE_INCLUDE_DIRS``` therefore you manually have to set the variable appropriately for your system.
+- ```cubeai``` is using Blaze-3.8. As of this version the ```FIND_PACKAGE( blaze )``` command does not populate ```BLAZE_INCLUDE_DIRS``` 
+therefore you manually have to set the variable appropriately for your system.
 
 
 

@@ -49,7 +49,7 @@ uint_t bin_index(const typename SequenceTp::value_type& x, const SequenceTp& seq
 ///
 template <typename T, typename A>
 uint_t arg_max(const std::vector<T, A>& vec) {
-  return static_cast<int>(std::distance(vec.begin(), max_element(vec.begin(), vec.end())));
+  return static_cast<uint_t>(std::distance(vec.begin(), max_element(vec.begin(), vec.end())));
 }
 
 
