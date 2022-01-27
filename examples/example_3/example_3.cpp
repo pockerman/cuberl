@@ -1,3 +1,14 @@
+/**
+  * Solve the multi-arm bandit problem using
+  * soft-max policy.  When using a soft-max policy  policy
+  * we get a distribution of probabilities over the actions. We select the action with the
+  * highest probability.
+  * For this example we will solve a 10-armed bandit problem, so N=10.
+  *
+  * This example is taken from the book: Reinforcement Learning in Action by Manning Publications.
+  *
+  * */
+
 #include "cubeai/base/cubeai_types.h"
 
 

@@ -10,6 +10,7 @@ CubeAI is a C++ library containing implementations of various reinforcement lear
 - <a href="examples/example_1/example_1.cpp">Example 1: Toy Markov chain</a>
 - <a href="examples/example_2/example_2.cpp">Example 2: Multi-armed bandit with epsilon-greedy policy</a>
 - <a href="examples/example_3/example_3.cpp">Example 3: Multi-armed bandit with soft-max policy</a>
+- <a href="examples/example_4/example_4.cpp">Example 4: Advertisement placement</a>
 - <a href="examples/example_6/example_6.cpp">Example 6: Iterative policy evaluation on ```FrozenLake-v0```</a>
 - <a href="examples/example_7/example_7.cpp">Example 7: Policy iteration on ```FrozenLake-v0```</a>
 - <a href="examples/example_8/example_8.cpp">Example 8: Value iteration on ```FrozenLake-v0```</a>

@@ -30,6 +30,8 @@ using cubeai::real_t;
 using cubeai::uint_t;
 using cubeai::DynMat;
 using cubeai::DynVec;
+using cubeai::rl::policies::EpsilonDecayOption;
+using cubeai::rl::policies::EpsilonGreedyPolicy;
 
 //  Each arm has an associated probability that weights how much reward it pays out.
 // The reward probability distributions is implemented as follows.

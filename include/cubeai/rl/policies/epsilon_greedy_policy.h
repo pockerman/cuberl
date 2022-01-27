@@ -42,7 +42,7 @@ public:
     /// \brief adjust_on_episode
     /// \param episode
     ///
-    void adjust_on_episode(uint_t episode);
+    void adjust_on_episode(uint_t episode)noexcept;
 
     ///
     /// \brief reset
@@ -59,6 +59,12 @@ public:
     /// \brief eps_value
     ///
     real_t eps_value()const noexcept{return eps_;}
+
+    ///
+    /// \brief set_seed
+    /// \param seed
+    ///
+    void set_seed(const uint_t seed)noexcept{seed_ = seed;}
 
 private:
 
@@ -91,12 +97,14 @@ EpsilonGreedyPolicy::operator()(const QMapTp& q_map, uint_t state)const{
 
     const auto& actions = q_map.find(state)->second;
 
-    std::random_device rd;
-    std::mt19937 gen(rd());
+    //std::random_device rd;
+    std::mt19937 gen(seed_); //rd());
+
+    // generate a number in [0, 1]
     std::uniform_real_distribution<> real_dist_(0.0, 1.0);
 
     if(real_dist_(gen) > eps_){
-        // select greedy action with probability epsilon
+        // select greedy action with probability 1 - epsilon
         return blaze::argmax(actions);
     }
 
@@ -106,7 +114,7 @@ EpsilonGreedyPolicy::operator()(const QMapTp& q_map, uint_t state)const{
 }
 
 void
-EpsilonGreedyPolicy::adjust_on_episode(uint_t episode){
+EpsilonGreedyPolicy::adjust_on_episode(uint_t episode)noexcept{
 
     if(decay_op_ == EpsilonDecayOption::NONE)
         return;
