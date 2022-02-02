@@ -3,6 +3,7 @@
 
 #include "cubeai/base/cubeai_types.h"
 #include "cubeai/rl/algorithms/algorithm_base.h"
+#include "gymfcpp/render_mode_enum.h"
 
 #include <vector>
 #include <deque>
@@ -228,7 +229,7 @@ void Reinforce<WorldTp, PolicyTp, OptimizerTp>::do_step_(){
             auto [action, log_prob] = policy_ptr_ -> act(state);
 
              if(render_environment_){
-                world_ptr_->render();
+                world_ptr_->render(gymfcpp::RenderModeType::human);
             }
 
             saved_log_probs_.push_back(log_prob);
