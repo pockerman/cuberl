@@ -47,8 +47,8 @@ uint_t bin_index(const typename SequenceTp::value_type& x, const SequenceTp& seq
 /// value in the array. Implementation taken from
 /// http://www.jclay.host/dev-journal/simple_cpp_argmax_argmin.html
 ///
-template <typename T, typename A>
-uint_t arg_max(const std::vector<T, A>& vec) {
+template <typename VectorType>
+uint_t arg_max(const VectorType& vec) {
   return static_cast<uint_t>(std::distance(vec.begin(), max_element(vec.begin(), vec.end())));
 }
 
@@ -58,8 +58,8 @@ uint_t arg_max(const std::vector<T, A>& vec) {
 /// value in the array. Implementation taken from
 /// http://www.jclay.host/dev-journal/simple_cpp_argmax_argmin.html
 ///
-template <typename T, typename A>
-uint_t arg_min(const std::vector<T, A>& vec) {
+template <typename VectorType>
+uint_t arg_min(const VectorType& vec) {
   return static_cast<uint_t>(std::distance(vec.begin(), min_element(vec.begin(), vec.end())));
 }
 
