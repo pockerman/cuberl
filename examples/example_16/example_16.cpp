@@ -12,7 +12,7 @@
 #include "cubeai/utils/array_utils.h"
 
 #include "gymfcpp/gymfcpp_types.h"
-#include "gymfcpp/taxi.h"
+#include "gymfcpp/taxi_env.h"
 #include "gymfcpp/time_step.h"
 #include "gymfcpp/gymfcpp_consts.h"
 

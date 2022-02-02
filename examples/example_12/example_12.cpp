@@ -7,7 +7,7 @@
 #include "cubeai/base/torch_tensor_utils.h"
 
 #include "gymfcpp/gymfcpp_types.h"
-#include "gymfcpp/cart_pole.h"
+#include "gymfcpp/cart_pole_env.h"
 #include "gymfcpp/time_step.h"
 
 #include <torch/torch.h>
@@ -39,7 +39,7 @@ const auto POLICY_NET_FILE = "policy_net.json";
 const auto TARGET_NET_FILE = "target_net.json";
 
 
-typedef gymfcpp::CartPole::time_step_t time_step_t;
+typedef gymfcpp::CartPole::time_step_type time_step_type;
 typedef gymfcpp::CartPole::Screen screen_t;
 
 // batch type to be used below
@@ -296,7 +296,7 @@ public:
     void train();
 
     template<typename ActionTp>
-    gymfcpp::TimeStep<time_step_t> step(const ActionTp& a){return env_ptr_->step(a);}
+    time_step_type step(const ActionTp& a){return env_ptr_->step(a);}
 
     template<typename StateTp>
     uint_t select_action(const StateTp& state);

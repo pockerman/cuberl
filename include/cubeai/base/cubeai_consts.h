@@ -28,6 +28,18 @@ public:
     static std::string version(){return std::string(CUBEAILIB_VERSION);}
 
     ///
+    /// \brief data_directory_path
+    /// \return
+    ///
+    static std::string data_directory_path()noexcept{return std::string(DATA_SET_FOLDER);}
+
+    ///
+    /// \brief mnist_data_directory_path
+    /// \return
+    ///
+    static std::string mnist_data_directory_path()noexcept{return CubeAIConsts::data_directory_path() + "/MNIST/";}
+
+    ///
     /// \brief Returns the value of the tolerance constant.
     /// Default is static_cast<real_type>(1.0e-8)
     ///
