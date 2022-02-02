@@ -2,6 +2,7 @@
 #define EPSILON_GREEDY_POLICY_H
 
 #include "cubeai/base/cubeai_types.h"
+#include "cubeai/utils/array_utils.h"
 #include <random>
 #include <cmath>
 
@@ -37,6 +38,12 @@ public:
     ///
     template<typename QMapTp>
     uint_t operator()(const QMapTp& q_map, uint_t state)const;
+
+    ///
+    ///
+    ///
+    template<typename VectorType>
+    uint_t choose_action_index(const VectorType& values)const;
 
     ///
     /// \brief adjust_on_episode
@@ -106,6 +113,25 @@ EpsilonGreedyPolicy::operator()(const QMapTp& q_map, uint_t state)const{
     if(real_dist_(gen) > eps_){
         // select greedy action with probability 1 - epsilon
         return blaze::argmax(actions);
+    }
+
+    //std::mt19937 another_gen(seed_);
+    std::uniform_int_distribution<> distrib_(0,  n_actions_ - 1);
+    return distrib_(gen);
+}
+
+template<typename VectorType>
+uint_t
+EpsilonGreedyPolicy::choose_action_index(const VectorType& values)const{
+
+    std::mt19937 gen(seed_);
+
+    // generate a number in [0, 1]
+    std::uniform_real_distribution<> real_dist_(0.0, 1.0);
+
+    if(real_dist_(gen) > eps_){
+        // select greedy action with probability 1 - epsilon
+        return arg_max(values);
     }
 
     //std::mt19937 another_gen(seed_);
