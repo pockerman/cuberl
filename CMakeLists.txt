@@ -48,6 +48,7 @@ SET(USE_LOG ON)
 SET(USE_PYTORCH ON)
 SET(USE_OPENCV OFF)
 SET(USE_GYMFCPP ON)
+SET(DATA_SET_FOLDER ${PROJECT_SOURCE_DIR}/data)
 
 SET(ENABLE_EXAMPLES_FLAG ON)
 SET(ENABLE_TESTS_FLAG ON)
@@ -145,7 +146,7 @@ INCLUDE_DIRECTORIES(include/)
 
 # collect the source files for the library
 FILE(GLOB SRCS src/cubeai/base/*.cpp src/cubeai/ml/*.cpp src/cubeai/ml/*/*.cpp src/cubeai/rl/*.cpp src/cubeai/rl/*/*.cpp
-    src/cubeai/io/*.cpp src/cubeai/planning/*.cpp, src/cubeai/geom_primitives/*.cpp src/cubeai/utils/*.cpp)
+    src/cubeai/io/*.cpp src/cubeai/planning/*.cpp, src/cubeai/geom_primitives/*.cpp src/cubeai/utils/*.cpp src/cubeai/optimization/*.cpp)
 
 
 ADD_LIBRARY(cubeailib SHARED ${SRCS})

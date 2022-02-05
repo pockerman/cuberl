@@ -7,7 +7,7 @@
 #include "cubeai/ml/distributions/torch_categorical.h"
 
 #include "gymfcpp/gymfcpp_types.h"
-#include "gymfcpp/cart_pole.h"
+#include "gymfcpp/cart_pole_env.h"
 #include "gymfcpp/time_step.h"
 
 #include <torch/torch.h>
