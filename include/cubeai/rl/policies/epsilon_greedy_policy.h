@@ -2,6 +2,7 @@
 #define EPSILON_GREEDY_POLICY_H
 
 #include "cubeai/base/cubeai_types.h"
+#include "cubeai/utils/array_utils.h"
 #include <random>
 #include <cmath>
 
@@ -39,10 +40,16 @@ public:
     uint_t operator()(const QMapTp& q_map, uint_t state)const;
 
     ///
+    ///
+    ///
+    template<typename VectorType>
+    uint_t choose_action_index(const VectorType& values)const;
+
+    ///
     /// \brief adjust_on_episode
     /// \param episode
     ///
-    void adjust_on_episode(uint_t episode);
+    void adjust_on_episode(uint_t episode)noexcept;
 
     ///
     /// \brief reset
@@ -59,6 +66,12 @@ public:
     /// \brief eps_value
     ///
     real_t eps_value()const noexcept{return eps_;}
+
+    ///
+    /// \brief set_seed
+    /// \param seed
+    ///
+    void set_seed(const uint_t seed)noexcept{seed_ = seed;}
 
 private:
 
@@ -91,12 +104,14 @@ EpsilonGreedyPolicy::operator()(const QMapTp& q_map, uint_t state)const{
 
     const auto& actions = q_map.find(state)->second;
 
-    std::random_device rd;
-    std::mt19937 gen(rd());
+    //std::random_device rd;
+    std::mt19937 gen(seed_); //rd());
+
+    // generate a number in [0, 1]
     std::uniform_real_distribution<> real_dist_(0.0, 1.0);
 
     if(real_dist_(gen) > eps_){
-        // select greedy action with probability epsilon
+        // select greedy action with probability 1 - epsilon
         return blaze::argmax(actions);
     }
 
@@ -105,8 +120,27 @@ EpsilonGreedyPolicy::operator()(const QMapTp& q_map, uint_t state)const{
     return distrib_(gen);
 }
 
+template<typename VectorType>
+uint_t
+EpsilonGreedyPolicy::choose_action_index(const VectorType& values)const{
+
+    std::mt19937 gen(seed_);
+
+    // generate a number in [0, 1]
+    std::uniform_real_distribution<> real_dist_(0.0, 1.0);
+
+    if(real_dist_(gen) > eps_){
+        // select greedy action with probability 1 - epsilon
+        return arg_max(values);
+    }
+
+    //std::mt19937 another_gen(seed_);
+    std::uniform_int_distribution<> distrib_(0,  n_actions_ - 1);
+    return distrib_(gen);
+}
+
 void
-EpsilonGreedyPolicy::adjust_on_episode(uint_t episode){
+EpsilonGreedyPolicy::adjust_on_episode(uint_t episode)noexcept{
 
     if(decay_op_ == EpsilonDecayOption::NONE)
         return;

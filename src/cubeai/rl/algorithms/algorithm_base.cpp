@@ -19,6 +19,7 @@ AlgorithmBase::AlgorithmBase(RLAlgoConfig config)
 {
     render_env_ = config.render_environment;
     render_env_frequency_ = config.render_env_frequency;
+    n_itrs_per_episode_ = config.n_itrs_per_episode;
 }
 
 

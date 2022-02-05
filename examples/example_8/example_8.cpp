@@ -1,6 +1,7 @@
 #include "cubeai/base/cubeai_types.h"
 #include "cubeai/rl/algorithms/dp/value_iteration.h"
 #include "cubeai/rl/worlds/discrete_world.h"
+#include "cubeai/rl/worlds/with_dynamics_mixin.h"
 #include "cubeai/rl/policies/uniform_discrete_policy.h"
 #include "cubeai/rl/policies/stochastic_adaptor_policy.h"
 
@@ -23,19 +24,20 @@ namespace exe
 using cubeai::real_t;
 using cubeai::uint_t;
 using cubeai::rl::envs::DiscreteWorldBase;
+using cubeai::rl::envs::with_dynamics_mixin;
 using cubeai::rl::policies::UniformDiscretePolicy;
 using cubeai::rl::policies::StochasticAdaptorPolicy;
 using cubeai::rl::algos::dp::ValueIteration;
 
-typedef gymfcpp::TimeStep<uint_t> time_step_t;
+typedef gymfcpp::TimeStep<uint_t> time_step_type;
 
-class FrozenLakeEnv: public DiscreteWorldBase<time_step_t>
+class FrozenLakeEnv: public DiscreteWorldBase<time_step_type>, public with_dynamics_mixin
 {
 
 public:
 
-    typedef DiscreteWorldBase<time_step_t>::action_t action_t;
-    typedef DiscreteWorldBase<time_step_t>::time_step_t time_step_t;
+    typedef DiscreteWorldBase<time_step_type>::action_type action_type;
+    typedef DiscreteWorldBase<time_step_type>::time_step_type time_step_type;
 
     //
     FrozenLakeEnv(gymfcpp::obj_t gym_namespace);
@@ -46,9 +48,9 @@ public:
     virtual uint_t n_states()const override final {return env_impl_.n_states();}
     virtual std::vector<std::tuple<real_t, uint_t, real_t, bool>> transition_dynamics(uint_t s, uint_t aidx)const override final;
 
-    virtual time_step_t step(const action_t&)override final {return time_step_t();}
+    virtual time_step_type step(const action_type&)override final {return time_step_type();}
 
-    virtual time_step_t reset() override final;
+    virtual time_step_type reset() override final;
     virtual  void build(bool reset) override final;
     virtual uint_t n_copies()const override final{return 1;}
 
@@ -61,18 +63,18 @@ private:
 
 FrozenLakeEnv::FrozenLakeEnv(gymfcpp::obj_t gym_namespace)
     :
-     DiscreteWorldBase<time_step_t>("FrozenLake"),
+     DiscreteWorldBase<time_step_type>("FrozenLake"),
      env_impl_("v0", gym_namespace)
 {}
 
 
-FrozenLakeEnv::time_step_t
+FrozenLakeEnv::time_step_type
 FrozenLakeEnv::reset(){
     return env_impl_.reset();
 }
 
 void
-FrozenLakeEnv::build(bool reset){
+FrozenLakeEnv::build(bool /*reset*/){
     env_impl_.make();
 }
 
@@ -103,7 +105,7 @@ int main() {
 
     auto policy_adaptor = std::make_shared<StochasticAdaptorPolicy>(env.n_states(), env.n_actions(), policy);
 
-    ValueIteration<time_step_t> value_itr(500, 1.0e-8, env, 1.0, policy, policy_adaptor);
+    ValueIteration<time_step_type> value_itr(500, 1.0e-8, env, 1.0, policy, policy_adaptor);
     value_itr.do_verbose_output();
     value_itr.train();
 

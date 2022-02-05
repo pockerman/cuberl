@@ -26,17 +26,17 @@ public:
     ///
     /// \brief state_t
     ///
-    typedef StateTp state_t;
+    typedef StateTp state_type;
 
     ///
     /// \brief action_t
     ///
-    typedef ActionTp action_t;
+    typedef ActionTp action_type;
 
     ///
     /// \brief time_step_t
     ///
-    typedef TimeStepTp time_step_t;
+    typedef TimeStepTp time_step_type;
 
     ///
     /// \brief ~WorldBase. Destructor
@@ -58,13 +58,13 @@ public:
     /// learning (for example, it might contain the raw probabilities behind the environment’s last state change).
     /// However, official evaluations of your agent are not allowed to use this for learning.
     ///
-    virtual time_step_t step(const action_t&)=0;
+    virtual time_step_type step(const action_type&)=0;
 
     ///
     /// \brief restart. Restart the world and
     /// return the starting state
     ///
-    virtual time_step_t reset()=0;
+    virtual time_step_type reset()=0;
 
     ///
     /// \brief Build the  world
@@ -74,7 +74,7 @@ public:
     ///
     /// \brief n_copies Returns the  number of copies of the environment
     ///
-    virtual uint_t n_copies()const = 0;
+    virtual uint_t n_copies()const {return 1;}
 
     ///
     /// \brief name

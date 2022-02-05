@@ -18,7 +18,7 @@
 
 namespace F = torch::nn::functional;
 
-namespace example{
+namespace example12{
 
 using cubeai::real_t;
 using cubeai::uint_t;
@@ -459,7 +459,7 @@ CartPoleDQNAgent::train(){
 
 int main(){
 
-    using namespace example;
+    using namespace example12;
 
     try{
 

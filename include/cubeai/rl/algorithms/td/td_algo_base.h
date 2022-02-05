@@ -2,7 +2,10 @@
 #define TD_ALGO_BASE_H
 
 #include "cubeai/rl/algorithms/algorithm_base.h"
+#include "cubeai/rl/algorithms/rl_algo_config.h"
+#include "cubeai/rl/worlds/envs_concepts.h"
 #include "cubeai/rl/worlds/discrete_world.h"
+#include "cubeai/rl/worlds/envs_concepts.h"
 #include "cubeai/io/csv_file_writer.h"
 
 #include <unordered_map>
@@ -15,10 +18,18 @@ namespace rl {
 namespace algos {
 namespace td {
 
+struct TDAlgoConfig: RLAlgoConfig
+{
+    real_t gamma;
+    real_t eta;
+    uint_t seed{42};
+};
+
 ///
+///\brief The TDAlgoBase class. Base class
+/// for deriving TD algorithms
 ///
-///
-template<typename TimeStepTp>
+template<envs::discrete_world_concept EnvTp>
 class TDAlgoBase: public AlgorithmBase
 {
 public:
@@ -26,27 +37,27 @@ public:
     ///
     /// \brief env_t
     ///
-    typedef envs::DiscreteWorldBase<TimeStepTp> env_t;
+    typedef EnvTp env_type;
 
     ///
     /// \brief value_func_t
     ///
-    typedef  DynVec<real_t> value_func_t;
+    typedef  DynVec<real_t> value_func_type;
 
     ///
     /// \brief action_t
     ///
-    typedef typename env_t::action_t action_t;
+    typedef typename env_type::action_type action_type;
 
     ///
     /// \brief state_t
     ///
-    typedef typename env_t::state_t state_t;
+    typedef typename env_type::state_type state_type;
 
     ///
     /// \brief q_table_t
     ///
-    typedef std::unordered_map<action_t, DynVec<real_t>> q_table_t;
+    typedef std::unordered_map<action_type, DynVec<real_t>> q_table_type;
 
     ///
     /// \brief Destructor
@@ -68,34 +79,40 @@ public:
     ///
     /// \brief gamma
     ///
-    real_t gamma()const{return gamma_;}
+    real_t gamma()const noexcept{return gamma_;}
 
     ///
     /// \brief eta
     /// \return
     ///
-    real_t eta()const{return eta_;}
+    real_t eta()const noexcept{return eta_;}
+
+    ///
+    /// \brief seed
+    /// \return
+    ///
+    uint_t seed()const noexcept{return seed_;}
 
     ///
     /// \brief q_table
     /// \return
     ///
-    q_table_t& q_table(){return q_;}
+    q_table_type& q_table()noexcept{return q_;}
 
     ///
     /// \brief q_table
     ///
-    const q_table_t& q_table()const{return q_;}
+    const q_table_type& q_table()const noexcept{return q_;}
 
     ///
     /// \brief value_func
     ///
-    value_func_t& value_func(){return v_;}
+    value_func_type& value_func(){return v_;}
 
     ///
     /// \brief value_func
     ///
-    const value_func_t& value_func()const{return v_;}
+    const value_func_type& value_func()const{return v_;}
 
     ///
     /// \brief reset
@@ -123,17 +140,6 @@ public:
     virtual void save_state_action_function(const std::string& filename)const;
 
     ///
-    /// \brief plot_frequency
-    /// \return
-    ///
-    uint_t plot_frequency()const{return plot_freq_;}
-
-    ///
-    /// \brief set_plot_frequency
-    ///
-    void set_plot_frequency(uint_t f){plot_freq_ = f;}
-
-    ///
     /// \brief make_value_function
     ///
     virtual void make_value_function();
@@ -150,24 +156,30 @@ public:
 
 protected:
 
+    ///
+    /// \brief DPAlgoBase
+    /// \param name
+    ///
+    TDAlgoBase(TDAlgoConfig config, env_type& env);
+
      ///
      /// \brief DPAlgoBase
      /// \param name
      ///
      TDAlgoBase(uint_t n_episodes, real_t tolerance, real_t gamma,
-                real_t eta, uint_t plot_f, uint_t max_num_iterations_per_episode, env_t& env);
+                real_t eta, uint_t plot_f, uint_t max_num_iterations_per_episode, env_type& env);
 
      ///
      /// \brief env_ref_
      /// \return
      ///
-     env_t& env_ref_(){return env_;}
+     env_type& env_ref_(){return env_;}
 
      ///
      /// \brief env_ref_
      /// \return
      ///
-     const env_t& env_ref_()const{return env_;}
+     const env_type& env_ref_()const{return env_;}
 
      ///
      /// \brief tmp_scores
@@ -181,22 +193,7 @@ protected:
      ///
      const std::deque<real_t>& tmp_scores()const{return tmp_scores_;}
 
-     ///
-     ///
-     ///
-     uint_t max_num_iterations_per_episode()const noexcept{return max_num_iterations_per_episode_;}
-
 private:
-
-     ///
-     /// \brief plot_freq_
-     ///
-     uint_t plot_freq_;
-
-     ///
-     /// \brief max_num_iterations_per_episode_
-     ///
-     uint_t max_num_iterations_per_episode_;
 
      ///
      /// \brief gamma_
@@ -209,9 +206,14 @@ private:
      real_t eta_;
 
      ///
+     /// \brief seed_
+     ///
+     uint_t seed_;
+
+     ///
      /// \brief env_
      ///
-     env_t& env_;
+     env_type& env_;
 
      ///
      /// \brief v_
@@ -229,23 +231,38 @@ private:
 
 };
 
-template<typename TimeStepTp>
-TDAlgoBase<TimeStepTp>::TDAlgoBase(uint_t n_episodes, real_t tolerance, real_t gamma,
-                                   real_t eta, uint_t plot_f, uint_t max_num_iterations_per_episode, env_t& env)
+template<envs::discrete_world_concept EnvTp>
+TDAlgoBase<EnvTp>::TDAlgoBase(uint_t n_episodes, real_t tolerance, real_t gamma,
+                              real_t eta, uint_t render_env_frequency,
+                              uint_t n_itrs_per_episode, env_type& env)
     :
     AlgorithmBase(n_episodes, tolerance),
-    plot_freq_(plot_f),
-    max_num_iterations_per_episode_(max_num_iterations_per_episode),
     gamma_(gamma),
     eta_(eta),
+    seed_(42),
+    env_(env),
+    v_(),
+    q_()
+{
+    this->n_itrs_per_episode_ = n_itrs_per_episode;
+    this->render_env_frequency_ = render_env_frequency;
+}
+
+template<envs::discrete_world_concept EnvTp>
+TDAlgoBase<EnvTp>::TDAlgoBase(TDAlgoConfig config, env_type& env)
+    :
+    AlgorithmBase(config),
+    gamma_(config.gamma),
+    eta_(config.eta),
+    seed_(config.seed),
     env_(env),
     v_(),
     q_()
 {}
 
-template<typename TimeStepTp>
+template<envs::discrete_world_concept EnvTp>
 void
-TDAlgoBase<TimeStepTp>::reset(){
+TDAlgoBase<EnvTp>::reset(){
 
     this->AlgorithmBase::reset();
 
@@ -257,27 +274,27 @@ TDAlgoBase<TimeStepTp>::reset(){
     }
 
     tmp_scores_.clear();
-    tmp_scores_.resize(plot_freq_);
+    tmp_scores_.resize(this->render_env_frequency_);
     avg_scores_.clear();
     avg_scores_.resize(this->n_episodes());
 }
 
-template<typename TimeStepTp>
+template<envs::discrete_world_concept EnvTp>
 void
-TDAlgoBase<TimeStepTp>::actions_before_training_episodes(){
+TDAlgoBase<EnvTp>::actions_before_training_episodes(){
     reset();
 }
 
 
-template<typename TimeStepTp>
+template<envs::discrete_world_concept EnvTp>
 void
-TDAlgoBase<TimeStepTp>::actions_after_training_episodes(){
+TDAlgoBase<EnvTp>::actions_after_training_episodes(){
     make_value_function();
 }
 
-
-template<typename TimeStepTp>
-void TDAlgoBase<TimeStepTp>::make_value_function(){
+template<envs::discrete_world_concept EnvTp>
+void
+TDAlgoBase<EnvTp>::make_value_function(){
 
     // get the number of states
     auto n_states = env_ref_().n_states();
@@ -292,9 +309,9 @@ void TDAlgoBase<TimeStepTp>::make_value_function(){
     }
 }
 
-template<typename TimeStepTp>
+template<envs::discrete_world_concept EnvTp>
 void
-TDAlgoBase<TimeStepTp>::save(const std::string& filename)const{
+TDAlgoBase<EnvTp>::save(const std::string& filename)const{
 
     if(v_.size() == 0){
         return;
@@ -313,9 +330,9 @@ TDAlgoBase<TimeStepTp>::save(const std::string& filename)const{
     }
 }
 
-template<typename TimeStepTp>
+template<envs::discrete_world_concept EnvTp>
 void
-TDAlgoBase<TimeStepTp>::save_avg_scores(const std::string& filename)const{
+TDAlgoBase<EnvTp>::save_avg_scores(const std::string& filename)const{
 
     CSVWriter writer(filename, ',', true);
 
@@ -330,9 +347,9 @@ TDAlgoBase<TimeStepTp>::save_avg_scores(const std::string& filename)const{
     }
 }
 
-template<typename TimeStepTp>
+template<envs::discrete_world_concept EnvTp>
 void
-TDAlgoBase<TimeStepTp>::save_state_action_function(const std::string& filename)const{
+TDAlgoBase<EnvTp>::save_state_action_function(const std::string& filename)const{
 
     CSVWriter writer(filename, ',', true);
 
@@ -342,6 +359,7 @@ TDAlgoBase<TimeStepTp>::save_state_action_function(const std::string& filename)c
     for(uint_t a=0; a<env_ref_().n_actions(); ++a){
         columns[a + 1] = "Action-" + std::to_string(a);
     }
+
     writer.write_column_names(columns);
 
     //not all states may have been visited

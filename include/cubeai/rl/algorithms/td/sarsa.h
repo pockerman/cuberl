@@ -2,6 +2,7 @@
 #define SARSA_H
 
 #include "cubeai/rl/algorithms/td/td_algo_base.h"
+#include "cubeai/rl/worlds/envs_concepts.h"
 #include "cubeai/base/cubeai_consts.h"
 #include "cubeai/base/cubeai_config.h"
 
@@ -24,38 +25,48 @@ namespace td {
 
 using namespace boost::placeholders;
 
-
-template <typename TimeStepTp, typename ActionSelector>
-class Sarsa: public TDAlgoBase<TimeStepTp>
+///
+/// \brief The Sarsa class.
+///
+template<envs::discrete_world_concept EnvTp, typename ActionSelector>
+class Sarsa: public TDAlgoBase<EnvTp>
 {
 public:
 
     ///
     /// \brief env_t
     ///
-    typedef typename TDAlgoBase<TimeStepTp>::env_t env_t;
+    typedef typename TDAlgoBase<EnvTp>::env_type env_type;
 
     ///
     /// \brief action_t
     ///
-    typedef typename TDAlgoBase<TimeStepTp>::action_t action_t;
+    typedef typename TDAlgoBase<EnvTp>::action_type action_type;
 
     ///
     /// \brief state_t
     ///
-    typedef typename TDAlgoBase<TimeStepTp>::state_t state_t;
+    typedef typename TDAlgoBase<EnvTp>::state_type state_type;
 
     ///
     /// \brief action_selector_t
     ///
-    typedef ActionSelector action_selector_t;
+    typedef ActionSelector action_selector_type;
 
     ///
     /// \brief Sarsa
     ///
     Sarsa(uint_t n_episodes, real_t tolerance,
           real_t gamma, real_t eta, uint_t plot_f,
-          env_t& env, uint_t max_num_iterations_per_episode, const ActionSelector& selector);
+          env_type& env,
+          uint_t max_num_iterations_per_episode,
+          const ActionSelector& selector);
+
+    ///
+    /// \brief Sarsa
+    ///
+    Sarsa(TDAlgoConfig config,
+          env_type& env, const ActionSelector& selector);
 
     ///
     /// \brief on_episode
@@ -72,46 +83,54 @@ private:
     ///
     /// \brief action_selector_
     ///
-    action_selector_t action_selector_;
+    action_selector_type action_selector_;
 
     ///
     /// \brief update_q_table_
     /// \param action
     ///
-    void update_q_table_(const action_t& action, const state_t& cstate,
-                         const state_t& next_state, const  action_t& next_action, real_t reward);
+    void update_q_table_(const action_type& action, const state_type& cstate,
+                         const state_type& next_state, const  action_type& next_action, real_t reward);
 };
 
-template <typename TimeStepTp, typename ActionSelector>
-Sarsa<TimeStepTp, ActionSelector>::Sarsa(uint_t n_episodes, real_t tolerance, real_t gamma,
+template<envs::discrete_world_concept EnvTp, typename ActionSelector>
+Sarsa<EnvTp, ActionSelector>::Sarsa(uint_t n_episodes, real_t tolerance, real_t gamma,
                                          real_t eta, uint_t plot_f,
-                                         env_t& env, uint_t max_num_iterations_per_episode, const ActionSelector& selector)
+                                         env_type& env, uint_t max_num_iterations_per_episode, const ActionSelector& selector)
     :
-      TDAlgoBase<TimeStepTp>(n_episodes, tolerance, gamma, eta, plot_f, max_num_iterations_per_episode, env),
+      TDAlgoBase<EnvTp>(n_episodes, tolerance, gamma, eta, plot_f, max_num_iterations_per_episode, env),
       current_score_counter_(0),
       action_selector_(selector)
 {}
 
+template<envs::discrete_world_concept EnvTp, typename ActionSelector>
+Sarsa<EnvTp, ActionSelector>::Sarsa(TDAlgoConfig config, env_type& env, const ActionSelector& selector)
+    :
+      TDAlgoBase<EnvTp>(config, env),
+      action_selector_(selector)
+{}
 
-template <typename TimeStepTp, typename ActionSelector>
+
+
+template<envs::discrete_world_concept EnvTp, typename ActionSelector>
 void
-Sarsa<TimeStepTp, ActionSelector>::on_episode(){
+Sarsa<EnvTp, ActionSelector>::on_episode(){
 
 
-     std::cout<<"Starting episode="<<this->current_episode_idx()<<std::endl;
+    //std::cout<<"Starting episode="<<this->current_episode_idx()<<std::endl;
 
     // total score for the episode
     auto score = 0.0;
     auto state = this->env_ref_().reset().observation();
 
     uint_t itr=0;
-    for(;  itr < this->max_num_iterations_per_episode(); ++itr){
+    for(;  itr < this->n_iterations_per_episode(); ++itr){
 
         // select an action
         auto action = action_selector_(this->q_table(), state);
 
         if(this->is_verbose()){
-            std::cout<<"Episode iteration="<<itr<<" of="<<this->max_num_iterations_per_episode()<<std::endl;
+            std::cout<<"Episode iteration="<<itr<<" of="<<this->n_iterations_per_episode()<<std::endl;
             std::cout<<"State="<<state<<std::endl;
             std::cout<<"Action="<<action<<std::endl;
         }
@@ -139,7 +158,7 @@ Sarsa<TimeStepTp, ActionSelector>::on_episode(){
 
             this->tmp_scores()[current_score_counter_++] = score;
 
-            if(current_score_counter_ >= this->plot_frequency()){
+            if(current_score_counter_ >= this->render_env_frequency_){
                 current_score_counter_ = 0;
             }
 
@@ -153,7 +172,7 @@ Sarsa<TimeStepTp, ActionSelector>::on_episode(){
         }
     }
 
-    if(this->current_episode_idx() % this->plot_frequency() == 0){
+    if(this->current_episode_idx() % this->render_env_frequency_ == 0){
 
         boost::accumulators::accumulator_set<real_t, boost::accumulators::stats<boost::accumulators::tag::mean > > acc;
         std::for_each(this->tmp_scores().begin(), this->tmp_scores().end(), boost::bind<void>( boost::ref(acc), _1 ) );
@@ -165,17 +184,17 @@ Sarsa<TimeStepTp, ActionSelector>::on_episode(){
     // actions are selected given the experience collected
     // in the episode
     action_selector_.adjust_on_episode(this->current_episode_idx());
-    if(current_score_counter_ >= this->plot_frequency()){
+    if(current_score_counter_ >= this->render_env_frequency_){
         current_score_counter_ = 0;
     }
 
-    std::cout<<"Finished on_episode="<<this->current_episode_idx()<<std::endl;
+    //std::cout<<"Finished on_episode="<<this->current_episode_idx()<<std::endl;
 }
 
-template <typename TimeStepTp, typename ActionSelector>
+template<envs::discrete_world_concept EnvTp, typename ActionSelector>
 void
-Sarsa<TimeStepTp, ActionSelector>::update_q_table_(const action_t& action, const state_t& cstate,
-                                                   const state_t& next_state, const action_t& next_action, real_t reward){
+Sarsa<EnvTp, ActionSelector>::update_q_table_(const action_type& action, const state_type& cstate,
+                                                   const state_type& next_state, const action_type& next_action, real_t reward){
 
 #ifdef CUBEAI_DEBUG
     assert(action < this->env_ref_().n_actions() && "Inavlid action idx");

@@ -10,6 +10,7 @@ CubeAI is a C++ library containing implementations of various reinforcement lear
 - <a href="examples/example_1/example_1.cpp">Example 1: Toy Markov chain</a>
 - <a href="examples/example_2/example_2.cpp">Example 2: Multi-armed bandit with epsilon-greedy policy</a>
 - <a href="examples/example_3/example_3.cpp">Example 3: Multi-armed bandit with soft-max policy</a>
+- <a href="examples/example_4/example_4.cpp">Example 4: Advertisement placement</a>
 - <a href="examples/example_6/example_6.cpp">Example 6: Iterative policy evaluation on ```FrozenLake-v0```</a>
 - <a href="examples/example_7/example_7.cpp">Example 7: Policy iteration on ```FrozenLake-v0```</a>
 - <a href="examples/example_8/example_8.cpp">Example 8: Value iteration on ```FrozenLake-v0```</a>
@@ -18,8 +19,8 @@ CubeAI is a C++ library containing implementations of various reinforcement lear
 - <a href="examples/example_14/example_14.cpp">Example 14: Expected SARSA on ```CliffWalking-v0```</a>
 - <a href="examples/example_15/example_15.cpp">Example 15: Approximate Monte Carlo on ```MountainCar-v0```</a>
 - <a href="examples/example_16/example_16.cpp">Example 16: Monte Carlo tree search on ```Taxi-v3```</a>
-- <a href="examples/example_17/example_17.cpp">Example 17: A* search on on a road network  from Open Street Map data</a> 
-- <a href="#">Example 18: D* search (TODO) </a> 
+- <a href="examples/example_17/example_17.cpp">Example 17: A* search on a road network  from Open Street Map data</a> 
+- <a href="examples/example_18/example_18.cpp">Example 18: Double Q-learning on  ```CartPole-v0``` </a> 
 - <a href="#">Example 19: Path planning with rapidly-exploring random trees (TODO)</a> 
 - <a href="#">Example 20: Path planning with dynamic windows (TODO) </a>   
 
@@ -35,9 +36,10 @@ CubeAI is a C++ library containing implementations of various reinforcement lear
 
 - CMake
 - Python >= 3.8
-- PyTorch
-- Blaze (3.8)
-- gymfcpp
+- PyTorch C++ bindings
+- <a href="https://bitbucket.org/blaze-lib/blaze/src/master/">Blaze</a> (version >= 3.8)
+- Blas library, e.g. OpenBLAS (required by Blaze)
+- <a href="#">gymfcpp</a>
 
 ### Documentation dependencies
 
@@ -62,6 +64,8 @@ If you are using ```gymfcpp``` you need to export the path to the Python version
 export CPLUS_INCLUDE_PATH="$CPLUS_INCLUDE_PATH:/usr/include/python3.8/"
 ```
 
+Depending on the values of the ```CMAKE_BUILD_TYPE```, the produced shared library will be installed in ```CMAKE_INSTALL_PREFIX/dbg/``` or ```CMAKE_INSTALL_PREFIX/opt/``` directories.
+
 ## Issues
 
 ### ```pyconfig.h``` not found
@@ -70,7 +74,8 @@ export CPLUS_INCLUDE_PATH="$CPLUS_INCLUDE_PATH:/usr/include/python3.8/"
 
 ### Problems with Blaze includes
 
-- ```cubeai``` is using Blaze-3.8. As of this version the ```FIND_PACKAGE( blaze )``` command does not populate ```BLAZE_INCLUDE_DIRS``` therefore you manually have to set the variable appropriately for your system.
+- ```cubeai``` is using Blaze-3.8. As of this version the ```FIND_PACKAGE( blaze )``` command does not populate ```BLAZE_INCLUDE_DIRS``` 
+therefore you manually have to set the variable appropriately for your system.
 
 
 
