@@ -22,6 +22,7 @@ struct TDAlgoConfig: RLAlgoConfig
 {
     real_t gamma;
     real_t eta;
+    uint_t seed{42};
 };
 
 ///
@@ -85,6 +86,12 @@ public:
     /// \return
     ///
     real_t eta()const noexcept{return eta_;}
+
+    ///
+    /// \brief seed
+    /// \return
+    ///
+    uint_t seed()const noexcept{return seed_;}
 
     ///
     /// \brief q_table
@@ -199,6 +206,11 @@ private:
      real_t eta_;
 
      ///
+     /// \brief seed_
+     ///
+     uint_t seed_;
+
+     ///
      /// \brief env_
      ///
      env_type& env_;
@@ -227,6 +239,7 @@ TDAlgoBase<EnvTp>::TDAlgoBase(uint_t n_episodes, real_t tolerance, real_t gamma,
     AlgorithmBase(n_episodes, tolerance),
     gamma_(gamma),
     eta_(eta),
+    seed_(42),
     env_(env),
     v_(),
     q_()
@@ -241,6 +254,7 @@ TDAlgoBase<EnvTp>::TDAlgoBase(TDAlgoConfig config, env_type& env)
     AlgorithmBase(config),
     gamma_(config.gamma),
     eta_(config.eta),
+    seed_(config.seed),
     env_(env),
     v_(),
     q_()

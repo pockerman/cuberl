@@ -13,8 +13,10 @@ namespace envs {
 ///
 /// \brief The concept of discrete world
 ///
-template<typename T>
-concept discrete_world_concept = std::is_base_of<DiscreteWorldBase<typename T::time_step_type>, T>::value;
+template<typename EnvTp>
+concept discrete_world_concept = std::is_integral<typename EnvTp::action_type>::value;
+
+//std::is_base_of<DiscreteWorldBase<typename T::time_step_type>, T>::value;
 
 ///
 /// \brief The concept of a discrete action space

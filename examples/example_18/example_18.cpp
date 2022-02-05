@@ -6,8 +6,10 @@
 
 #include "cubeai/base/cubeai_types.h"
 #include "cubeai/base/math_constants.h"
-
-#include "gymfcpp/cart_pole.h"
+#include "cubeai/rl/algorithms/td/double_q_learning.h"
+#include "cubeai/rl/algorithms/td/td_algo_base.h"
+#include "cubeai/rl/policies/epsilon_greedy_policy.h"
+#include "gymfcpp/tiled_cart_pole_env.h"
 
 #include <boost/python.hpp>
 
@@ -22,11 +24,24 @@
 #include <algorithm>
 
 
-namespace example{
+namespace example18{
 
 typedef boost::python::api::object obj_t;
 using cubeai::real_t;
 using cubeai::uint_t;
+using cubeai::DynVec;
+using cubeai::rl::algos::td::DoubleQLearning;
+using cubeai::rl::algos::td::TDAlgoConfig;
+using cubeai::rl::policies::EpsilonGreedyPolicy;
+using cubeai::rl::policies::EpsilonDecayOption;
+using gymfcpp::TiledCartPole;
+
+const real_t EPS = 0.1;
+const real_t GAMMA = 1.0;
+const real_t ALPHA = 0.1;
+
+// type of the table to use as Qtable
+typedef typename std::map<std::tuple<uint_t, uint_t, uint_t, uint_t>, DynVec<real_t>> table_type;
 
 
 }
@@ -34,7 +49,7 @@ using cubeai::uint_t;
 
 int main(){
 
-    using namespace example;
+    using namespace example18;
 
     try{
 
@@ -42,13 +57,20 @@ int main(){
         auto main_module = boost::python::import("__main__");
         auto main_namespace = main_module.attr("__dict__");
 
-        std::cout<<__cplusplus<<std::endl;
+        // create the environment
+        TiledCartPole env("v0", main_namespace, 10);
 
-#if __cplusplus >= 202002L
-        std::cout<<"Using C++20 standard"<<std::endl;
-#else
-        std::cout<<"Using C++17 standard"<<std::endl;
-#endif
+        EpsilonGreedyPolicy policy(EPS, env.n_actions(), EpsilonDecayOption::NONE);
+        TDAlgoConfig config;
+
+        config.eta = ALPHA;
+        config.gamma = GAMMA;
+        config.n_episodes = 50000;
+        config.n_itrs_per_episode = 10000;
+        DoubleQLearning<TiledCartPole, EpsilonGreedyPolicy, table_type> agent(config, env, policy);
+        agent.train();
+
+
     }
     catch(const boost::python::error_already_set&)
     {
