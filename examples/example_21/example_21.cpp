@@ -3,9 +3,13 @@
   * model with PyTorch. The example is editted from this
   * https://github.com/prabhuomkar/pytorch-cpp/blob/master/tutorials/basics/logistic_regression/main.cpp
   * GitHub repository. The example uses the MNIST dataset
+  * The train and test files should be respectively
   *
+  * train images: train-images-idx3-ubyte
+  * train labels: train-labels-idx1-ubyte
   *
-  *
+  * test images: t10k-images-idx3-ubyte
+  * test labels: t10k-labels-idx1-ubyte
   *
   */
 
@@ -14,7 +18,7 @@
 #ifdef USE_PYTORCH
 
 #include "cubeai/base/cubeai_types.h"
-#include "cubeai/base/cubeai_consts.h"
+#include "cubeai/base/cubeai_data_paths.h"
 #include "cubeai/optimization/optimizer_type.h"
 #include "cubeai/ml/loss_type.h"
 #include "cubeai/ml/pytorch_supervised_trainer.h"
@@ -42,7 +46,8 @@ const uint_t batch_size = 100;
 const uint_t num_epochs = 5;
 const real_t learning_rate = 0.001;
 
-const std::string MNIST_data_path = cubeai::CubeAIConsts::mnist_data_directory_path() + "train";
+const std::string MNIST_train_data_path = cubeai::CubeAIDataPaths::mnist_data_train_directory_path();
+const std::string MNIST_test_data_path = cubeai::CubeAIDataPaths::mnist_data_test_directory_path();
 
 
 // The regression model
@@ -86,6 +91,7 @@ int main(){
 
 using namespace example21;
 
+
  try{
 
      if(torch::cuda::is_available()){
@@ -102,14 +108,14 @@ using namespace example21;
 
       // load the data
       // MNIST Dataset (images and labels)
-      auto train_dataset = torch::data::datasets::MNIST(MNIST_data_path,
+      auto train_dataset = torch::data::datasets::MNIST(MNIST_train_data_path,
                                                         torch::data::datasets::MNIST::Mode::kTrain)
              .map(torch::data::transforms::Normalize<>(0.1307, 0.3081))
              .map(torch::data::transforms::Stack<>());
 
       // Number of samples in the training set
       auto num_train_samples = train_dataset.size().value();
-      std::cout<<cubeai::CubeAIConsts::info_str()<<" Number of train examples"<<num_train_samples<<std::endl;
+      std::cout<<cubeai::CubeAIConsts::info_str()<<"Number of train examples "<<num_train_samples<<std::endl;
 
       PyTorchSupervisedTrainerConfig config;
       config.n_epochs = num_epochs;
@@ -132,13 +138,13 @@ using namespace example21;
       std::cout<<cubeai::CubeAIConsts::info_str()<<"Training finished..."<<std::endl;
       std::cout<<cubeai::CubeAIConsts::info_str()<<"Start testing..."<<std::endl;
 
-      auto test_dataset = torch::data::datasets::MNIST(MNIST_data_path, torch::data::datasets::MNIST::Mode::kTest)
+      auto test_dataset = torch::data::datasets::MNIST(MNIST_test_data_path, torch::data::datasets::MNIST::Mode::kTest)
               .map(torch::data::transforms::Normalize<>(0.1307, 0.3081))
               .map(torch::data::transforms::Stack<>());
 
       // Number of samples in the testset
       auto num_test_samples = test_dataset.size().value();
-      std::cout<<cubeai::CubeAIConsts::info_str()<<" Number of test examples"<<num_test_samples<<std::endl;
+      std::cout<<cubeai::CubeAIConsts::info_str()<<"Number of test examples "<<num_test_samples<<std::endl;
 
       auto test_loader = torch::data::make_data_loader<torch::data::samplers::SequentialSampler>(
               std::move(test_dataset), batch_size);
