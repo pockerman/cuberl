@@ -25,7 +25,7 @@ namespace td{
 /// of double q-learning algorithm.
 ///
 template<envs::discrete_world_concept EnvTp, typename ActionSelector, typename TableTp>
-class DoubleQLearning final: public TDAlgoBase<EnvTp>, protected with_double_q_table_mixin<TableTp>
+class DoubleQLearning final: public TDAlgoBase<EnvTp>, protected with_double_q_table_mixin<TableTp>, protected with_double_q_table_max_action_mixin
 {
 public:
 
@@ -74,7 +74,8 @@ private:
     uint_t current_score_counter_;
 
     ///
-    /// \brief action_selector_
+    /// \brief action_selector_. This is typically the policy
+    /// we use to select actions. e.g. epsilon-greedy or softmax
     ///
     action_selector_type action_selector_;
 
@@ -83,7 +84,8 @@ private:
     /// \param action
     ///
     void update_q_table_(const action_type& action, const state_type& cstate,
-                         const state_type& next_state, const  action_type& next_action, real_t reward);
+                         const state_type& next_state, real_t reward);
+
 };
 
 template <envs::discrete_world_concept EnvTp, typename ActionSelector, typename TableTp>
@@ -109,23 +111,20 @@ template<envs::discrete_world_concept EnvTp, typename ActionSelector, typename T
 void
 DoubleQLearning<EnvTp, ActionSelector, TableTp>::on_episode(){
 
+     // typedef typename with_double_q_table_mixin<TableTp>::state_type discrete_state_type;
+
     // total score for the episode
-    auto total_episode_score = 0.0;
+    auto total_episode_reward = 0.0;
     auto state = this->env_ref_().reset().observation();
 
     uint_t itr=0;
     for(;  itr < this->n_iterations_per_episode(); ++itr){
 
         // select an action
-        auto action = action_selector_(this->q_table(), state);
+        auto action = action_selector_(this->with_double_q_table_mixin<TableTp>::q_table_1,
+                                       this->with_double_q_table_mixin<TableTp>::q_table_2, state);
 
-        if(this->is_verbose()){
-            std::cout<<"Episode iteration="<<itr<<" of="<<this->n_iterations_per_episode()<<std::endl;
-            std::cout<<"State="<<state<<std::endl;
-            std::cout<<"Action="<<action<<std::endl;
-        }
-
-        // Take a on_episode
+        // Take an action on the environment
         auto step_type_result = this->env_ref_().step(action);
 
         auto next_state = step_type_result.observation();
@@ -133,34 +132,19 @@ DoubleQLearning<EnvTp, ActionSelector, TableTp>::on_episode(){
         auto done = step_type_result.done();
 
         // accumulate score
-        total_episode_score += reward;
+        total_episode_reward += reward;
 
-        if(!done){
-            auto next_action = action_selector_(this->q_table(), state);
-            update_q_table_(action, state, next_state, next_action, reward);
-            state = next_state;
-            action = next_action;
-        }
-        else{
+        // update the table
+        update_q_table_(action, state, next_state, reward);
+        state = next_state;
 
-            update_q_table_(action, state, CubeAIConsts::invalid_size_type(),
-                            CubeAIConsts::invalid_size_type(), reward);
-
-            //this->tmp_scores()[current_score_counter_++] = score;
-
-            if(current_score_counter_ >= this->render_env_frequency_){
-                current_score_counter_ = 0;
-            }
-
-            if(this->is_verbose()){
-                std::cout<<"============================================="<<std::endl;
-                std::cout<<"Break out from episode="<<this->current_episode_idx()<<std::endl;
-                std::cout<<"============================================="<<std::endl;
-            }
-
+        if(done){
             break;
         }
     }
+
+    this->get_iterations()[this->current_episode_idx()] = itr;
+    this->get_rewards()[this->current_episode_idx()] = total_episode_reward;
 
     // make any adjustments to the way
     // actions are selected given the experience collected
@@ -169,29 +153,24 @@ DoubleQLearning<EnvTp, ActionSelector, TableTp>::on_episode(){
     if(current_score_counter_ >= this->render_env_frequency_){
         current_score_counter_ = 0;
     }
-
-    std::cout<<"Finished on_episode="<<this->current_episode_idx()<<std::endl;
 }
 
 template <envs::discrete_world_concept EnvTp, typename ActionSelector, typename TableTp>
 void
 DoubleQLearning<EnvTp, ActionSelector, TableTp>::update_q_table_(const action_type& action, const state_type& cstate,
-                                                       const state_type& next_state, const  action_type& next_action, real_t reward){
-#ifdef CUBEAI_DEBUG
-    assert(action < this->env_ref_().n_actions() && "Inavlid action idx");
-    assert(cstate < this->env_ref_().n_states() && "Inavlid state idx");
+                                                                 const state_type& next_state, real_t reward){
 
-    if(next_state != CubeAIConsts::invalid_size_type())
-        assert(next_state < this->env_ref_().n_states() && "Inavlid next_state idx");
+//#ifdef CUBEAI_DEBUG
+//    assert(action < this->env_ref_().n_actions() && "Inavlid action idx");
+//    assert(cstate < this->env_ref_().n_states() && "Inavlid state");
+//
+//    if(next_state != CubeAIConsts::invalid_size_type())
+//        assert(next_state < this->env_ref_().n_states() && "Inavlid next_state idx");
+//#endif
 
-    if(next_action != CubeAIConsts::invalid_size_type())
-        assert(next_action < this->env_ref_().n_actions() && "Inavlid next_action idx");
-#endif
 
     // flip a coin 50% of the time we update Q1
     // whilst 50% of the time Q2
-
-    //std::random_device rd;
     std::mt19937 gen(this->seed()); //rd());
 
     // generate a number in [0, 1]
@@ -201,42 +180,44 @@ DoubleQLearning<EnvTp, ActionSelector, TableTp>::update_q_table_(const action_ty
     if(real_dist_(gen) <= 0.5){
 
         // the current qvalue
-        auto q_current = with_double_q_table_mixin::q_table_1(cstate, action);
+        auto q_current = this->with_double_q_table_mixin<TableTp>::template get<1>(cstate, action);
         auto Qsa_next = 0.0;
 
-        if(next_state !=  CubeAIConsts::invalid_size_type() ){
-            auto max_act = max_action(with_double_q_table_mixin::q_table_1, next_state, this->env_ref_().n_actions());
+        //if(this->env_ref_().is_valid_state(next_state)){
+            auto max_act = this->with_double_q_table_max_action_mixin::max_action(this->with_double_q_table_mixin<TableTp>::q_table_1,
+                                                                                  next_state, this->env_ref_().n_actions());
 
             // value of next state
-            Qsa_next = with_double_q_table_mixin::q_table_2(next_state, max_act);
-         }
+            Qsa_next = this->with_double_q_table_mixin<TableTp>::template get<2>(next_state, max_act);
+         //}
 
          // construct TD target
          auto target = reward + (this->gamma() * Qsa_next);
 
          // get updated value
          auto new_value = q_current + (this->eta() * (target - q_current));
-         with_double_q_table_mixin::q_table_1(cstate, action) = new_value;
+         this->with_double_q_table_mixin<TableTp>::template set<1>(cstate, action, new_value);
     }
     else{
 
         // the current qvalue
-        auto q_current = with_double_q_table_mixin::q_table_2(cstate, action);
+        auto q_current = this->with_double_q_table_mixin<TableTp>::template get<2>(cstate, action);
         auto Qsa_next = 0.0;
 
-        if(next_state !=  CubeAIConsts::invalid_size_type() ){
-            auto max_act = max_action(with_double_q_table_mixin::q_table_2, next_state, this->env_ref_().n_actions());
+        //if(this->env_ref_().is_valid_state(next_state)){
+            auto max_act = this->with_double_q_table_max_action_mixin::max_action(this->with_double_q_table_mixin<TableTp>::q_table_2,
+                                                                                  next_state, this->env_ref_().n_actions());
 
             // value of next state
-            Qsa_next = with_double_q_table_mixin::q_table_1(next_state, max_act);
-         }
+            Qsa_next = this->with_double_q_table_mixin<TableTp>::template get<1>(next_state, max_act);
+         //}
 
          // construct TD target
          auto target = reward + (this->gamma() * Qsa_next);
 
          // get updated value
          auto new_value = q_current + (this->eta() * (target - q_current));
-         with_double_q_table_mixin::q_table_2(cstate, action) = new_value;
+         this->with_double_q_table_mixin<TableTp>::template set<2>(cstate, action, new_value);
     }
 }
 

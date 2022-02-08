@@ -1,9 +1,18 @@
+/**
+  * Example 0: Demonstrates the use of the DummyAlgorithm class.
+  * This class exposes the basic API that most implemented RL
+  * algorithms expose.
+  *
+  * */
+
+
+
 #include "cubeai/base/cubeai_types.h"
 #include "cubeai/rl/algorithms/dummy/dummy_algorithm.h"
 #include "cubeai/rl/algorithms/rl_algo_config.h"
 
 #include "gymfcpp/gymfcpp_types.h"
-#include "gymfcpp/mountain_car.h"
+#include "gymfcpp/mountain_car_env.h"
 #include "gymfcpp/time_step.h"
 
 #include <iostream>

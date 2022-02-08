@@ -4,7 +4,7 @@
 namespace cubeai::rl{
 
 real_t
-with_decay_epslion_option_mixin::decay_eps(uint_t episode_index){
+with_decay_epsilon_option_mixin::decay_eps(uint_t episode_index){
 
 
     switch(decay_op){
@@ -77,20 +77,22 @@ with_q_table_mixin::initialize(state_type n_states, action_type n_actions, real_
     }
 }
 
-template<>
+
 void
-with_double_q_table_mixin< DynVec<real_t> >::with_double_q_table_mixin::initialize(const std::vector<index_type>& indices,
+with_double_q_table_mixin< DynMat<real_t> >::with_double_q_table_mixin::initialize(const std::vector<index_type>& indices,
                                                                                    action_type n_actions, real_t init_value){
 
     q_table_1.resize(indices.size(), n_actions);
     q_table_2.resize(indices.size(), n_actions);
 
-    for(uint_t s=0; s< n_states; ++s){
-        for(uint_t a=0; s< n_actions; ++a){
+    for(uint_t s=0; s< indices.size(); ++s){
+        for(uint_t a=0; s < n_actions; ++a){
 
             q_table_1(s, a) = init_value;
             q_table_2(s, a) = init_value;
         }
     }
 }
+
+
 }

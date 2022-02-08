@@ -4,7 +4,7 @@
 #include "cubeai/rl/policies/epsilon_greedy_policy.h"
 
 #include "gymfcpp/gymfcpp_types.h"
-#include "gymfcpp/cliff_world.h"
+#include "gymfcpp/cliff_world_env.h"
 #include "gymfcpp/time_step.h"
 
 #include <deque>
