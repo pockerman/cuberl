@@ -154,6 +154,30 @@ public:
     ///
     const std::deque<real_t>& avg_scores()const{return avg_scores_;}
 
+    ///
+    /// \brief get_rewards
+    /// \return
+    ///
+    const DynVec<real_t>& get_rewards()const noexcept{return rewards_;}
+
+    ///
+    /// \brief get_rewards
+    /// \return
+    ///
+    DynVec<real_t>& get_rewards() noexcept{return rewards_;}
+
+    ///
+    /// \brief get_iterations
+    /// \return
+    ///
+    const std::vector<uint_t>& get_iterations()const{return iterations_;}
+
+    ///
+    /// \brief get_iterations
+    /// \return
+    ///
+    std::vector<uint_t>& get_iterations(){return iterations_;}
+
 protected:
 
     ///
@@ -229,6 +253,16 @@ private:
      std::deque<real_t> tmp_scores_;
      std::deque<real_t> avg_scores_;
 
+     ///
+     /// \brief rewards_
+     ///
+     DynVec<real_t> rewards_;
+
+     ///
+     /// \brief iteraions_
+     ///
+     std::vector<uint_t> iterations_;
+
 };
 
 template<envs::discrete_world_concept EnvTp>
@@ -242,7 +276,10 @@ TDAlgoBase<EnvTp>::TDAlgoBase(uint_t n_episodes, real_t tolerance, real_t gamma,
     seed_(42),
     env_(env),
     v_(),
-    q_()
+    q_(),
+    rewards_(),
+    iterations_()
+
 {
     this->n_itrs_per_episode_ = n_itrs_per_episode;
     this->render_env_frequency_ = render_env_frequency;
@@ -283,6 +320,8 @@ template<envs::discrete_world_concept EnvTp>
 void
 TDAlgoBase<EnvTp>::actions_before_training_episodes(){
     reset();
+    rewards_.resize(this->n_episodes());
+    iterations_.resize(this->n_episodes());
 }
 
 

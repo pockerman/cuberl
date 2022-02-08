@@ -5,7 +5,7 @@
 #include "cubeai/utils/array_utils.h"
 
 #include "gymfcpp/gymfcpp_types.h"
-#include "gymfcpp/mountain_car.h"
+#include "gymfcpp/mountain_car_env.h"
 #include "gymfcpp/time_step.h"
 
 #include <boost/python.hpp>

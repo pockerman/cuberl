@@ -9,7 +9,7 @@
 #include "cubeai/rl/policies/uniform_discrete_policy.h"
 
 #include "gymfcpp/gymfcpp_types.h"
-#include "gymfcpp/frozen_lake.h"
+#include "gymfcpp/frozen_lake_env.h"
 #include "gymfcpp/time_step.h"
 
 #include <boost/python.hpp>

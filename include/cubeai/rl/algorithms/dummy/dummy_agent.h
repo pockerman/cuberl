@@ -21,7 +21,7 @@ namespace algos{
 ///
 ///
 template<typename EnvTp>
-class DummyAlgorithm: public AlgorithmBase
+class DummyAgent: public AlgorithmBase
 {
 public:
 
@@ -31,11 +31,11 @@ public:
     typedef EnvTp env_type;
 
     ///
-    /// \brief DummyAlgorithm
+    /// \brief DummyAgent
     /// \param env
     /// \param config
     ///
-    DummyAlgorithm(env_type& env,  RLAlgoConfig config);
+    DummyAgent(env_type& env,  RLAlgoConfig config);
 
     ///
     /// \brief reset
@@ -79,7 +79,7 @@ protected:
 };
 
 template<typename EnvTp>
-DummyAlgorithm<EnvTp>::DummyAlgorithm(env_type& env,  RLAlgoConfig config)
+DummyAgent<EnvTp>::DummyAgent(env_type& env,  RLAlgoConfig config)
     :
     AlgorithmBase(config),
     n_itrs_per_episode_(config.n_itrs_per_episode),
@@ -89,7 +89,7 @@ DummyAlgorithm<EnvTp>::DummyAlgorithm(env_type& env,  RLAlgoConfig config)
 
 template<typename EnvTp>
 void
-DummyAlgorithm<EnvTp>::reset(){
+DummyAgent<EnvTp>::reset(){
 
     this->AlgorithmBase::reset();
     env_.reset();
@@ -98,14 +98,14 @@ DummyAlgorithm<EnvTp>::reset(){
 
 template<typename EnvTp>
 void
-DummyAlgorithm<EnvTp>::actions_before_training_episodes(){
+DummyAgent<EnvTp>::actions_before_training_episodes(){
     this->reset();   
 }
 
 
 template<typename EnvTp>
 void
-DummyAlgorithm<EnvTp>::on_episode(){
+DummyAgent<EnvTp>::on_episode(){
 
     real_t episode_rewards = 0.0;
     for(uint_t episode_itr=0; episode_itr < n_itrs_per_episode_; ++episode_itr){
@@ -123,11 +123,9 @@ DummyAlgorithm<EnvTp>::on_episode(){
 
         if(time_step.done()){
            break;
-        }
-
-     rewards_[this->current_episode_idx()] = episode_rewards;
-
-}
+        }    
+    }
+    rewards_[this->current_episode_idx()] = episode_rewards;
 
 }
 

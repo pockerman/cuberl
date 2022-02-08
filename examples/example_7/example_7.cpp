@@ -7,7 +7,7 @@
 #include "cubeai/rl/policies/stochastic_adaptor_policy.h"
 
 #include "gymfcpp/gymfcpp_types.h"
-#include "gymfcpp/frozen_lake.h"
+#include "gymfcpp/frozen_lake_env.h"
 #include "gymfcpp/time_step.h"
 
 #include <boost/python.hpp>

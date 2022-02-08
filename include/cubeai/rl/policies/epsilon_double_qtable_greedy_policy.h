@@ -13,12 +13,22 @@ namespace policies {
 /// \brief
 ///
 template<typename TableType>
-class EpsilonDoubleQTableGreedyPolicy: protected with_decay_epslion_option_mixin
+class EpsilonDoubleQTableGreedyPolicy: protected with_decay_epsilon_option_mixin, protected with_double_q_table_max_action_mixin
 {
 public:
 
     ///
+    /// \brief table_type
     ///
+    typedef TableType table_type;
+
+    ///
+    ///
+    ///
+    using with_decay_epsilon_option_mixin::choose_action_index;
+
+    ///
+    /// \brief EpsilonDoubleQTableGreedyPolicy
     ///
     explicit EpsilonDoubleQTableGreedyPolicy(real_t eps, uint_t n_actions,
                                              EpsilonDecayOptionType decay_op,
@@ -28,13 +38,14 @@ public:
     ///
     /// \brief operator()
     ///
-    uint_t operator()(const TableType& q1, const TableType& q2, uint_t state)const;
+    template<typename StateTp>
+    uint_t operator()(const TableType& q1, const TableType& q2, const StateTp& state)const;
 
     ///
+    /// \brief choose_action_index
     ///
-    ///
-    template<typename VectorType>
-    uint_t choose_action_index(const VectorType& values)const;
+    //template<typename VectorType>
+    //uint_t choose_action_index(const VectorType& values)const;
 
     ///
     /// \brief adjust_on_episode
@@ -45,24 +56,24 @@ public:
     ///
     /// \brief reset
     ///
-    void reset()noexcept{this->with_decay_epslion_option_mixin::eps = this->with_decay_epslion_option_mixin::eps_init;}
+    void reset()noexcept{this->with_decay_epsilon_option_mixin::eps = this->with_decay_epsilon_option_mixin::eps_init;}
 
     ///
     /// \brief set_epsilon_decay_factor
     /// \param eps_decay
     ///
-    void set_epsilon_decay_factor(real_t eps_decay)noexcept{this->with_decay_epslion_option_mixin::epsilon_decay = eps_decay;}
+    void set_epsilon_decay_factor(real_t eps_decay)noexcept{this->with_decay_epsilon_option_mixin::epsilon_decay = eps_decay;}
 
     ///
     /// \brief eps_value
     ///
-    real_t eps_value()const noexcept{return this->with_decay_epslion_option_mixin::eps;}
+    real_t eps_value()const noexcept{return this->with_decay_epsilon_option_mixin::eps;}
 
     ///
     /// \brief set_seed
     /// \param seed
     ///
-    void set_seed(const uint_t seed)noexcept{this->with_decay_epslion_option_mixin::seed = seed;}
+    void set_seed(const uint_t seed)noexcept{this->with_decay_epsilon_option_mixin::seed = seed;}
 
 };
 
@@ -71,30 +82,55 @@ EpsilonDoubleQTableGreedyPolicy<TableType>::EpsilonDoubleQTableGreedyPolicy(real
                                                                             EpsilonDecayOptionType decay_op,
                                                                             real_t min_eps, real_t max_eps, real_t eps_decay,  uint_t seed)
     :
-      with_decay_epslion_option_mixin({eps, eps, min_eps, max_eps, eps_decay, n_actions, seed, decay_op})
+      with_decay_epsilon_option_mixin({eps, eps, min_eps, max_eps, eps_decay, n_actions, seed, decay_op})
 {}
 
 template<typename TableType>
+template<typename StateTp>
 uint_t
-EpsilonDoubleQTableGreedyPolicy<TableType>::operator()(const TableType& q1, const TableType& q2, uint_t state)const{
+EpsilonDoubleQTableGreedyPolicy<TableType>::operator()(const TableType& q1, const TableType& q2, const StateTp& state)const{
 
 
-    const auto& actions = q_map.find(state)->second;
-
-    //std::random_device rd;
-    std::mt19937 gen(this->with_decay_epslion_option_mixin::seed); //rd());
+    std::mt19937 gen(this->with_decay_epsilon_option_mixin::seed);
 
     // generate a number in [0, 1]
     std::uniform_real_distribution<> real_dist_(0.0, 1.0);
 
-    if(real_dist_(gen) > eps_){
+    if(real_dist_(gen) > this->with_decay_epsilon_option_mixin::eps){
         // select greedy action with probability 1 - epsilon
-        return blaze::argmax(actions);
+        return this->with_double_q_table_max_action_mixin::max_action(q1, q2, state,
+                                                                      this->with_decay_epsilon_option_mixin::n_actions);
     }
 
-    std::uniform_int_distribution<> distrib_(0,  this->with_decay_epslion_option_mixin::n_actions - 1);
+    std::uniform_int_distribution<> distrib_(0,  this->with_decay_epsilon_option_mixin::n_actions - 1);
     return distrib_(gen);
 }
+
+template<typename TableType>
+void
+EpsilonDoubleQTableGreedyPolicy<TableType>::adjust_on_episode(uint_t episode)noexcept{
+    this->with_decay_epsilon_option_mixin::eps = this->with_decay_epsilon_option_mixin::decay_eps(episode);
+}
+
+/*template<typename TableType>
+template<typename VectorType>
+uint_t
+EpsilonDoubleQTableGreedyPolicy<TableType>::choose_action_index(const VectorType& values)const{
+
+    std::mt19937 gen(this->with_decay_epsilon_option_mixin::seed);
+
+    // generate a number in [0, 1]
+    std::uniform_real_distribution<> real_dist_(0.0, 1.0);
+
+    if(real_dist_(gen) > this->with_decay_epsilon_option_mixin::eps){
+        // select greedy action with probability 1 - epsilon
+        return arg_max(values);
+    }
+
+    std::uniform_int_distribution<> distrib_(0,  this->with_decay_epsilon_option_mixin::n_actions - 1);
+    return distrib_(gen);
+
+}*/
 
 }
 
