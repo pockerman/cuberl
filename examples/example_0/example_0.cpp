@@ -8,7 +8,7 @@
 
 
 #include "cubeai/base/cubeai_types.h"
-#include "cubeai/rl/algorithms/dummy/dummy_algorithm.h"
+#include "cubeai/rl/algorithms/dummy/dummy_agent.h"
 #include "cubeai/rl/algorithms/rl_algo_config.h"
 
 #include "gymfcpp/gymfcpp_types.h"
