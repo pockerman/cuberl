@@ -1,5 +1,5 @@
 /**
-  * Example 0: Demonstrates the use of the DummyAlgorithm class.
+  * Example 0: Demonstrates the use of the DummyAgent class.
   * This class exposes the basic API that most implemented RL
   * algorithms expose.
   *
@@ -25,7 +25,7 @@ using cubeai::real_t;
 using cubeai::uint_t;
 using cubeai::DynMat;
 using cubeai::DynVec;
-using cubeai::rl::algos::DummyAlgorithm;
+using cubeai::rl::algos::DummyAgent;
 using cubeai::rl::algos::RLAlgoConfig;
 using gymfcpp::MountainCar;
 
@@ -51,7 +51,7 @@ int main() {
         config.render_environment = true;
         config.render_env_frequency = 10;
 
-        DummyAlgorithm<MountainCar> agent(env, config);
+        DummyAgent<MountainCar> agent(env, config);
         agent.train();
     }
     catch(const boost::python::error_already_set&)
