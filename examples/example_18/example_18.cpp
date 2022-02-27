@@ -10,7 +10,7 @@
 #include "cubeai/rl/algorithms/td/td_algo_base.h"
 #include "cubeai/rl/policies/epsilon_double_qtable_greedy_policy.h"
 #include "cubeai/rl/epsilon_decay_options.h"
-#include "gymfcpp/tiled_cart_pole_env.h"
+#include "gymfcpp/state_aggregation_cart_pole_env.h"
 
 #include <boost/python.hpp>
 
@@ -35,7 +35,7 @@ using cubeai::rl::algos::td::DoubleQLearning;
 using cubeai::rl::algos::td::TDAlgoConfig;
 using cubeai::rl::policies::EpsilonDoubleQTableGreedyPolicy;
 using cubeai::rl::EpsilonDecayOptionType;
-using gymfcpp::TiledCartPole;
+using gymfcpp::StateAggregationCartPole;
 
 const real_t EPS = 0.1;
 const real_t GAMMA = 1.0;
@@ -59,7 +59,7 @@ int main(){
         auto main_namespace = main_module.attr("__dict__");
 
         // create the environment
-        TiledCartPole env("v0", main_namespace, 10);
+        StateAggregationCartPole env("v0", main_namespace, 10);
 
         // the policy to use
         EpsilonDoubleQTableGreedyPolicy<table_type> policy(EPS, env.n_actions(), EpsilonDecayOptionType::NONE);
@@ -72,7 +72,7 @@ int main(){
         config.n_itrs_per_episode = 10000;
 
         // the agent to traain
-        DoubleQLearning<TiledCartPole, EpsilonDoubleQTableGreedyPolicy<table_type>, table_type> agent(config, env, policy);
+        DoubleQLearning<StateAggregationCartPole, EpsilonDoubleQTableGreedyPolicy<table_type>, table_type> agent(config, env, policy);
         agent.train();
 
 
