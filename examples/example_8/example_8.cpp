@@ -57,7 +57,7 @@ public:
 private:
 
     // the environment implementation
-    gymfcpp::FrozenLake env_impl_;
+    gymfcpp::FrozenLake<4> env_impl_;
 
 };
 

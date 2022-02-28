@@ -9,4 +9,5 @@ Welcome to the CubeAI documentation!
 
    Introduction <self>
    readme
+   examples
    api_reference
