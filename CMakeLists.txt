@@ -52,12 +52,18 @@ SET(DATA_SET_FOLDER ${PROJECT_SOURCE_DIR}/data)
 
 SET(ENABLE_EXAMPLES_FLAG ON)
 SET(ENABLE_TESTS_FLAG ON)
-SET(ENABLE_DOC_FLAG OFF)
+SET(ENABLE_DOC_FLAG ON)
 
 
 IF(USE_GYMFCPP)
 	SET(GYMFCPP_INCLUDE_DIRS "/home/alex/qi3/cubeAI/gymcpp/src")
-	SET(GYMFCPP_LIB_DIRS "/home/alex/qi3/cubeAI/gymcpp/install/")
+	
+	IF(CMAKE_BUILD_TYPE MATCHES "Debug")
+		SET(GYMFCPP_LIB_DIRS "/home/alex/qi3/cubeAI/gymcpp/install/dbg/")
+	ELSE()
+		SET(GYMFCPP_LIB_DIRS "/home/alex/qi3/cubeAI/gymcpp/install/opt/")
+	ENDIF()
+	
 ENDIF()
 
 IF(PYTHON_CONFIG_LIBS_PATH MATCHES " ")
