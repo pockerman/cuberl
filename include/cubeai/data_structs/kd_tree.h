@@ -119,7 +119,8 @@ public:
     /// \param data
     /// \return
     ///
-    const_iterator search(const data_type& data)const{ return nullptr;}
+    template<typename DistanceCalculator>
+    const_iterator search(const data_type& data, const DistanceCalculator& calculator)const{ return nullptr;}
 
     ///
     /// \brief insert
