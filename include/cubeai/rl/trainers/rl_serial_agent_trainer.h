@@ -41,7 +41,7 @@ public:
     /// \param config
     /// \param agent
     ///
-    RLSerialAgentTrainer(RLSerialTrainerConfig& config, agent_type& agent);
+    RLSerialAgentTrainer(const RLSerialTrainerConfig& config, agent_type& agent);
 
     ///
     /// \brief train Iterate to train the agent on the given
