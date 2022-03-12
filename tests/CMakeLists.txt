@@ -31,3 +31,5 @@ LINK_DIRECTORIES(${PYTHON_CONFIG_LIBS_PATH})
 ADD_SUBDIRECTORY(test_array_utils)
 ADD_SUBDIRECTORY(test_mc_tree_search)
 ADD_SUBDIRECTORY(test_kd_tree)
+ADD_SUBDIRECTORY(test_basic_stats)
+
