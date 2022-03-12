@@ -2,11 +2,13 @@
 #define RL_SERIAL_AGENT_TRAINER_H
 
 #include "cubeai/base/cubeai_types.h"
+#include "cubeai/base/cubeai_consts.h"
 #include "cubeai/base/iterative_algorithm_result.h"
 #include "cubeai/base/iterative_algorithm_controller.h"
 
 #include <boost/noncopyable.hpp>
 #include <vector>
+#include <chrono>
 
 namespace cubeai {
 namespace rl {
@@ -18,9 +20,9 @@ namespace rl {
 ///
 struct RLSerialTrainerConfig
 {
-    uint_t output_msg_frequency;
-    uint_t n_episodes;
-    real_t tolerance;
+    uint_t output_msg_frequency{CubeAIConsts::INVALID_SIZE_TYPE};
+    uint_t n_episodes{0};
+    real_t tolerance{CubeAIConsts::tolerance()};
 };
 
 
@@ -73,7 +75,24 @@ public:
     ///
     virtual void actions_after_training_ends(env_type&);
 
+    ///
+    /// \brief episodes_total_rewards
+    /// \return
+    ///
+    const std::vector<real_t>& episodes_total_rewards()const noexcept{return total_reward_per_episode_;}
+
+    ///
+    /// \brief n_itrs_per_episode
+    /// \return
+    ///
+    const std::vector<uint_t>& n_itrs_per_episode()const{return n_itrs_per_episode_;}
+
 protected:
+
+    ///
+    ///
+    ///
+    uint_t output_msg_frequency_;
 
     ///
     /// \brief itr_ctrl_ Handles the iteration over the
@@ -98,6 +117,16 @@ protected:
     std::vector<uint_t> n_itrs_per_episode_;
 
 };
+
+template<typename EnvType, typename AgentType>
+RLSerialAgentTrainer<EnvType, AgentType>::RLSerialAgentTrainer(const RLSerialTrainerConfig& config, agent_type& agent)
+    :
+    output_msg_frequency_(config.output_msg_frequency),
+    itr_ctrl_(config.n_episodes, config.tolerance),
+    agent_(agent),
+    total_reward_per_episode_(),
+    n_itrs_per_episode_()
+{}
 
 template<typename EnvType, typename AgentType>
 void
@@ -133,6 +162,9 @@ template<typename EnvType, typename AgentType>
 IterativeAlgorithmResult
 RLSerialAgentTrainer<EnvType, AgentType>::train(env_type& env){
 
+    // start timing the training
+    auto start = std::chrono::steady_clock::now();
+
     this->actions_before_training_begins(env);
 
     while(itr_ctrl_.continue_iterations()){
@@ -140,55 +172,28 @@ RLSerialAgentTrainer<EnvType, AgentType>::train(env_type& env){
         this->actions_before_episode_begins(env, itr_ctrl_.get_current_iteration());
         auto episode_info = agent_.on_training_episode(env, itr_ctrl_.get_current_iteration());
 
+        if(output_msg_frequency_ != CubeAIConsts::INVALID_SIZE_TYPE &&
+                output_msg_frequency_ % itr_ctrl_.get_current_iteration() == 0){
+
+            std::cout<<episode_info<<std::endl;
+        }
+
         total_reward_per_episode_.push_back(episode_info.episode_reward);
         n_itrs_per_episode_.push_back(episode_info.episode_iterations);
         this->actions_after_episode_ends(env, itr_ctrl_.get_current_iteration());
+
+        if(episode_info.stop_training){
+            break;
+        }
     }
 
     this->actions_after_training_ends(env);
+    auto end = std::chrono::steady_clock::now();
+    std::chrono::duration<real_t> elapsed_seconds = end-start;
 
-    return itr_ctrl_.get_state();
-
-
-    /*        counter = 0
-            while self._itr_ctrl.continue_itrs():
-
-                if self.trainer_config.output_msg_frequency != -1:
-                    remains = counter % self.trainer_config.output_msg_frequency
-                    if remains == 0:
-                        print("{0}: Episode {1} of {2}, ({3}% done)".format(INFO, self.current_episode_index,
-                                                                            self.itr_control.n_max_itrs,
-                                                                            (self.itr_control.current_itr_counter / self.itr_control.n_max_itrs) * 100.0))
-                self.actions_before_episode_begins(env, **options)
-                episode_info = self.agent.on_training_episode(env, self.current_episode_index, **options)
-                self.rewards.append(episode_info.episode_reward)
-                self.iterations_per_episode.append(episode_info.episode_iterations)
-
-                if "break_training" in episode_info.info and \
-                        episode_info.info["break_training"] is True:
-                    self.break_training_flag = True
-
-                self.actions_after_episode_ends(env, **options)
-                counter += 1
-
-                # check if the break training flag
-                # has been set and break
-                if self.break_training_flag:
-                    print("{0}: On Episode {1} the break training "
-                          "flag was set. Stop training".format(INFO, self.current_episode_index))
-
-                    # if we get here then assume we have converged
-                    self._itr_ctrl.residual = self.trainer_config.tolerance * 1.0e-2
-                    break
-
-            self.actions_after_training_ends(env, **options)
-
-            # update the control result
-            itr_ctrl_rsult.n_itrs = self._itr_ctrl.current_itr_counter
-            itr_ctrl_rsult.residual = self._itr_ctrl.residual
-
-            return itr_ctrl_rsult*/
-
+    auto state = itr_ctrl_.get_state();
+    state.total_time = elapsed_seconds;
+    return state;
 }
 
 

@@ -3,7 +3,7 @@
 namespace cubeai{
 
 IterativeAlgorithmResult::IterativeAlgorithmResult(real_t tol, real_t res,
-                                                   uint_t nitrs, std::chrono::seconds time)
+                                                   uint_t nitrs, std::chrono::duration<real_t> time)
     :
       tolerance(tol),
       residual(res),

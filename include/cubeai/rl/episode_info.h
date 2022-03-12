@@ -2,11 +2,12 @@
 #define EPISODE_INFO_H
 
 #include "cubeai/base/cubeai_types.h"
+#include "cubeai/base/cubeai_consts.h"
 #include <chrono>
 #include <string>
 #include <map>
 #include <any>
-
+#include <ostream>
 
 namespace cubeai {
 namespace rl {
@@ -14,8 +15,8 @@ namespace rl {
 struct EpisodeInfo
 {
 
-    uint_t episode_index;
-    uint_t episode_iterations{0};
+    uint_t episode_index{CubeAIConsts::INVALID_SIZE_TYPE};
+    uint_t episode_iterations{CubeAIConsts::INVALID_SIZE_TYPE};
     bool stop_training{false};
 
     ///
@@ -32,7 +33,19 @@ struct EpisodeInfo
     /// \brief info
     ///
     std::map<std::string, std::any> info;
+
+    ///
+    /// \brief print
+    /// \param out
+    /// \return
+    ///
+    std::ostream& print(std::ostream& out)const noexcept;
 };
+
+inline
+std::ostream& operator<<(std::ostream& out, const EpisodeInfo& info){
+    return info.print(out);
+}
 
 }
 

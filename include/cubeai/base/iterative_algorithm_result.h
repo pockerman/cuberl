@@ -37,7 +37,7 @@ struct IterativeAlgorithmResult  {
     ///
     /// \brief total_time
     ///
-    std::chrono::seconds total_time;
+    std::chrono::duration<real_t> total_time;
 
     ///
     /// \brief residuals
@@ -53,7 +53,7 @@ struct IterativeAlgorithmResult  {
     /// \brief IterativeAlgorithmResult
     ///
     IterativeAlgorithmResult(real_t tol, real_t res,
-                             uint_t nitrs, std::chrono::seconds time);
+                             uint_t nitrs, std::chrono::duration<real_t> time);
 
     ///
     /// \brief print
