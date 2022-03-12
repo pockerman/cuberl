@@ -46,13 +46,13 @@ public:
 
     ///
     /// \brief actions_before_training_begins. Execute any actions the
-    /// algorithm needs before starting the iterations
+    /// algorithm needs before starting the iterations.
     ///
-    virtual void actions_before_training_begins(env_type&) override final {};
+    virtual void actions_before_training_begins(env_type&);
 
     ///
     /// \brief actions_after_training_ends. Actions to execute after
-    /// the training iterations have finisehd
+    /// the training iterations have finisehd.
     ///
     virtual void actions_after_training_ends(env_type&) override final {};
 
@@ -76,21 +76,11 @@ DummyAlgorithm<EnvType>::DummyAlgorithm(DummyAlgorithmConfig config)
     itr_counter_(config.n_itrs_per_episode)
 {}
 
-/*template<typename EnvTp>
+template<typename EnvType>
 void
-DummyAlgorithm<EnvTp>::reset(){
-
-    this->AlgorithmBase::reset();
-    env_.reset();
-    rewards_ = DynVec<real_t>(rewards_.size(), 0.0);
-}*/
-
-/*template<typename EnvTp>
-void
-DummyAgent<EnvTp>::actions_before_training_episodes(){
-    this->reset();   
-}*/
-
+DummyAlgorithm<EnvType>::actions_before_training_begins(env_type& env){
+    env.reset();
+}
 
 template<typename EnvType>
 EpisodeInfo

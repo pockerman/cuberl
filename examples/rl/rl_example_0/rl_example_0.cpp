@@ -1,14 +1,14 @@
 /**
-  * Example 0: Demonstrates the use of the DummyAgent class.
+  * Example 0: Demonstrates the use of the DummyAlgorithm class.
   * This class exposes the basic API that most implemented RL
   * algorithms expose.
   *
   * */
 
 
-
 #include "cubeai/base/cubeai_types.h"
-#include "cubeai/rl/algorithms/dummy/dummy_agent.h"
+#include "cubeai/rl/algorithms/dummy/dummy_algorithm.h"
+#include "cubeai/rl/trainers/rl_serial_agent_trainer.h"
 #include "cubeai/rl/algorithms/rl_algo_config.h"
 
 #include "gymfcpp/gymfcpp_types.h"
@@ -25,8 +25,10 @@ using cubeai::real_t;
 using cubeai::uint_t;
 using cubeai::DynMat;
 using cubeai::DynVec;
-using cubeai::rl::algos::DummyAgent;
-using cubeai::rl::algos::RLAlgoConfig;
+using cubeai::rl::algos::DummyAlgorithm;
+using cubeai::rl::algos::DummyAlgorithmConfig;
+using cubeai::rl::RLSerialAgentTrainer;
+using cubeai::rl::RLSerialTrainerConfig;
 using gymfcpp::MountainCar;
 
 }
@@ -38,21 +40,24 @@ int main() {
     try{
 
         Py_Initialize();
-        auto gym_module = boost::python::import("gym");
-        auto gym_namespace = gym_module.attr("__dict__");
+        auto main_module = boost::python::import("__main__");
+        auto gym_namespace = main_module.attr("__dict__");
 
+        // create the environment
         MountainCar env("v0", gym_namespace, false);
         env.make();
         env.reset();
 
-        auto config = RLAlgoConfig();
-        config.n_episodes = 1000;
-        config.n_itrs_per_episode = 100;
-        config.render_environment = true;
-        config.render_env_frequency = 10;
 
-        DummyAgent<MountainCar> agent(env, config);
-        agent.train();
+        DummyAlgorithmConfig config = {100};
+        DummyAlgorithm<MountainCar> algorithm(config);
+
+        RLSerialTrainerConfig trainer_config = {100, 1000, 1.0e-8};
+
+        RLSerialAgentTrainer<MountainCar, DummyAlgorithm<MountainCar>> trainer(trainer_config, algorithm);
+
+        auto info = trainer.train(env);
+        std::cout<<info<<std::endl;
     }
     catch(const boost::python::error_already_set&)
     {
@@ -65,10 +70,6 @@ int main() {
 
         std::cout<<"Unknown exception occured"<<std::endl;
     }
-
-
-
-
 
    return 0;
 }
