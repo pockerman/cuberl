@@ -9,6 +9,11 @@
  */
 
 #include "cubeai/base/cubeai_consts.h"
+#include "cubeai/base/cubeai_config.h"
+
+#ifdef CUBEAI_DEBUG
+#include <cassert>
+#endif
 
 #include <memory>
 
@@ -49,8 +54,6 @@ struct KDTreeNode
     uint_t level;
     uint_t n_copies{0};
 
-
-
     ///
     ///
     ///
@@ -84,7 +87,22 @@ KDTreeNode<DataType>::KDTreeNode(uint_t level_, const data_type& data_,  std::sh
 
 
 ///
+/// \detailed The KDTree class. It models
+/// a k-d tree where k is the dimension of the space where the DataType
+/// belongs to. Specifically, A k-d tree is a binary search tree whose elements are points taken
+/// from a k-dimensional space, that is, tuples with k elements, whose coordinates can be compared.
+///  In addition to that, in a k-d tree, at each level i, we only compare the i-th (modulo k ) coordinate of points to
+/// decide which branch of the tree will be traversed.
 ///
+/// Invariants
+///
+/// - All points in the tree have dimension k
+/// - Each level has a split coordinate index j , such that 0 ≤ j < k .
+/// - If a node N ’s split coordinate index is j , then N ’s children have a split coordinate
+/// equal to (j+1) mod k
+/// - For each node N , with split coordinate index j , all nodes L in its left subtree have
+/// a smaller value for N ’s split coordinate, L[j] < N[j] , and all nodes R on N ’s right
+/// subtree have a larger or equal value for N ’s split coordinate, R[j] ≥ N[j] .
 ///
 template<int k, typename DataType>
 class KDTree
@@ -120,7 +138,7 @@ public:
     /// \return
     ///
     template<typename DistanceCalculator>
-    const_iterator search(const data_type& data, const DistanceCalculator& calculator)const{ return nullptr;}
+    const_iterator search(const data_type& data, const DistanceCalculator& calculator)const{ return search_(root_, data, calculator);}
 
     ///
     /// \brief insert
@@ -142,11 +160,21 @@ private:
     ///
     uint_t n_nodes_{0};
 
+    ///
+    /// \brief search_. Adapter to perform the serach
+    ///
+    template<typename DistanceCalculator>
+    const_iterator search_(std::shared_ptr<node_type> node, const data_type& data, const DistanceCalculator& calculator)const;
+
 };
 
 template<int k, typename DataType>
 typename KDTree<k, DataType>::iterator
 KDTree<k, DataType>::insert(const data_type& data){
+
+#ifdef CUBEAI_DEBUG
+    assert(data.size() == k && "Data size not equal to k.");
+#endif
 
     // if the root node is null then
     // simply insert
@@ -158,6 +186,22 @@ KDTree<k, DataType>::insert(const data_type& data){
 
     return nullptr;
 }
+
+template<int k, typename DataType>
+template<typename DistanceCalculator>
+typename KDTree<k, DataType>::const_iterator
+KDTree<k, DataType>::search_(std::shared_ptr<node_type> node, const data_type& data, const DistanceCalculator& calculator)const{
+
+    if(!node){
+        return nullptr;
+    }
+
+    if(calculator(node->data, data)){
+        return node.get();
+    }
+}
+
+
 }
 
 }
