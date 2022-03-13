@@ -64,10 +64,14 @@ DummyAgent<EnvType, PolicyType>::play(EnvType& env, Criteria& criteria){
 
     auto time_step = env.reset();
 
-    while(criteria.continue_itrs()){
+    while(criteria.continue_iterations()){
 
         auto action = on_state(time_step.observation());
         auto time_step = env.step(action);
+
+        if(time_step.done()){
+            time_step = env.reset();
+        }
     }
 }
 

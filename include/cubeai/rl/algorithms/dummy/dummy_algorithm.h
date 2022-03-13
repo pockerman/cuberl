@@ -36,6 +36,7 @@ public:
     /// \brief env_type
     ///
     typedef typename RLAlgoBase<EnvType>::env_type env_type;
+    typedef std::vector<typename EnvType::action_type> policy_type;
 
     ///
     /// \brief DummyAgent
@@ -61,12 +62,29 @@ public:
     ///
     virtual EpisodeInfo on_training_episode(env_type&, uint_t /*episode_idx*/) override final;
 
+    ///
+    /// \brief get_policy
+    /// \return
+    ///
+    policy_type& get_policy(){return actions_;}
+
+    ///
+    /// \brief get_policy
+    /// \return
+    ///
+    const policy_type& get_policy()const{return actions_;}
+
 protected:
 
     ///
     /// \brief itr_counter_
     ///
     cubeai::utils::IterationCounter itr_counter_;
+
+    ///
+    /// \brief actions_
+    ///
+    std::vector<typename EnvType::action_type> actions_;
 };
 
 template<typename EnvType>
@@ -80,6 +98,7 @@ template<typename EnvType>
 void
 DummyAlgorithm<EnvType>::actions_before_training_begins(env_type& env){
     env.reset();
+    actions_.reserve(itr_counter_.max_iterations());
 }
 
 template<typename EnvType>
@@ -97,13 +116,7 @@ DummyAlgorithm<EnvType>::on_training_episode(env_type& env, uint_t episode_idx){
         // step the environment
         auto time_step = env.step(action);
         episode_rewards += time_step.reward();
-
-        /*if((this->render_environment()) && ((episode_itr % this->render_env_frequency()) == 0)){
-
-#ifdef USE_GYMFCPP
-           env.render(gymfcpp::RenderModeType::human);
-#endif
-        }*/
+        actions_.push_back(action);
 
         if(time_step.done()){
            break;
