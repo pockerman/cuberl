@@ -172,11 +172,11 @@ RLSerialAgentTrainer<EnvType, AgentType>::train(env_type& env){
         this->actions_before_episode_begins(env, itr_ctrl_.get_current_iteration());
         auto episode_info = agent_.on_training_episode(env, itr_ctrl_.get_current_iteration());
 
-        if(output_msg_frequency_ != CubeAIConsts::INVALID_SIZE_TYPE &&
-                output_msg_frequency_ % itr_ctrl_.get_current_iteration() == 0){
+        //if(output_msg_frequency_ != CubeAIConsts::INVALID_SIZE_TYPE &&
+        //        output_msg_frequency_ % itr_ctrl_.get_current_iteration() == 0){
 
             std::cout<<episode_info<<std::endl;
-        }
+        //}
 
         total_reward_per_episode_.push_back(episode_info.episode_reward);
         n_itrs_per_episode_.push_back(episode_info.episode_iterations);
