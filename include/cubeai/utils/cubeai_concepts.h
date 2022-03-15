@@ -2,7 +2,10 @@
 #define CUBEAI_CONCEPTS_H
 /**
   * Constraints used around the library to make code
-  * safer and more readable
+  * safer and more readable. A nice introduction to
+  * C++ concepts can be found at:
+  *
+  * https://www.youtube.com/watch?v=N_kPd2OK1L8
   * */
 
 #include <type_traits>

@@ -1,5 +1,5 @@
 SET(CMAKE_CXX_COMPILER /usr/bin/g++-11)
-SET(CMAKE_C_COMPILER /usr/bin/gcc-10)
+SET(CMAKE_C_COMPILER /usr/bin/gcc-11)
 SET(CMAKE_CXX_STANDARD 20)
 SET(CMAKE_CXX_STANDARD_REQUIRED True) 
 
@@ -32,4 +32,4 @@ ADD_SUBDIRECTORY(test_array_utils)
 ADD_SUBDIRECTORY(test_mc_tree_search)
 ADD_SUBDIRECTORY(test_kd_tree)
 ADD_SUBDIRECTORY(test_basic_stats)
-
+ADD_SUBDIRECTORY(test_iteration_counter)
