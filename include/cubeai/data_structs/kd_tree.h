@@ -20,24 +20,6 @@
 namespace cubeai {
 namespace contaiers {
 
-namespace detail{
-
-// helper funcions for KDTree
-template<typename PointType>
-typename PointType::value_type
-get_node_key_(const uint_t level, const uint_t k, const PointType& point ){
-
-    // extract the point value at index level mod k
-    // zero-based indexing is assumed
-    auto j = level % k;
-    return point[j];
-}
-
-
-
-
-}
-
 ///
 /// \brief
 ///
@@ -84,6 +66,44 @@ KDTreeNode<DataType>::KDTreeNode(uint_t level_, const data_type& data_,  std::sh
     level(level_),
     n_copies(1)
 {}
+
+namespace detail{
+
+// helper funcions for KDTree
+template<typename PointType>
+typename PointType::value_type
+get_point_key(const uint_t level, const uint_t k, const PointType& point ){
+
+    // extract the point value at index level mod k
+    // zero-based indexing is assumed
+    auto j = level % k;
+    return point[j];
+}
+
+///
+///
+///
+template<typename DataType>
+int compare(std::shared_ptr<KDTreeNode<DataType>> node, const DataType& data, const uint_t k){
+
+    auto node_key = get_point_key(node->level, k, node->data);
+    auto point_key = get_point_key(node->level, k, data);
+
+    if (point_key - node_key < 0){
+        return -1;
+    }
+    else if(point_key - node_key > 0){
+        return 1;
+    }
+
+    return 0;
+
+}
+
+
+}
+
+
 
 
 ///
@@ -137,15 +157,16 @@ public:
     /// \param data
     /// \return
     ///
-    template<typename DistanceCalculator>
-    const_iterator search(const data_type& data, const DistanceCalculator& calculator)const{ return search_(root_, data, calculator);}
+    template<typename ComparisonPolicy>
+    const_iterator search(const data_type& data, const ComparisonPolicy& calculator)const{ return search_(root_, data, calculator);}
 
     ///
     /// \brief insert
     /// \param data
     /// \return
     ///
-    iterator insert(const data_type& data);
+    template<typename ComparisonPolicy>
+    iterator insert(const data_type& data, const ComparisonPolicy& comparison_policy);
 
 private:
 
@@ -161,16 +182,26 @@ private:
     uint_t n_nodes_{0};
 
     ///
-    /// \brief search_. Adapter to perform the serach
+    /// \brief search_. Recursion-based adapter to perform tree-search.
     ///
-    template<typename DistanceCalculator>
-    const_iterator search_(std::shared_ptr<node_type> node, const data_type& data, const DistanceCalculator& calculator)const;
+    template<typename ComparisonPolicy>
+    const_iterator search_(std::shared_ptr<node_type> node, const data_type& data,
+                           const ComparisonPolicy& calculator)const;
+
+    ///
+    /// \brief insert_ Recursion-based adapter to perform insertion
+    /// in the KDTree
+    ///
+    template<typename ComparisonPolicy>
+    iterator insert_(std::shared_ptr<node_type>& node, const data_type& data,
+                     const ComparisonPolicy& calculator, uint_t level);
 
 };
 
 template<int k, typename DataType>
+template<typename ComparisonPolicy>
 typename KDTree<k, DataType>::iterator
-KDTree<k, DataType>::insert(const data_type& data){
+KDTree<k, DataType>::insert(const data_type& data, const ComparisonPolicy& comparison_policy){
 
 #ifdef CUBEAI_DEBUG
     assert(data.size() == k && "Data size not equal to k.");
@@ -184,7 +215,7 @@ KDTree<k, DataType>::insert(const data_type& data){
         return root_.get();
     }
 
-    return nullptr;
+    return insert_(root_, data, comparison_policy, 0);
 }
 
 template<int k, typename DataType>
@@ -199,7 +230,48 @@ KDTree<k, DataType>::search_(std::shared_ptr<node_type> node, const data_type& d
     if(calculator(node->data, data)){
         return node.get();
     }
+    else if(detail::compare(node, data, k) < 0){
+        return search_(node->left, data, calculator);
+    }
+    else{
+        return search_(node->right, data, calculator);
+    }
 }
+
+template<int k, typename DataType>
+template<typename ComparisonPolicy>
+typename KDTree<k, DataType>::iterator
+KDTree<k, DataType>::insert_(std::shared_ptr<node_type>& node, const data_type& data,
+                             const ComparisonPolicy& calculator, uint_t level){
+
+    node_type* node_ptr;
+
+    if(!node){
+        node = std::make_shared<node_type>(level, data, nullptr, nullptr);
+        node_ptr = node.get();
+        n_nodes_++;
+    }
+    else{
+
+        if(calculator(node->data, data)){
+
+            // we found the data increase the counter
+            node->n_copies += 1;
+            return node.get();
+        }
+        else if(detail::compare(node, data, k) < 0){
+            node_ptr = insert_(node->left, data, calculator, node->level + 1);
+        }
+        else{
+
+            node_ptr = insert_(node->right, data, calculator, node->level + 1);
+        }
+    }
+
+    return node_ptr;
+}
+
+
 
 
 }
