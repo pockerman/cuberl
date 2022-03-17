@@ -14,7 +14,7 @@ using cubeai::contaiers::KDTree;
 
 TEST(TestKDTree, Test_default_constructor){
 
-    KDTree<3, std::vector<real_t>> tree;
+    KDTree<std::vector<real_t>> tree(3);
     ASSERT_TRUE(tree.empty());
 
 }
@@ -23,7 +23,7 @@ TEST(TestKDTree, Test_default_constructor){
 TEST(TestKDTree, Test_insert_root) {
 
     // create an empty tree
-    KDTree<2, std::vector<real_t>> tree;
+    KDTree<std::vector<real_t>> tree(2);
     ASSERT_TRUE(tree.empty());
 
     auto criterion = [&](const auto& v1, const auto& v2){
@@ -45,7 +45,7 @@ TEST(TestKDTree, Test_insert_root) {
 TEST(TestKDTree, Test_insert_root_2) {
 
     // create an empty tree
-    KDTree<2, std::vector<real_t>> tree;
+    KDTree<std::vector<real_t>> tree(2);
     ASSERT_TRUE(tree.empty());
 
     auto criterion = [&](const auto& v1, const auto& v2){
@@ -76,7 +76,7 @@ TEST(TestKDTree, Test_insert_root_2) {
 TEST(TestKDTree, Test_search_1){
 
     // create an empty tree
-    KDTree<3, std::vector<uint_t>> tree;
+    KDTree<std::vector<uint_t>> tree(3);
     ASSERT_TRUE(tree.empty());
 
     auto criterion = [&](const auto& v1, const auto& v2){
