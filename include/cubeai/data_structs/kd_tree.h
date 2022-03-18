@@ -10,6 +10,7 @@
 
 #include "cubeai/base/cubeai_consts.h"
 #include "cubeai/base/cubeai_config.h"
+#include "cubeai/data_structs/fixed_size_priority_queue.h"
 
 #ifdef CUBEAI_DEBUG
 #include <cassert>
@@ -285,12 +286,22 @@ KDTree<DataType>::nearest_search_(std::shared_ptr<node_type>& node, const data_t
                                      uint_t n, const ComparisonPolicy& calculator)const{
 
     typedef std::pair<typename ComparisonPolicy::value_type, std::shared_ptr<node_type>> value_type;
-    auto compare = [&](const value_type& v1, const value_type& v2){
-        return v1.first < v2.first;
+
+    /*auto compare = [&](const value_type& v1, const value_type& v2){
+        return std::greater<typename ComparisonPolicy::value_type>(v1.first , v2.first);
+    };*/
+
+    struct comparison
+    {
+        typedef std::greater<typename ComparisonPolicy::value_type> comparison_type;
+        bool operator()(const value_type& v1, const value_type& v2)const{
+            return comparison_type(v1.first, v2.first);
+        }
     };
 
-    // initialize a max-heap
-    std::priority_queue<value_type, decltype(compare)> pq;
+    // initialize a min-heap
+    //std::priority_queue<value_type, decltype(compare)> pq;
+    cubeai::containers::FixedSizeMinPriorityQueue<value_type, comparison, std::vector<value_type>> pq(n);
 
     /// Before starting our search, we need to initialize
     /// the priority queue by adding a “guard”: a tuple

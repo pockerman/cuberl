@@ -23,6 +23,9 @@ concept float_vector = std::is_floating_point<typename VectorType::value_type>::
 template<typename VectorType>
 concept float_or_integral_vector = std::is_integral<typename VectorType::value_type>::value || std::is_floating_point<typename VectorType::value_type>::value;
 
+template<typename Type>
+concept is_default_constructible = std::is_default_constructible<Type>::value;
+
 }
 
 }
