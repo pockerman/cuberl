@@ -16,11 +16,15 @@
 #include <cassert>
 #endif
 
-#include <queue> // for std::priority_queue
+
 #include <vector>
+#include <tuple>
 #include <memory>
 #include <cmath>
 #include <limits>
+#include <algorithm>
+#include <iterator>
+#include <utility>
 
 namespace cubeai {
 namespace contaiers {
@@ -129,6 +133,22 @@ split_distance(std::shared_ptr<KDTreeNode<DataType>> node, const DataType& data,
     return std::abs(node_key - point_key);
 }
 
+///
+/// Partition the range specified by the given iterators
+/// into left-median-right. The coordinate chosen depends
+/// on the level passed.
+
+template<typename Iterator>
+std::tuple<typename std::iterator_traits<Iterator>::value_type,
+           std::pair<Iterator, Iterator>,
+           std::pair<Iterator, Iterator>>
+partiion_on_median(Iterator begin, Iterator end, uint_t level, uint_t k){
+
+    auto idx = get_point_key(leve, )
+
+}
+
+
 }
 
 
@@ -165,6 +185,12 @@ public:
     /// \brief KDTree. Constructor
     ///
     KDTree(uint_t k);
+
+    ///
+    ///
+    ///
+    template<typename Iterator>
+    KDTree(uint_t k, Iterator begin, Iterator end);
 
     ///
     /// \brief empty
@@ -249,6 +275,20 @@ private:
     void nearest_search_(std::shared_ptr<node_type> node, const data_type& data,
                                            const ComparisonPolicy& calculator, PriorityQueueType& pq)const;
 
+
+    ///
+    ///
+    ///
+    template<typename Iterator>
+    void assign_(Iterator begin, Iterator end){create_(begin, end, 0);}
+
+    template<typename Iterator>
+    void create_(Iterator begin, Iterator end, uint_t level);
+
+
+    template<typename Iterator>
+    std::shared_ptr<node_type> do_create_(Iterator begin, Iterator end, uint_t level);
+
 };
 
 template<typename DataType>
@@ -258,6 +298,15 @@ KDTree<DataType>::KDTree(uint_t k)
     n_nodes_(0),
     k_(k)
 {}
+
+template<typename DataType>
+template<typename Iterator>
+KDTree<DataType>::KDTree(uint_t k, Iterator begin, Iterator end)
+    :
+     KDTree<DataType>(k)
+{
+    assign(begin, end);
+}
 
 template<typename DataType>
 template<typename ComparisonPolicy>
@@ -286,10 +335,6 @@ KDTree<DataType>::nearest_search_(std::shared_ptr<node_type>& node, const data_t
                                      uint_t n, const ComparisonPolicy& calculator)const{
 
     typedef std::pair<typename ComparisonPolicy::value_type, std::shared_ptr<node_type>> value_type;
-
-    /*auto compare = [&](const value_type& v1, const value_type& v2){
-        return std::greater<typename ComparisonPolicy::value_type>(v1.first , v2.first);
-    };*/
 
     struct comparison
     {
@@ -324,9 +369,16 @@ KDTree<DataType>::nearest_search_(std::shared_ptr<node_type>& node, const data_t
         peek.pop();
     }
 
+    std::vector<typename ComparisonPolicy::value_type, DataType> result;
+    result.reserve(pq.size());
+    while(!pq.empty()){
+        auto item = pq.top_and_pop();
+        result.push_back(item);
+    }
+
     // loop over the priority queue and collect
     // the points we found
-    std::vector<data_type> result(pq.begin(), pq.end());
+
     return result;
 }
 
@@ -428,7 +480,70 @@ KDTree<DataType>::insert_(std::shared_ptr<node_type>& node, const data_type& dat
     return node_ptr;
 }
 
+template<typename DataType>
+template<typename Iterator>
+void
+KDTree<DataType>::create_(Iterator begin, Iterator end, uint_t level){
 
+
+
+    auto n_points = std::distance(begin, end);
+
+    // nothing to do if no points
+    // are given
+    if(n_points == 0){
+        return ;
+    }
+
+    if(n_points == 1){
+        auto data = *begin;
+
+        // create the root
+        root_ = std::make_shared<typename KDTree<DataType>::node_type>(level, data, nullptr, nullptr);
+    }
+
+    // otherwise partition the range
+    auto [median, left, right] = partiion(begin, end, level);
+
+    // create root
+    root_ = std::make_shared<typename KDTree<DataType>::node_type>(level, median, nullptr, nullptr);
+
+    // create left and right subtrees
+    auto left_tree = do_create_(left.begin(), left.end(), level + 1);
+
+    // create left and right subtrees
+    auto right_tree = do_create_(right.begin(), right.end(), level + 1);
+
+    root_->left = left;
+    root_->right = right;
+}
+
+template<typename DataType>
+template<typename Iterator>
+std::shared_ptr<typename KDTree<DataType>::node_type>
+            KDTree<DataType>::do_create_(Iterator begin, Iterator end, uint_t level){
+
+    auto n_points = std::distance(begin, end);
+
+    // nothing to do if no points
+    // are given
+    if(n_points == 0){
+        return nullptr;
+    }
+
+    if(n_points == 1){
+        auto data = *begin;
+        return std::make_shared<typename KDTree<DataType>::node_type>(level, data, nullptr, nullptr);
+    }
+
+    // otherwise partition the range
+    auto [median, left, right] = partiion(begin, end, level);
+
+    auto left_tree = do_create_(left.begin(), left.end(), level + 1);
+    auto right_tree = do_create_(right.begin(), right.end(), level + 1);
+    return std::make_shared<typename KDTree<DataType>::node_type>(level, median, left, right);
+
+}
 
 
 }
