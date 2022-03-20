@@ -63,6 +63,8 @@ public:
     value_type top(){return pq_.front();}
 
 
+
+
     iterator begin(){return pq_.begin();}
     iterator end(){return pq_.end();}
 
@@ -101,7 +103,6 @@ priority_queue_common<T, Container>::priority_queue_common(uint_t max_size) noex
     pq_()
 {}
 
-
 }
 
 ///
@@ -134,6 +135,12 @@ public:
     /// \brief pop
     ///
     void pop()noexcept;
+
+    ///
+    /// \brief top_and_pop
+    /// \return
+    ///
+    value_type top_and_pop();
 
 private:
 
@@ -189,6 +196,14 @@ FixedSizeMaxPriorityQueue<T, Compare, Container>::pop()noexcept{
     this->pop_back();
 }
 
+template<typename T, utils::concepts::is_default_constructible Compare, class Container>
+typename FixedSizeMaxPriorityQueue<T, Compare, Container>::value_type
+FixedSizeMaxPriorityQueue<T, Compare, Container>::top_and_pop(){
+    auto item = this->top();
+    pop();
+    return item;
+}
+
 
 ///
 /// \brief FixedSizeMaxPriorityQueue
@@ -220,6 +235,12 @@ public:
     /// \brief pop
     ///
     void pop()noexcept;
+
+    ///
+    /// \brief top_and_pop
+    /// \return
+    ///
+    value_type top_and_pop();
 
 private:
 
@@ -270,6 +291,14 @@ FixedSizeMinPriorityQueue<T, Compare, Container>::pop()noexcept{
 
     std::pop_heap(this->begin(), this->end(), value_cp_);
     this->pop_back();
+}
+
+template<typename T, utils::concepts::is_default_constructible Compare, class Container>
+typename FixedSizeMinPriorityQueue<T, Compare, Container>::value_type
+FixedSizeMinPriorityQueue<T, Compare, Container>::top_and_pop(){
+    auto item = this->top();
+    pop();
+    return item;
 }
 
 }
