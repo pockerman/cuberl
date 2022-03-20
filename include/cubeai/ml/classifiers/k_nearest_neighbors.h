@@ -21,7 +21,7 @@ public:
     /// \brief KNearestNeighbors
     /// \param n_neighbors
     ///
-    explicit KNearestNeighbors(uint_t n_neighbors);
+    KNearestNeighbors();
 
     ///
     ///
@@ -35,6 +35,14 @@ public:
     ///
     void load_and_fit(const std::string& path);
 
+    ///
+    /// \brief predict. Predict the class of the given point
+    /// \param p
+    /// \param k
+    /// \return
+    ///
+    uint_t predict(const PointType& p, uint_t k)const;
+
 private:
 
     struct Node
@@ -43,8 +51,10 @@ private:
         typedef typename DataType::value_type value_type;
 
         data_type data;
-        std::shared_ptr<KDTreeNode<data_type>> left;
-        std::shared_ptr<KDTreeNode<data_type>> right;
+        uint_t label;
+        uint_t idx;
+        std::shared_ptr<Node<data_type>> left;
+        std::shared_ptr<Node<data_type>> right;
         uint_t level;
         uint_t n_copies{0};
 
@@ -69,8 +79,22 @@ private:
 
     };
 
+    ///
+    /// \brief tree_
+    ///
+    cubeai::contaiers::KDTree<Node> tree_;
+
 
 };
+
+template<typename PointType, typename ComparisonPolicy>
+template<typename DataSetType, typename LabelsType>
+void
+KNearestNeighbors<PointType, ComparisonPolicy>::fit(const DataSetType& data, const LabelsType& labels){
+
+    tree_.create(data);
+
+}
 
 }
 }

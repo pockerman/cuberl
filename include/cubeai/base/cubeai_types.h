@@ -40,7 +40,9 @@ namespace cubeai
     template<typename T>
     using DiagMat = blaze::DiagonalMatrix<DynMat<T>>;
 
+    ///
     /// \brief Identity matrix
+    ///
     template<typename T>
     using IdentityMatrix = blaze::IdentityMatrix<T>;
 

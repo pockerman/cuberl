@@ -30,7 +30,8 @@ namespace cubeai {
 namespace contaiers {
 
 ///
-/// \brief
+/// \brief Default structure to represent
+/// a node in a KDTree
 ///
 template<typename DataType>
 struct KDTreeNode
@@ -144,10 +145,33 @@ std::tuple<typename std::iterator_traits<Iterator>::value_type,
            std::pair<Iterator, Iterator>>
 partiion_on_median(Iterator begin, Iterator end, uint_t level, uint_t k){
 
-    auto idx = get_point_key(leve, )
+
+    typedef typename std::iterator_traits<Iterator>::value_type value_type;
+
+    auto begin_ = begin;
+    auto end_ = end;
+
+    auto n_points = std::distance(begin_, end_);
+
+    // the median index
+    auto median_idx = n_points % 2 == 0 ? (n_points + 1) / 2 : n_points / 2;
+
+    auto compare = [&](const value_type& v1, const value_type& v2){
+
+        auto idx = level % k;
+        return v1[idx] < v2[idx];
+    };
+
+    // rearrange the elements
+    std::nth_element(begin_, begin_ + median_idx, end_ , compare);
+
+    auto median = *(begin_ + median_idx);
+
+    auto left = std::make_pair<Iterator,   Iterator>(std::move(begin_), begin_ + median_idx);
+    auto right = std::make_pair<Iterator,   Iterator>(begin_ + median_idx + 1, std::move(end_));
+    return std::make_tuple(median, left, right);
 
 }
-
 
 }
 
@@ -170,13 +194,13 @@ partiion_on_median(Iterator begin, Iterator end, uint_t level, uint_t k){
 /// a smaller value for N ’s split coordinate, L[j] < N[j] , and all nodes R on N ’s right
 /// subtree have a larger or equal value for N ’s split coordinate, R[j] ≥ N[j] .
 ///
-template<typename DataType>
+template<typename NodeType>
 class KDTree
 {
 public:
 
-    typedef DataType data_type;
-    typedef KDTreeNode<DataType> node_type;
+    typedef NodeType node_type;
+    typedef typename node_type::data_type data_type;
 
     typedef node_type* iterator;
     typedef const node_type* const_iterator;
@@ -189,8 +213,8 @@ public:
     ///
     ///
     ///
-    template<typename Iterator>
-    KDTree(uint_t k, Iterator begin, Iterator end);
+    template<typename Iterator, typename ComparisonPolicy>
+    KDTree(uint_t k, Iterator begin, Iterator end, const ComparisonPolicy& policy);
 
     ///
     /// \brief empty
@@ -210,7 +234,7 @@ public:
     /// \return
     ///
     template<typename ComparisonPolicy>
-    const_iterator search(const data_type& data, const ComparisonPolicy& calculator)const{ return search_(root_, data, calculator);}
+    std::shared_ptr<node_type> search(const data_type& data, const ComparisonPolicy& calculator)const{ return search_(root_, data, calculator);}
 
     ///
     /// \brief insert
@@ -218,7 +242,7 @@ public:
     /// \return
     ///
     template<typename ComparisonPolicy>
-    iterator insert(const data_type& data, const ComparisonPolicy& comparison_policy);
+    std::shared_ptr<node_type> insert(const data_type& data, const ComparisonPolicy& comparison_policy);
 
     ///
     /// \brief nearest_search. Returns an ordered vector of the n closest
@@ -250,7 +274,7 @@ private:
     /// \brief search_. Recursion-based adapter to perform tree-search.
     ///
     template<typename ComparisonPolicy>
-    const_iterator search_(std::shared_ptr<node_type> node, const data_type& data,
+    std::shared_ptr<node_type> search_(std::shared_ptr<node_type> node, const data_type& data,
                            const ComparisonPolicy& calculator)const;
 
     ///
@@ -258,8 +282,8 @@ private:
     /// in the KDTree
     ///
     template<typename ComparisonPolicy>
-    iterator insert_(std::shared_ptr<node_type>& node, const data_type& data,
-                     const ComparisonPolicy& calculator, uint_t level);
+    std::shared_ptr<node_type> insert_(std::shared_ptr<node_type>& node, const data_type& data,
+                                      const ComparisonPolicy& calculator, uint_t level);
 
     ///
     /// \brief nearest_search_ Adapter to perform nearest search
@@ -276,42 +300,36 @@ private:
                                            const ComparisonPolicy& calculator, PriorityQueueType& pq)const;
 
 
-    ///
-    ///
-    ///
-    template<typename Iterator>
-    void assign_(Iterator begin, Iterator end){create_(begin, end, 0);}
-
-    template<typename Iterator>
-    void create_(Iterator begin, Iterator end, uint_t level);
+    template<typename Iterator, typename ComparisonPolicy>
+    void create_(Iterator begin, Iterator end, uint_t level, const ComparisonPolicy& comp_policy);
 
 
-    template<typename Iterator>
-    std::shared_ptr<node_type> do_create_(Iterator begin, Iterator end, uint_t level);
+    template<typename Iterator, typename ComparisonPolicy>
+    std::shared_ptr<node_type> do_create_(Iterator begin, Iterator end, uint_t level, const ComparisonPolicy& comp_policy);
 
 };
 
-template<typename DataType>
-KDTree<DataType>::KDTree(uint_t k)
+template<typename NodeType>
+KDTree<NodeType>::KDTree(uint_t k)
     :
     root_(),
     n_nodes_(0),
     k_(k)
 {}
 
-template<typename DataType>
-template<typename Iterator>
-KDTree<DataType>::KDTree(uint_t k, Iterator begin, Iterator end)
+template<typename NodeType>
+template<typename Iterator, typename ComparisonPolicy>
+KDTree<NodeType>::KDTree(uint_t k, Iterator begin, Iterator end, const ComparisonPolicy& comp_policy)
     :
-     KDTree<DataType>(k)
+     KDTree<NodeType>(k)
 {
-    assign(begin, end);
+    create_(begin, end, 0, comp_policy);
 }
 
-template<typename DataType>
+template<typename NodeType>
 template<typename ComparisonPolicy>
-typename KDTree<DataType>::iterator
-KDTree<DataType>::insert(const data_type& data, const ComparisonPolicy& comparison_policy){
+std::shared_ptr<NodeType>
+KDTree<NodeType>::insert(const data_type& data, const ComparisonPolicy& comparison_policy){
 
 #ifdef CUBEAI_DEBUG
     assert(data.size() == k_ && "Data size not equal to k.");
@@ -322,16 +340,16 @@ KDTree<DataType>::insert(const data_type& data, const ComparisonPolicy& comparis
     if(!root_){
         root_ = std::make_shared<node_type>(0, data, nullptr, nullptr);
         n_nodes_++;
-        return root_.get();
+        return root_;
     }
 
     return insert_(root_, data, comparison_policy, 0);
 }
 
-template<typename DataType>
+template<typename NodeType>
 template<typename ComparisonPolicy>
-std::vector<typename KDTree<DataType>::data_type>
-KDTree<DataType>::nearest_search_(std::shared_ptr<node_type>& node, const data_type& data,
+std::vector<typename KDTree<NodeType>::data_type>
+KDTree<NodeType>::nearest_search_(std::shared_ptr<node_type>& node, const data_type& data,
                                      uint_t n, const ComparisonPolicy& calculator)const{
 
     typedef std::pair<typename ComparisonPolicy::value_type, std::shared_ptr<node_type>> value_type;
@@ -369,7 +387,7 @@ KDTree<DataType>::nearest_search_(std::shared_ptr<node_type>& node, const data_t
         peek.pop();
     }
 
-    std::vector<typename ComparisonPolicy::value_type, DataType> result;
+    std::vector<typename ComparisonPolicy::value_type, typename NodeType::DataType> result;
     result.reserve(pq.size());
     while(!pq.empty()){
         auto item = pq.top_and_pop();
@@ -382,10 +400,10 @@ KDTree<DataType>::nearest_search_(std::shared_ptr<node_type>& node, const data_t
     return result;
 }
 
-template<typename DataType>
+template<typename NodeType>
 template<typename ComparisonPolicy, typename PriorityQueueType>
 void
-KDTree<DataType>::nearest_search_(std::shared_ptr<node_type> node, const data_type& data,
+KDTree<NodeType>::nearest_search_(std::shared_ptr<node_type> node, const data_type& data,
                                      const ComparisonPolicy& calculator, PriorityQueueType& pq)const{
 
 
@@ -427,17 +445,17 @@ KDTree<DataType>::nearest_search_(std::shared_ptr<node_type> node, const data_ty
     }
 }
 
-template<typename DataType>
+template<typename NodeType>
 template<typename DistanceCalculator>
-typename KDTree<DataType>::const_iterator
-KDTree<DataType>::search_(std::shared_ptr<node_type> node, const data_type& data, const DistanceCalculator& calculator)const{
+std::shared_ptr<NodeType>
+KDTree<NodeType>::search_(std::shared_ptr<node_type> node, const data_type& data, const DistanceCalculator& calculator)const{
 
     if(!node){
         return nullptr;
     }
 
     if(calculator(node->data, data)){
-        return node.get();
+        return node;
     }
     else if(detail::compare(node, data, k_) < 0){
         return search_(node->left, data, calculator);
@@ -447,44 +465,38 @@ KDTree<DataType>::search_(std::shared_ptr<node_type> node, const data_type& data
     }
 }
 
-template<typename DataType>
+template<typename NodeType>
 template<typename ComparisonPolicy>
-typename KDTree<DataType>::iterator
-KDTree<DataType>::insert_(std::shared_ptr<node_type>& node, const data_type& data,
+std::shared_ptr<NodeType>
+KDTree<NodeType>::insert_(std::shared_ptr<node_type>& node, const data_type& data,
                              const ComparisonPolicy& calculator, uint_t level){
-
-    node_type* node_ptr;
 
     if(!node){
         node = std::make_shared<node_type>(level, data, nullptr, nullptr);
-        node_ptr = node.get();
         n_nodes_++;
-    }
-    else{
-
-        if(calculator(node->data, data)){
-
-            // we found the data increase the counter
-            node->n_copies += 1;
-            return node.get();
-        }
-        else if(detail::compare(node, data, k_) < 0){
-            node_ptr = insert_(node->left, data, calculator, node->level + 1);
-        }
-        else{
-
-            node_ptr = insert_(node->right, data, calculator, node->level + 1);
-        }
+        return node;
     }
 
-    return node_ptr;
+
+     if(calculator(node->data, data)){
+
+         // we found the data increase the counter
+         node->n_copies += 1;
+         return node;
+     }
+    else if(detail::compare(node, data, k_) < 0){
+        return insert_(node->left, data, calculator, node->level + 1);
+    }
+
+
+    return insert_(node->right, data, calculator, node->level + 1);
+
 }
 
-template<typename DataType>
-template<typename Iterator>
+template<typename NodeType>
+template<typename Iterator, typename ComparisonPolicy>
 void
-KDTree<DataType>::create_(Iterator begin, Iterator end, uint_t level){
-
+KDTree<NodeType>::create_(Iterator begin, Iterator end, uint_t level, const ComparisonPolicy& comp_policy){
 
 
     auto n_points = std::distance(begin, end);
@@ -499,29 +511,33 @@ KDTree<DataType>::create_(Iterator begin, Iterator end, uint_t level){
         auto data = *begin;
 
         // create the root
-        root_ = std::make_shared<typename KDTree<DataType>::node_type>(level, data, nullptr, nullptr);
+        root_ = std::make_shared<NodeType>(level, data, nullptr, nullptr);
+        ++n_nodes_;
+        return;
     }
 
+
     // otherwise partition the range
-    auto [median, left, right] = partiion(begin, end, level);
+    auto [median, left, right] = detail::partiion_on_median(begin, end, level, k_);
 
     // create root
-    root_ = std::make_shared<typename KDTree<DataType>::node_type>(level, median, nullptr, nullptr);
+    root_ = std::make_shared<NodeType>(level, median, nullptr, nullptr);
+    ++n_nodes_;
 
     // create left and right subtrees
-    auto left_tree = do_create_(left.begin(), left.end(), level + 1);
+    auto left_tree = do_create_(left.first, left.second, level + 1, comp_policy);
 
     // create left and right subtrees
-    auto right_tree = do_create_(right.begin(), right.end(), level + 1);
+    auto right_tree = do_create_(right.first, right.second, level + 1, comp_policy);
 
-    root_->left = left;
-    root_->right = right;
+    root_->left = left_tree;
+    root_->right = right_tree;
 }
 
-template<typename DataType>
-template<typename Iterator>
-std::shared_ptr<typename KDTree<DataType>::node_type>
-            KDTree<DataType>::do_create_(Iterator begin, Iterator end, uint_t level){
+template<typename NodeType>
+template<typename Iterator, typename ComparisonPolicy>
+std::shared_ptr<NodeType>
+KDTree<NodeType>::do_create_(Iterator begin, Iterator end, uint_t level, const ComparisonPolicy& comp_policy){
 
     auto n_points = std::distance(begin, end);
 
@@ -533,15 +549,26 @@ std::shared_ptr<typename KDTree<DataType>::node_type>
 
     if(n_points == 1){
         auto data = *begin;
-        return std::make_shared<typename KDTree<DataType>::node_type>(level, data, nullptr, nullptr);
+
+        // check if the data exist
+        auto found = search_(root_, data, comp_policy);
+
+        if(found != nullptr){
+            found->n_copies += 1;
+            return found;
+        }
+
+        ++n_nodes_;
+        return std::make_shared<NodeType>(level, data, nullptr, nullptr);
     }
 
     // otherwise partition the range
-    auto [median, left, right] = partiion(begin, end, level);
+    auto [median, left, right] = detail::partiion_on_median(begin, end, level, k_);
 
-    auto left_tree = do_create_(left.begin(), left.end(), level + 1);
-    auto right_tree = do_create_(right.begin(), right.end(), level + 1);
-    return std::make_shared<typename KDTree<DataType>::node_type>(level, median, left, right);
+    auto left_tree = do_create_(left.first, left.second, level + 1, comp_policy);
+    auto right_tree = do_create_(right.first, right.second, level + 1, comp_policy);
+    ++n_nodes_;
+    return std::make_shared<NodeType>(level, median, left_tree, right_tree);
 
 }
 
