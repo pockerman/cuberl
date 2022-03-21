@@ -9,6 +9,9 @@
 namespace cubeai
 {
 
+///
+/// \brief The CubeAIDataPaths class
+///
 class CubeAIDataPaths: private boost::noncopyable
 {
 public:
@@ -41,6 +44,12 @@ public:
     /// \return
     ///
     static std::string mnist_data_test_directory_path()noexcept{return CubeAIDataPaths::mnist_data_directory_path() + "/test/";}
+
+    ///
+    /// \brief iris_data_path
+    /// \return
+    ///
+    static std::string iris_data_path()noexcept{return CubeAIDataPaths::data_directory_path() + "iris_data.csv";}
 };
 }
 #endif // CUBEAI_DATA_PATHS_H
