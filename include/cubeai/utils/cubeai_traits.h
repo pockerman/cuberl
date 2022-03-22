@@ -1,0 +1,29 @@
+#ifndef CUBEAI_TRAITS_H
+#define CUBEAI_TRAITS_H
+
+#include "cubeai/base/cubeai_types.h"
+
+#include <vector>
+namespace cubeai{
+namespace utils{
+
+template<typename VecType>
+struct vector_value_type_trait;
+
+
+template<typename T>
+struct vector_value_type_trait<std::vector<T>>{
+    typedef typename std::vector<T>::value_type value_type;
+};
+
+
+template<typename T>
+struct vector_value_type_trait<DynVec<T>>{
+    typedef typename std::vector<T>::value_type value_type;
+};
+
+
+}
+}
+
+#endif // CUBEAI_TRAITS_H

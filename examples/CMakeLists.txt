@@ -19,6 +19,7 @@ LINK_DIRECTORIES(${GYMFCPP_LIB_DIRS}) #/home/alex/qi3/cubeAI/gymcpp/install/)
 LINK_DIRECTORIES(${PYTHON_CONFIG_LIBS_PATH}) #/usr/lib/python3.8/config-3.8-x86_64-linux-gnu/)
 
 ADD_SUBDIRECTORY(rl)
+ADD_SUBDIRECTORY(ml)
 
 
 #ADD_SUBDIRECTORY(example_0)

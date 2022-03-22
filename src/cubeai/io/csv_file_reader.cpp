@@ -41,8 +41,7 @@ CSVFileReader::open(){
 #ifdef CUBEAI_DEBUG
 
             if(!file_reader_.good()){
-                std::string msg("Failed to open file: ");
-                msg += file_name_;
+                std::string msg = "Failed to open file: " + file_name_;
                 assert(false && msg.c_str());
             }
 #endif
