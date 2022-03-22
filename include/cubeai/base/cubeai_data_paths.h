@@ -49,7 +49,7 @@ public:
     /// \brief iris_data_path
     /// \return
     ///
-    static std::string iris_data_path()noexcept{return CubeAIDataPaths::data_directory_path() + "iris_data.csv";}
+    static std::string iris_data_path()noexcept{return CubeAIDataPaths::data_directory_path() + "/iris_data.csv";}
 };
 }
 #endif // CUBEAI_DATA_PATHS_H

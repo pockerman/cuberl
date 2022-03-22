@@ -3,8 +3,15 @@
 
 #include "cubeai/base/cubeai_types.h"
 #include "cubeai/utils/cubeai_concepts.h"
+#include "cubeai/utils/cubeai_traits.h"
+#include "cubeai/base/cubeai_config.h"
 #include "cubeai/data_structs/kd_tree.h"
 #include "cubeai/maths/matrix_utilities.h"
+
+
+#ifdef CUBEAI_DEBUG
+#include <cassert>
+#endif
 
 #include <string>
 #include <memory>
@@ -17,7 +24,7 @@ namespace classifiers {
 ///
 ///
 ///
-template<typename PointType, utils::concepts::is_default_constructible ComparisonPolicy>
+template<typename PointType>
 class KNearestNeighbors
 {
 public:
@@ -62,19 +69,35 @@ public:
         ///
         value_type get_key(uint_t i)const noexcept{return data.first[i];}
 
+        ///
+        /// \brief get_point_key
+        /// \param level
+        /// \param k
+        /// \param point
+        /// \return
+        ///
+        typename utils::vector_value_type_trait<PointType>::value_type
+        get_point_key(const uint_t level, const uint_t k, const data_type& point ){
+
+            // extract the point value at index level mod k
+            // zero-based indexing is assumed
+            auto j = level % k;
+            return point.first[j];
+        }
+
     };
 
     ///
     /// \brief KNearestNeighbors
     /// \param n_neighbors
     ///
-    KNearestNeighbors()=default;
+    KNearestNeighbors(uint_t dim);
 
     ///
     ///
     ///
-    template<typename T>
-    void fit(const DynMat<T>& data, const DynVec<uint_t>& labels);
+    template<typename T, typename ComparisonPolicy>
+    void fit(const DynMat<T>& data, const DynVec<uint_t>& labels, const ComparisonPolicy& comp_policy);
 
     ///
     /// \brief predict. Predict the class of the given point
@@ -82,6 +105,7 @@ public:
     /// \param k
     /// \return
     ///
+    template<cubeai::utils::concepts::is_default_constructible SimilarityPolicy>
     uint_t predict(const PointType& p, uint_t k)const;
 
 private:
@@ -91,12 +115,11 @@ private:
     ///
     cubeai::contaiers::KDTree<Node> tree_;
 
-
 };
 
-template<typename PointType, utils::concepts::is_default_constructible ComparisonPolicy>
+template<typename PointType>
 uint_t
-KNearestNeighbors<PointType, ComparisonPolicy>::get_class_label_from_counters(const std::map<uint_t, uint_t>& counters){
+KNearestNeighbors<PointType>::get_class_label_from_counters(const std::map<uint_t, uint_t>& counters){
 
     auto label = cubeai::CubeAIConsts::INVALID_SIZE_TYPE;
     auto counter = 0;
@@ -118,28 +141,35 @@ KNearestNeighbors<PointType, ComparisonPolicy>::get_class_label_from_counters(co
     return label;
 }
 
+template<typename PointType>
+KNearestNeighbors<PointType>::KNearestNeighbors(uint_t dim)
+    :
+      tree_(dim)
+{}
 
-template<typename PointType, utils::concepts::is_default_constructible ComparisonPolicy>
-template<typename T>
+template<typename PointType>
+template<typename T,  typename ComparisonPolicy>
 void
-KNearestNeighbors<PointType, ComparisonPolicy>::fit(const DynMat<T>& data, const DynVec<uint_t>& labels){
-
-    ComparisonPolicy comp_policy;
+KNearestNeighbors<PointType>::fit(const DynMat<T>& data, const DynVec<uint_t>& labels, const  ComparisonPolicy& comp_policy){
 
     for(uint_t r=0; r<data.rows(); ++r){
 
         PointType p = maths::get_row(data, r);
         uint_t label = labels[r];
+#ifdef CUBEAI_DEBUG
+    assert(tree_.dim() == p.size() && "Data size not equal to k.");
+#endif
 
         tree_.insert(std::make_pair(p, label), comp_policy);
     }
 }
 
-template<typename PointType, utils::concepts::is_default_constructible ComparisonPolicy>
+template<typename PointType>
+ template<cubeai::utils::concepts::is_default_constructible SimilarityPolicy>
 uint_t
-KNearestNeighbors<PointType, ComparisonPolicy>::predict(const PointType& p, uint_t k)const{
+KNearestNeighbors<PointType>::predict(const PointType& p, uint_t k)const{
 
-    ComparisonPolicy policy;
+    SimilarityPolicy policy;
     auto result = tree_.nearest_search(p, k, policy);
 
     std::map<uint_t, uint_t> counters;
@@ -162,9 +192,9 @@ KNearestNeighbors<PointType, ComparisonPolicy>::predict(const PointType& p, uint
     return get_class_label_from_counters(counters);
 }
 
-template<typename PointType, utils::concepts::is_default_constructible ComparisonPolicy>
-KNearestNeighbors<PointType, ComparisonPolicy>::Node::Node(uint_t level_, const data_type& data_,
-                                                           std::shared_ptr<Node> left_,  std::shared_ptr<Node> right_)
+template<typename PointType>
+KNearestNeighbors<PointType>::Node::Node(uint_t level_, const data_type& data_,
+                                         std::shared_ptr<Node> left_,  std::shared_ptr<Node> right_)
     :
      level(level_),
      data(data_),

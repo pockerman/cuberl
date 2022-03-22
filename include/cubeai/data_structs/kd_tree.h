@@ -9,12 +9,15 @@
  */
 
 #include "cubeai/base/cubeai_consts.h"
-#include "cubeai/base/cubeai_config.h"
+#include "cubeai/utils/cubeai_traits.h"
+//#include "cubeai/base/cubeai_config.h"
 #include "cubeai/data_structs/fixed_size_priority_queue.h"
 
+/*
 #ifdef CUBEAI_DEBUG
 #include <cassert>
 #endif
+*/
 
 
 #include <vector>
@@ -38,7 +41,7 @@ struct KDTreeNode
 {
 
     typedef DataType data_type;
-    typedef typename DataType::value_type value_type;
+    typedef typename utils::vector_value_type_trait<DataType>::value_type value_type;
 
     data_type data;
     std::shared_ptr<KDTreeNode<data_type>> left;
@@ -64,6 +67,22 @@ struct KDTreeNode
     /// \brief get_key. Returns the key that corresponds to the i-th coordinate
     ///
     value_type get_key(uint_t i)const noexcept{return data[i];}
+
+    ///
+    /// \brief get_point_key
+    /// \param level
+    /// \param k
+    /// \param point
+    /// \return
+    ///
+    value_type
+    get_point_key(const uint_t level, const uint_t k, const data_type& point ){
+
+        // extract the point value at index level mod k
+        // zero-based indexing is assumed
+        auto j = level % k;
+        return point[j];
+    }
 };
 
 template<typename DataType>
@@ -79,6 +98,7 @@ KDTreeNode<DataType>::KDTreeNode(uint_t level_, const data_type& data_,  std::sh
 
 namespace detail{
 
+/*
 // helper funcions for KDTree
 template<typename PointType>
 typename PointType::value_type
@@ -89,16 +109,17 @@ get_point_key(const uint_t level, const uint_t k, const PointType& point ){
     auto j = level % k;
     return point[j];
 }
+*/
 
 ///
 ///
 ///
-template<typename DataType>
+template<typename Node, typename DataType>
 int
-compare(std::shared_ptr<KDTreeNode<DataType>> node, const DataType& data, const uint_t k){
+compare(std::shared_ptr<Node> node, const DataType& data, const uint_t k){
 
-    auto node_key = get_point_key(node->level, k, node->data);
-    auto point_key = get_point_key(node->level, k, data);
+    auto node_key = node->get_point_key(node->level, k, node->data);
+    auto point_key = node->get_point_key(node->level, k, data);
 
     auto sign = point_key - node_key;
 
@@ -125,12 +146,12 @@ compare(std::shared_ptr<KDTreeNode<DataType>> node, const DataType& data, const 
 /// the j -th coordinates of the two points,
 /// where j = node.level mod k
 ///
-template<typename DataType>
+template<typename Node, typename DataType>
 typename DataType::value_type
-split_distance(std::shared_ptr<KDTreeNode<DataType>> node, const DataType& data, const uint_t k){
+split_distance(std::shared_ptr<Node> node, const DataType& data, const uint_t k){
 
-    auto node_key = get_point_key(node->level, k, node->data);
-    auto point_key = get_point_key(node->level, k, data);
+    auto node_key = node->get_point_key(node->level, k, node->data);
+    auto point_key = node->get_point_key(node->level, k, data);
     return std::abs(node_key - point_key);
 }
 
@@ -143,7 +164,7 @@ template<typename Iterator>
 std::tuple<typename std::iterator_traits<Iterator>::value_type,
            std::pair<Iterator, Iterator>,
            std::pair<Iterator, Iterator>>
-partiion_on_median(Iterator begin, Iterator end, uint_t level, uint_t k){
+partiion_on_median(Iterator&& begin, Iterator&& end, uint_t level, uint_t k){
 
 
     typedef typename std::iterator_traits<Iterator>::value_type value_type;
@@ -167,8 +188,8 @@ partiion_on_median(Iterator begin, Iterator end, uint_t level, uint_t k){
 
     auto median = *(begin_ + median_idx);
 
-    auto left = std::make_pair<Iterator,   Iterator>(std::move(begin_), begin_ + median_idx);
-    auto right = std::make_pair<Iterator,   Iterator>(begin_ + median_idx + 1, std::move(end_));
+    auto left = std::make_pair<Iterator,   Iterator>(std::forward<Iterator>(begin_), begin_ + median_idx);
+    auto right = std::make_pair<Iterator,   Iterator>(begin_ + median_idx + 1, std::forward<Iterator>(end_));
     return std::make_tuple(median, left, right);
 
 }
@@ -252,6 +273,12 @@ public:
     std::vector<data_type> nearest_search(const data_type& data, uint_t n, const ComparisonPolicy& calculator)const
     {return nearest_search_(root_, data, n, calculator);}
 
+    ///
+    /// \brief dim
+    /// \return
+    ///
+    uint_t dim()const noexcept{return k_;}
+
 private:
 
 
@@ -330,10 +357,6 @@ template<typename NodeType>
 template<typename ComparisonPolicy>
 std::shared_ptr<NodeType>
 KDTree<NodeType>::insert(const data_type& data, const ComparisonPolicy& comparison_policy){
-
-#ifdef CUBEAI_DEBUG
-    assert(data.size() == k_ && "Data size not equal to k.");
-#endif
 
     // if the root node is null then
     // simply insert
@@ -518,7 +541,7 @@ KDTree<NodeType>::create_(Iterator begin, Iterator end, uint_t level, const Comp
 
 
     // otherwise partition the range
-    auto [median, left, right] = detail::partiion_on_median(begin, end, level, k_);
+    auto [median, left, right] = detail::partiion_on_median(std::forward<Iterator>(begin), std::forward<Iterator>(end), level, k_);
 
     // create root
     root_ = std::make_shared<NodeType>(level, median, nullptr, nullptr);
@@ -563,7 +586,8 @@ KDTree<NodeType>::do_create_(Iterator begin, Iterator end, uint_t level, const C
     }
 
     // otherwise partition the range
-    auto [median, left, right] = detail::partiion_on_median(begin, end, level, k_);
+    auto [median, left, right] = detail::partiion_on_median(std::forward<Iterator>(begin), std::forward<Iterator>(end), level, k_);
+            //detail::partiion_on_median(begin, end, level, k_);
 
     auto left_tree = do_create_(left.first, left.second, level + 1, comp_policy);
     auto right_tree = do_create_(right.first, right.second, level + 1, comp_policy);
