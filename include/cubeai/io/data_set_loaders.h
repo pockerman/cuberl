@@ -8,6 +8,7 @@
 #include <cassert>
 #endif
 
+#include <tuple>
 #include <utility>
 
 namespace cubeai{
@@ -59,6 +60,13 @@ std::pair<DynMat<real_t>, DynVec<real_t>> load_car_plant_multi_dataset(uint_t la
 void load_car_plant_multi_dataset(DynMat<real_t>& mat, DynVec<real_t>& labels,
                                   uint_t label_idx=2, bool add_ones_column=true);
 
+
+struct IrisMeta
+{
+    bool has_ones;
+    std::map<uint_t, std::string> class_map;
+};
+
 ///
 /// \brief Load the reduced iris data set
 ///
@@ -68,8 +76,10 @@ std::pair<DynMat<real_t>, DynVec<uint_t>> load_reduced_iris_data_set(bool add_on
 ///
 /// \brief Load the iris data set and assigned
 ///
-std::pair<DynMat<real_t>,
-          DynVec<uint_t>> load_iris_data_set(bool add_ones_column=true);
+std::tuple<DynMat<real_t>,
+          DynVec<uint_t>,
+          IrisMeta>
+load_iris_data_set(bool add_ones_column=true);
 
 
 ///

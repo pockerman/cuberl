@@ -167,7 +167,6 @@ FixedSizeMaxPriorityQueue<T, Compare, Container>::push(const value_type& value){
 
     if(this->size() >= this->capacity()){
 
-
         // we need to differentiate if we
         // implement a max_heap or a min_heap
         auto min = std::min_element(this->begin(), this->end());
@@ -267,9 +266,11 @@ FixedSizeMinPriorityQueue<T, Compare, Container>::push(const value_type& value){
 
     if(this->size() >= this->capacity()){
 
+        // get the max element
         auto max = std::max_element(this->begin(), this->end());
 
-        // only if this is better
+        // evoke the max element if the given
+        // value is smaller than it
         if(*max > value){
             *max = value;
         }

@@ -10,8 +10,8 @@ using cubeai::real_t;
 using cubeai::uint_t;
 using cubeai::DynVec;
 using cubeai::DynMat;
-using cubeai::contaiers::KDTree;
-using cubeai::contaiers::KDTreeNode;
+using cubeai::containers::KDTree;
+using cubeai::containers::KDTreeNode;
 
 typedef KDTreeNode<std::vector<real_t>> node_type;
 }
