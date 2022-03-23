@@ -30,7 +30,7 @@
 #include <utility>
 
 namespace cubeai {
-namespace contaiers {
+namespace containers {
 
 ///
 /// \brief Default structure to represent
@@ -98,19 +98,6 @@ KDTreeNode<DataType>::KDTreeNode(uint_t level_, const data_type& data_,  std::sh
 
 namespace detail{
 
-/*
-// helper funcions for KDTree
-template<typename PointType>
-typename PointType::value_type
-get_point_key(const uint_t level, const uint_t k, const PointType& point ){
-
-    // extract the point value at index level mod k
-    // zero-based indexing is assumed
-    auto j = level % k;
-    return point[j];
-}
-*/
-
 ///
 ///
 ///
@@ -147,7 +134,7 @@ compare(std::shared_ptr<Node> node, const DataType& data, const uint_t k){
 /// where j = node.level mod k
 ///
 template<typename Node, typename DataType>
-typename DataType::value_type
+typename utils::vector_value_type_trait<DataType>::value_type
 split_distance(std::shared_ptr<Node> node, const DataType& data, const uint_t k){
 
     auto node_key = node->get_point_key(node->level, k, node->data);
@@ -255,7 +242,8 @@ public:
     /// \return
     ///
     template<typename ComparisonPolicy>
-    std::shared_ptr<node_type> search(const data_type& data, const ComparisonPolicy& calculator)const{ return search_(root_, data, calculator);}
+    std::shared_ptr<node_type>
+    search(const data_type& data, const ComparisonPolicy& calculator)const{ return search_(root_, data, calculator);}
 
     ///
     /// \brief insert
@@ -263,14 +251,16 @@ public:
     /// \return
     ///
     template<typename ComparisonPolicy>
-    std::shared_ptr<node_type> insert(const data_type& data, const ComparisonPolicy& comparison_policy);
+    std::shared_ptr<node_type>
+    insert(const data_type& data, const ComparisonPolicy& comparison_policy);
 
     ///
     /// \brief nearest_search. Returns an ordered vector of the n closest
     /// data points to the given target data.
     ///
     template<typename ComparisonPolicy>
-    std::vector<data_type> nearest_search(const data_type& data, uint_t n, const ComparisonPolicy& calculator)const
+    std::vector<std::pair<typename ComparisonPolicy::value_type, typename NodeType::data_type>>
+    nearest_search(const data_type& data, uint_t n, const ComparisonPolicy& calculator)const
     {return nearest_search_(root_, data, n, calculator);}
 
     ///
@@ -316,14 +306,15 @@ private:
     /// \brief nearest_search_ Adapter to perform nearest search
     ///
     template<typename ComparisonPolicy>
-    std::vector<data_type> nearest_search_(std::shared_ptr<node_type>& node, const data_type& data,
+    std::vector<std::pair<typename ComparisonPolicy::value_type, typename NodeType::data_type>>
+    nearest_search_(std::shared_ptr<node_type> node, const data_type& data,
                                            uint_t n, const ComparisonPolicy& calculator)const;
 
     ///
     /// \brief nearest_search_. Recursion-based adapter to perform nearest serach
     ///
     template<typename ComparisonPolicy, typename PriorityQueueType>
-    void nearest_search_(std::shared_ptr<node_type> node, const data_type& data,
+    void do_nearest_search_(std::shared_ptr<node_type> node, const data_type& data,
                                            const ComparisonPolicy& calculator, PriorityQueueType& pq)const;
 
 
@@ -371,23 +362,23 @@ KDTree<NodeType>::insert(const data_type& data, const ComparisonPolicy& comparis
 
 template<typename NodeType>
 template<typename ComparisonPolicy>
-std::vector<typename KDTree<NodeType>::data_type>
-KDTree<NodeType>::nearest_search_(std::shared_ptr<node_type>& node, const data_type& data,
+std::vector<std::pair<typename ComparisonPolicy::value_type, typename NodeType::data_type>>
+KDTree<NodeType>::nearest_search_(std::shared_ptr<node_type> node, const data_type& data,
                                      uint_t n, const ComparisonPolicy& calculator)const{
 
-    typedef std::pair<typename ComparisonPolicy::value_type, std::shared_ptr<node_type>> value_type;
+    typedef std::pair<typename ComparisonPolicy::value_type, std::shared_ptr<node_type>> pair_value_type;
 
     struct comparison
     {
-        typedef std::greater<typename ComparisonPolicy::value_type> comparison_type;
-        bool operator()(const value_type& v1, const value_type& v2)const{
-            return comparison_type(v1.first, v2.first);
+        //typedef std::greater<typename ComparisonPolicy::value_type> compare_op;
+        bool operator()(const pair_value_type& v1, const pair_value_type& v2)const{
+            return v1.first > v2.first;
         }
     };
 
     // initialize a min-heap
     //std::priority_queue<value_type, decltype(compare)> pq;
-    cubeai::containers::FixedSizeMinPriorityQueue<value_type, comparison, std::vector<value_type>> pq(n);
+    cubeai::containers::FixedSizeMinPriorityQueue<pair_value_type, comparison> pq(n);
 
     /// Before starting our search, we need to initialize
     /// the priority queue by adding a “guard”: a tuple
@@ -397,7 +388,7 @@ KDTree<NodeType>::nearest_search_(std::shared_ptr<node_type>& node, const data_t
     /// if we find at least n points in the tree
     pq.push(std::make_pair(std::numeric_limits<typename ComparisonPolicy::value_type>::max(),std::shared_ptr<node_type>()));
 
-    nearest_search_(node, data, calculator, pq);
+    do_nearest_search_(node, data, calculator, pq);
 
     auto peek = pq.top();
 
@@ -407,14 +398,14 @@ KDTree<NodeType>::nearest_search_(std::shared_ptr<node_type>& node, const data_t
     /// to the queue
 
     if(!peek.second){
-        peek.pop();
+        pq.pop();
     }
 
-    std::vector<typename ComparisonPolicy::value_type, typename NodeType::DataType> result;
+    std::vector<std::pair<typename ComparisonPolicy::value_type, typename NodeType::data_type>> result;
     result.reserve(pq.size());
     while(!pq.empty()){
         auto item = pq.top_and_pop();
-        result.push_back(item);
+        result.push_back({item.first, item.second->data});
     }
 
     // loop over the priority queue and collect
@@ -426,7 +417,7 @@ KDTree<NodeType>::nearest_search_(std::shared_ptr<node_type>& node, const data_t
 template<typename NodeType>
 template<typename ComparisonPolicy, typename PriorityQueueType>
 void
-KDTree<NodeType>::nearest_search_(std::shared_ptr<node_type> node, const data_type& data,
+KDTree<NodeType>::do_nearest_search_(std::shared_ptr<node_type> node, const data_type& data,
                                      const ComparisonPolicy& calculator, PriorityQueueType& pq)const{
 
 
@@ -438,7 +429,7 @@ KDTree<NodeType>::nearest_search_(std::shared_ptr<node_type> node, const data_ty
 
         // compute the distance between the target
         // and the data hold by the node
-        auto dist = calculator.distance(node->data, data);
+        auto dist = calculator.evaluate(node->data, data);
 
         // insrt into the queue
         pq.push(std::make_pair(dist, node));
@@ -446,23 +437,23 @@ KDTree<NodeType>::nearest_search_(std::shared_ptr<node_type> node, const data_ty
         if(detail::compare(node, data, k_) < 0){
 
             auto close_branch = node->left;
-            nearest_search_(close_branch, data, calculator, pq );
+            do_nearest_search_(close_branch, data, calculator, pq );
 
             auto peek = pq.top();
 
-            if(split_distance(node, data) < peek.first){
-                nearest_search_(node->right, data, calculator, pq );
+            if(detail::split_distance(node, data, k_) < peek.first){
+                do_nearest_search_(node->right, data, calculator, pq );
             }
         }
         else{
 
             auto close_branch = node->right;
-            nearest_search_(close_branch, data, calculator, pq );
+            do_nearest_search_(close_branch, data, calculator, pq );
 
             auto peek = pq.top();
 
-            if(split_distance(node, data) < peek.first){
-                nearest_search_(node->left, data, calculator, pq );
+            if(cubeai::containers::detail::split_distance(node, data, k_) < peek.first){
+                do_nearest_search_(node->left, data, calculator, pq );
             }
         }
     }

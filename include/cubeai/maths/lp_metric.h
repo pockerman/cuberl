@@ -43,7 +43,6 @@ public:
    ///
    static real_t evaluate(const DynVec<real_t>& v1, const DynVec<real_t>& v2);
 
-
 };
 
 

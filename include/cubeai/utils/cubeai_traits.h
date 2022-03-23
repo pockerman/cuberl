@@ -4,6 +4,7 @@
 #include "cubeai/base/cubeai_types.h"
 
 #include <vector>
+
 namespace cubeai{
 namespace utils{
 
@@ -19,6 +20,16 @@ struct vector_value_type_trait<std::vector<T>>{
 
 template<typename T>
 struct vector_value_type_trait<DynVec<T>>{
+    typedef typename std::vector<T>::value_type value_type;
+};
+
+template<typename T>
+struct vector_value_type_trait<std::pair<std::vector<T>, uint_t>>{
+    typedef typename std::vector<T>::value_type value_type;
+};
+
+template<typename T>
+struct vector_value_type_trait<std::pair<DynVec<T>, uint_t>>{
     typedef typename std::vector<T>::value_type value_type;
 };
 

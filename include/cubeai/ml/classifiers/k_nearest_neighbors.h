@@ -2,6 +2,7 @@
 #define K_NEAREST_NEIGHBORS_H
 
 #include "cubeai/base/cubeai_types.h"
+#include "cubeai/base/cubeai_consts.h"
 #include "cubeai/utils/cubeai_concepts.h"
 #include "cubeai/utils/cubeai_traits.h"
 #include "cubeai/base/cubeai_config.h"
@@ -16,10 +17,21 @@
 #include <string>
 #include <memory>
 #include <utility>
+#include <chrono>
+#include <ostream>
 
 namespace cubeai{
 namespace ml{
 namespace classifiers {
+
+struct TrainResult
+{
+    uint_t n_examples;
+    std::chrono::duration<real_t> training_time;
+
+    std::ostream& print(std::ostream& out)const;
+
+};
 
 ///
 ///
@@ -84,7 +96,6 @@ public:
             auto j = level % k;
             return point.first[j];
         }
-
     };
 
     ///
@@ -97,7 +108,7 @@ public:
     ///
     ///
     template<typename T, typename ComparisonPolicy>
-    void fit(const DynMat<T>& data, const DynVec<uint_t>& labels, const ComparisonPolicy& comp_policy);
+    TrainResult fit(const DynMat<T>& data, const DynVec<uint_t>& labels, const ComparisonPolicy& comp_policy);
 
     ///
     /// \brief predict. Predict the class of the given point
@@ -108,12 +119,19 @@ public:
     template<cubeai::utils::concepts::is_default_constructible SimilarityPolicy>
     uint_t predict(const PointType& p, uint_t k)const;
 
+    ///
+    ///
+    ///
+    template<cubeai::utils::concepts::is_default_constructible SimilarityPolicy>
+    std::vector<std::pair<typename SimilarityPolicy::value_type, typename KNearestNeighbors<PointType>::Node::data_type>>
+    nearest_k_points(const PointType& p, uint_t k)const;
+
 private:
 
     ///
     /// \brief tree_
     ///
-    cubeai::contaiers::KDTree<Node> tree_;
+    cubeai::containers::KDTree<Node> tree_;
 
 };
 
@@ -122,7 +140,7 @@ uint_t
 KNearestNeighbors<PointType>::get_class_label_from_counters(const std::map<uint_t, uint_t>& counters){
 
     auto label = cubeai::CubeAIConsts::INVALID_SIZE_TYPE;
-    auto counter = 0;
+    uint_t counter = 0;
 
     auto begin = counters.begin();
     auto end = counters.end();
@@ -136,6 +154,8 @@ KNearestNeighbors<PointType>::get_class_label_from_counters(const std::map<uint_
             counter = counters;
             label = label_idx;
         }
+
+        ++begin;
     }
 
     return label;
@@ -149,9 +169,10 @@ KNearestNeighbors<PointType>::KNearestNeighbors(uint_t dim)
 
 template<typename PointType>
 template<typename T,  typename ComparisonPolicy>
-void
+TrainResult
 KNearestNeighbors<PointType>::fit(const DynMat<T>& data, const DynVec<uint_t>& labels, const  ComparisonPolicy& comp_policy){
 
+    auto start = std::chrono::steady_clock::now();
     for(uint_t r=0; r<data.rows(); ++r){
 
         PointType p = maths::get_row(data, r);
@@ -162,21 +183,27 @@ KNearestNeighbors<PointType>::fit(const DynMat<T>& data, const DynVec<uint_t>& l
 
         tree_.insert(std::make_pair(p, label), comp_policy);
     }
+
+    auto end = std::chrono::steady_clock::now();
+
+    TrainResult train_result = {data.rows(), end - start};
+    return train_result;
 }
 
 template<typename PointType>
- template<cubeai::utils::concepts::is_default_constructible SimilarityPolicy>
+template<cubeai::utils::concepts::is_default_constructible SimilarityPolicy>
 uint_t
 KNearestNeighbors<PointType>::predict(const PointType& p, uint_t k)const{
 
     SimilarityPolicy policy;
-    auto result = tree_.nearest_search(p, k, policy);
+    auto data = std::make_pair(p, CubeAIConsts::INVALID_SIZE_TYPE);
+    auto result = tree_.nearest_search(data, k, policy);
 
     std::map<uint_t, uint_t> counters;
 
     for(auto& item:result){
 
-        auto label = item.second;
+        auto label = item.second.second;
 
         auto label_itr = counters.find(label);
 
@@ -185,11 +212,34 @@ KNearestNeighbors<PointType>::predict(const PointType& p, uint_t k)const{
 
         }
         else{
-             counters[label] = 1;
+             counters.insert({label, 1});
         }
     }
 
     return get_class_label_from_counters(counters);
+}
+
+template<typename PointType>
+template<cubeai::utils::concepts::is_default_constructible SimilarityPolicy>
+std::vector<std::pair<typename SimilarityPolicy::value_type, typename KNearestNeighbors<PointType>::Node::data_type>>
+KNearestNeighbors<PointType>::nearest_k_points(const PointType& p, uint_t k)const{
+    SimilarityPolicy policy;
+    auto data = std::make_pair(p, CubeAIConsts::INVALID_SIZE_TYPE);
+    auto result = tree_.nearest_search(data, k, policy);
+    return result;
+}
+
+inline
+std::ostream&
+TrainResult::print(std::ostream& out)const{
+    out<<"Trained examples="<<n_examples<<std::endl;
+    out<<"Total training time="<<training_time.count()<<"secs"<<std::endl;
+    return out;
+}
+
+inline
+std::ostream& operator<<(std::ostream& out, const TrainResult& result){
+    return result.print(out);
 }
 
 template<typename PointType>

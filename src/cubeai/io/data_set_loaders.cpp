@@ -284,13 +284,18 @@ load_reduced_iris_data_set(bool add_ones_column){
     return std::pair(matrix, labels);
 }
 
-std::pair<DynMat<real_t>, DynVec<uint_t>> 
+std::tuple<DynMat<real_t>,
+          DynVec<uint_t>,
+          IrisMeta>
 load_iris_data_set(bool add_ones_column){
 
     std::string file = CubeAIDataPaths::iris_data_path();
 
-    //(DATA_SET_FOLDER);
-    //file += "/iris_data.csv";
+    IrisMeta meta;
+    meta.has_ones = add_ones_column;
+    meta.class_map.insert({0, "Iris-setosa"});
+    meta.class_map.insert({1, "Iris-versicolor"});
+    meta.class_map.insert({2, "Iris-virginica"});
 
     CSVFileReader reader(file);
 
@@ -336,7 +341,7 @@ load_iris_data_set(bool add_ones_column){
         r++;
       }
 
-     return std::pair(std::move(matrix), std::move(labels));
+     return std::make_tuple(std::move(matrix), std::move(labels), std::move(meta));
 }
 
 std::pair<DynMat<real_t>, DynVec<real_t>>
