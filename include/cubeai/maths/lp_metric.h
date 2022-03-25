@@ -2,6 +2,7 @@
 #define LP_METRIC_H
 
 #include "cubeai/base/cubeai_types.h"
+#include <vector>
 
 namespace cubeai{
 namespace maths {
@@ -42,6 +43,12 @@ public:
    /// \brief evaluate
    ///
    static real_t evaluate(const DynVec<real_t>& v1, const DynVec<real_t>& v2);
+
+   ///
+   /// \brief evaluate
+   ///
+   static real_t evaluate(const std::vector<real_t>& v1, const std::vector<real_t>& v2);
+
 
 };
 

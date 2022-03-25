@@ -111,6 +111,12 @@ public:
     TrainResult fit(const DynMat<T>& data, const DynVec<uint_t>& labels, const ComparisonPolicy& comp_policy);
 
     ///
+    /// \brief Fit the dataset
+    ///
+    template<typename TabularDataSetType, typename SimilarityPolicy>
+    TrainResult fit(const TabularDataSetType& data, const SimilarityPolicy& comp_policy);
+
+    ///
     /// \brief predict. Predict the class of the given point
     /// \param p
     /// \param k
@@ -187,6 +193,27 @@ KNearestNeighbors<PointType>::fit(const DynMat<T>& data, const DynVec<uint_t>& l
     auto end = std::chrono::steady_clock::now();
 
     TrainResult train_result = {data.rows(), end - start};
+    return train_result;
+}
+
+template<typename PointType>
+template<typename TabularDataSetType, typename SimilarityPolicy>
+TrainResult
+KNearestNeighbors<PointType>::fit(const TabularDataSetType& data, const SimilarityPolicy& sim_policy){
+
+    auto start = std::chrono::steady_clock::now();
+
+    auto comp_policy = [](const auto& v1, const auto& v2, uint_t idx){
+        return v1.first[idx] < v2.first[idx];
+    };
+
+    // get a copy of the data
+    auto copy_data = data.copy_data();
+
+    tree_.build(copy_data.begin(), copy_data.end(), sim_policy, comp_policy);
+    auto end = std::chrono::steady_clock::now();
+
+    TrainResult train_result = {data.n_rows(), end - start};
     return train_result;
 }
 

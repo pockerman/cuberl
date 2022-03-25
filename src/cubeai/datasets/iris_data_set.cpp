@@ -9,6 +9,8 @@
 namespace cubeai{
 namespace datasets{
 
+std::string IrisDataSet::invalid_class_name =  "INVALID_CLASS";
+
 IrisDataSet::IrisDataSet(bool do_load, bool append_ones)
 {
     if(do_load){
@@ -81,5 +83,18 @@ IrisDataSet::load(bool append_ones){
         r++;
       }
 }
+
+std::string_view
+IrisDataSet::get_class_name(uint_t cls)const{
+
+    auto cls_itr = meta_.class_map.find(cls);
+
+    if(cls_itr == meta_.class_map.end()){
+        return IrisDataSet::invalid_class_name;
+    }
+
+    return cls_itr->second;
+}
+
 }
 }
