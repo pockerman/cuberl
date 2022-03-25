@@ -16,31 +16,23 @@ namespace maths{
 namespace stats{
 
 ///
-/// \brief Computes the sum of the vector elements
-///
-template<utils::concepts::float_or_integral_vector VectorType>
-typename VectorType::value_type
-sum(const VectorType& vector, bool parallel=true){
-
-    auto sum_ = 0.0;
-
-    if(parallel){
-      sum_   = std::reduce(std::execution::par, vector.begin(), vector.end(), sum_);
-
-    }
-    else{
-        sum_ = std::accumulate(vector.begin(), vector.end(), sum_);
-    }
-    return sum_;
-}
-
-///
 /// \brief mean Computes the mean value of the vector
 ///
 template<utils::concepts::float_or_integral_vector VectorType>
 real_t
 mean(const VectorType& vector, bool parallel=true){
-    return sum(vector, parallel) / static_cast<real_t>(vector.size());
+
+    auto sum = 0.0;
+
+    if(parallel){
+      sum   = std::reduce(std::execution::par, vector.begin(), vector.end(), sum);
+
+    }
+    else{
+        sum = std::accumulate(vector.begin(), vector.end(), sum);
+    }
+
+    return sum / static_cast<real_t>(vector.size());
 }
 
 ///
@@ -50,37 +42,6 @@ template<typename T>
 real_t
 mean(const DynVec<T>& vector){
     return blaze::mean(vector);
-}
-
-///
-///
-///
-template<utils::concepts::float_or_integral_vector VectorType>
-typename VectorType::value_type
-var(const VectorType& vector, real_t mu, bool dofs=true){
-
-    // compute sum of squares
-    auto vbegin = vector.begin();
-    auto vend = vector.end();
-
-    // Now calculate the variance
-    auto variance_func = [&mu](typename VectorType::value_type accumulator, typename VectorType::value_type val) {
-            return accumulator + (val - mu)*(val - mu);
-    };
-
-    auto var_ = std::accumulate(vector.begin(), vector.end(), 0.0, variance_func);
-
-    /*auto sum_ = 0.0;
-    while (vbegin != vend) {
-        auto dif = *vbegin - mu;
-        sum_ += dif * dif;
-    }*/
-
-    if(dofs){
-        return var_ / (vector.size() - 1);
-    }
-
-    return  var_ / vector.size();
 }
 
 ///

@@ -1,6 +1,6 @@
 
 ADD_SUBDIRECTORY(rl_example_0)
-
+ADD_SUBDIRECTORY(rl_example_6)
 #ADD_SUBDIRECTORY(example_1)
 #ADD_SUBDIRECTORY(example_2)
 #ADD_SUBDIRECTORY(example_3)

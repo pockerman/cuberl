@@ -1,11 +1,14 @@
 #ifndef ITERATIVE_POLICY_EVALUATION_H
 #define ITERATIVE_POLICY_EVALUATION_H
 
+#include "cubeai/base/cubeai_types.h"
 #include "cubeai/rl/algorithms/dp/dp_algo_base.h"
-#include "cubeai/rl/worlds/discrete_world.h"
 #include "cubeai/rl/policies/discrete_policy_base.h"
+#include "cubeai/io/csv_file_writer.h"
+#include "cubeai/utils/iteration_counter.h"
+#include "cubeai/io/csv_file_writer.h"
 
-
+#include <chrono>
 #include <cmath>
 #include <memory>
 
@@ -15,114 +18,192 @@ namespace rl{
 namespace algos {
 namespace dp {
 
+
+struct IterativePolicyEvalConfig
+{
+    real_t gamma{1.0};
+    real_t tolerance{1.0e-6};
+    std::string save_path{""};
+};
+
 ///
 /// \brief The IterativePolicyEval class
 ///
-template<typename TimeStepTp>
-class IterativePolicyEval: public DPAlgoBase<TimeStepTp>
+template<typename EnvType, typename PolicyType>
+class IterativePolicyEval final: public DPAlgoBase<EnvType>
 {
 public:
 
     ///
-    /// \brief env_t
+    /// \brief env_type
     ///
-    typedef typename DPAlgoBase<TimeStepTp>::env_t env_t;
+    typedef typename DPAlgoBase<EnvType>::env_type env_type;
 
     ///
-    /// \brief policy_t
+    /// \brief policy_type
     ///
-    typedef policies::DiscretePolicyBase policy_t;
+    typedef PolicyType policy_type;
 
     ///
     /// \brief IterativePolicyEval
     ///
-    IterativePolicyEval(uint_t n_episodes, real_t tolerance, real_t gamma,
-                        env_t& env, std::shared_ptr<policy_t> policy);
+    explicit IterativePolicyEval(IterativePolicyEvalConfig config, policy_type& policy);
 
     ///
-    /// \brief on_episode
+    /// \brief actions_before_training_begins. Execute any actions the
+    /// algorithm needs before starting the iterations
     ///
-    virtual void on_episode()override final;
+    virtual void actions_before_training_begins(env_type& env)override;
 
     ///
-    /// \brief policy
-    /// \return
+    /// \brief actions_after_training_ends. Actions to execute after
+    /// the training iterations have finisehd
     ///
-    const policy_t& policy()const{return  *policy_;}
+    virtual void actions_after_training_ends(env_type& env)override;
 
     ///
-    /// \brief policy
-    /// \return
+    /// \brief actions_before_training_episode
     ///
-    policy_t& policy(){return  *policy_;}
+    virtual void actions_before_episode_begins(env_type&, uint_t /*episode_idx*/)override{}
 
     ///
-    /// \brief policy_ptr
-    /// \return
+    /// \brief actions_after_training_episode
     ///
-    std::shared_ptr<policy_t> policy_ptr(){return  policy_;}
+    virtual void actions_after_episode_ends(env_type&, uint_t /*episode_idx*/)override{}
+
+    ///
+    /// \brief on_episode Do one on_episode of the algorithm
+    ///
+    virtual EpisodeInfo on_training_episode(env_type& env, uint_t episode_idx) override;
 
     ///
     ///
     ///
-    void update_policy_ptr(std::shared_ptr<policy_t> ptr){policy_ = ptr;}
+    void save(const std::string& filename)const;
 
 protected:
+
+
+    IterativePolicyEvalConfig config_;
+    ///
+    /// \brief v_
+    ///
+    DynVec<real_t> v_;
 
     ///
     /// \brief policy_
     ///
-    std::shared_ptr<policy_t> policy_;
+    policy_type& policy_;
 
 };
 
-template<typename TimeStepTp>
-IterativePolicyEval<TimeStepTp>::IterativePolicyEval(uint_t n_episodes, real_t tolerance, real_t gamma,
-                                         env_t& env, std::shared_ptr<policy_t> policy)
+template<typename EnvType, typename PolicyType>
+IterativePolicyEval<EnvType, PolicyType>::IterativePolicyEval(IterativePolicyEvalConfig config, policy_type& policy)
     :
-      DPAlgoBase<TimeStepTp>(n_episodes, tolerance, gamma, env),
+      DPAlgoBase<EnvType>(),
+      config_(config),
+      v_(),
       policy_(policy)
 {}
 
-template<typename TimeStepTp>
+template<typename EnvType, typename PolicyType>
 void
-IterativePolicyEval<TimeStepTp>::on_episode(){
+IterativePolicyEval<EnvType, PolicyType>::actions_before_training_begins(env_type& env){
+    v_ = blaze::generate(env.n_states(), []( size_t /*index*/ ){ return 0.0; } );
+}
 
+template<typename EnvType, typename PolicyType>
+void
+IterativePolicyEval<EnvType, PolicyType>::actions_after_training_ends(env_type& /*env*/){
+
+    if(config_.save_path != ""){
+        CSVWriter file_writer(config_.save_path, CSVWriter::default_delimiter(), true);
+        file_writer.write_column_names({"state_index", "value_function"});
+        std::vector<real_t> row(1);
+        for(auto item: v_){
+            row[0] = item;
+            file_writer.write_row(row);
+        }
+    }
+}
+
+template<typename EnvType, typename PolicyType>
+EpisodeInfo
+IterativePolicyEval<EnvType, PolicyType>::on_training_episode(env_type& env, uint_t episode_idx){
+
+    auto start = std::chrono::steady_clock::now();
+    auto episode_rewards = 0.0;
     auto delta = 0.0;
 
-    for(uint_t s=0; s<this->env_ref_().n_states(); ++s){
 
-        auto old_v = this->value_func()[s];
+    cubeai::utils::IterationCounter itr_counter(env.n_states());
+    uint_t s = 0;
+    while(itr_counter.continue_iterations()){
+    //for(uint_t s=0; s < env.n_states(); ++s){
+
+        // every time we query itr_counter we increase the
+        // counter so we miss the zero state
+        auto old_v = v_[s];
 
         auto new_v = 0.0;
 
-        auto state_actions_probs = policy_->operator[](s);
+        auto state_actions_probs = policy_(s);
 
         for(const auto& action_prob : state_actions_probs){
 
             auto aidx = action_prob.first;
             auto action_p = action_prob.second;
 
-            auto transition_dyn = this->env_ref_().transition_dynamics(s, aidx);
+            // get transition dynamic from the environment
+            auto transition_dyn = env.p(s, aidx);
 
             for(auto& dyn: transition_dyn){
                 auto prob = std::get<0>(dyn);
                 auto next_state = std::get<1>(dyn);
                 auto reward = std::get<2>(dyn);
-                auto done = std::get<3>(dyn);
-
-                new_v += action_p * prob * (reward + this->gamma() * this->value_func()[next_state]);
-
+                new_v += action_p * prob * (reward + config_.gamma * v_[next_state]);
+                episode_rewards += reward;
             }
         }
 
         delta = std::max(delta, std::fabs(old_v - new_v));
-        this->value_func()[s] = new_v;
+        v_[s] = new_v;
+        s += 1;
     }
 
-    this->iter_controller_().update_residual(delta);
+    auto end = std::chrono::steady_clock::now();
+    std::chrono::duration<real_t> elapsed_seconds = end-start;
 
+    EpisodeInfo info;
+    info.episode_index = episode_idx;
+    info.episode_reward = episode_rewards;
+    info.episode_iterations = itr_counter.current_iteration_index();
+    info.total_time = elapsed_seconds;
+
+    if( delta < config_.tolerance){
+        info.stop_training = true;
+    }
+
+    return info;    
 }
+
+template<typename EnvType, typename PolicyType>
+void
+IterativePolicyEval<EnvType, PolicyType>::save(const std::string& filename)const{
+
+    CSVWriter writer(filename, ',', true);
+
+    std::vector<std::string> columns(2);
+    columns[0] = "State Id";
+    columns[1] = "Value";
+    writer.write_column_names(columns);
+
+    for(uint_t s=0; s < v_.size(); ++s){
+        auto row = std::make_tuple(s, v_[s]);
+        writer.write_row(row);
+    }
+}
+
 
 }
 
