@@ -3,6 +3,7 @@
 
 #include "cubeai/base/cubeai_types.h"
 #include "cubeai/io/csv_file_writer.h"
+#include "cubeai/rl/algorithms/rl_algorithm_base.h"
 #include "cubeai/rl/algorithms/algorithm_base.h"
 #include "cubeai/rl/worlds/discrete_world.h"
 
@@ -18,57 +19,20 @@ namespace dp {
 ///
 /// \brief The DPAlgoBase class
 ///
-template<typename TimeStepTp>
-class DPAlgoBase: public AlgorithmBase
+template<typename EnvType>
+class DPAlgoBase: public RLAlgoBase<EnvType>
 {
 public:
 
     ///
     /// \brief env_t
     ///
-    typedef envs::DiscreteWorldBase<TimeStepTp> env_t;
+    typedef typename RLAlgoBase<EnvType>::env_type env_type;
 
     ///
-    /// \brief value_func_t
-    ///
-    typedef  DynVec<real_t> value_func_t;
-
-    ///
-    ///
+    /// \brief Destructor
     ///
     virtual ~DPAlgoBase() = default;
-
-    ///
-    /// \brief actions_before_training_episodes. Execute any actions the
-    /// algorithm needs before starting the iterations
-    ///
-    virtual void actions_before_training_episodes();
-
-    ///
-    /// \brief actions_after_training_episodes. Actions to execute after
-    /// the training iterations have finisehd
-    ///
-    virtual void actions_after_training_episodes(){}
-
-    ///
-    /// \brief gamma
-    ///
-    real_t gamma()const{return gamma_;}
-
-    ///
-    /// \brief value_func
-    ///
-    value_func_t& value_func(){return v_;}
-
-    ///
-    /// \brief value_func
-    ///
-    const value_func_t& value_func()const{return v_;}
-
-    ///
-    /// \brief reset
-    ///
-    virtual void reset();
 
     ///
     /// \brief save. Save the value function
@@ -76,7 +40,7 @@ public:
     /// behaviour if not suitable.
     /// \param filename
     ///
-    virtual void save(const std::string& filename)const;
+    //virtual void save(const std::string& filename)const;
 
 protected:
 
@@ -84,60 +48,12 @@ protected:
     /// \brief DPAlgoBase
     /// \param name
     ///
-    DPAlgoBase(uint_t n_episodes, real_t tolerance, real_t gamma, env_t& env);
+    DPAlgoBase()=default;
 
-    ///
-    /// \brief env_ref_
-    /// \return
-    ///
-    env_t& env_ref_(){return env_;}
-
-private:
-
-    ///
-    /// \brief gamma_
-    ///
-    real_t gamma_;
-
-    ///
-    /// \brief env_
-    ///
-    env_t& env_;
-
-    ///
-    /// \brief v_
-    ///
-    DynVec<real_t> v_;
 
 };
 
-template<typename TimeStepTp>
-DPAlgoBase<TimeStepTp>::DPAlgoBase(uint_t n_episodes, real_t tolerance, real_t gamma, env_t& env)
-    :
-    AlgorithmBase(n_episodes, tolerance),
-    gamma_(gamma),
-    env_(env),
-    v_()
-{}
-
-template<typename TimeStepTp>
-void
-DPAlgoBase<TimeStepTp>::reset(){
-
-    this->AlgorithmBase::reset();
-
-    env_ref_().reset();
-    v_.resize(env_ref_().n_states(), 0.0);
-
-}
-
-template<typename TimeStepTp>
-void
-DPAlgoBase<TimeStepTp>::actions_before_training_episodes(){
-    reset();
-}
-
-template<typename TimeStepTp>
+/*template<typename TimeStepTp>
 void
 DPAlgoBase<TimeStepTp>::save(const std::string& filename)const{
 
@@ -152,7 +68,7 @@ DPAlgoBase<TimeStepTp>::save(const std::string& filename)const{
         auto row = std::make_tuple(s, v_[s]);
         writer.write_row(row);
     }
-}
+}*/
 
 
 }

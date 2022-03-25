@@ -4,7 +4,7 @@
 
 #include "cubeai/base/cubeai_types.h"
 #include "cubeai/rl/algorithms/dp/iterative_policy_evaluation.h"
-#include "cubeai/rl/worlds/discrete_world.h"
+#include "cubeai/rl/trainers/rl_serial_agent_trainer.h"
 #include "cubeai/rl/worlds/with_dynamics_mixin.h"
 #include "cubeai/rl/policies/uniform_discrete_policy.h"
 
@@ -21,7 +21,7 @@
 #include <random>
 #include <algorithm>
 
-namespace exe
+namespace rl_example_6
 {
 
 using cubeai::real_t;
@@ -30,11 +30,13 @@ using cubeai::rl::envs::DiscreteWorldBase;
 using cubeai::rl::envs::with_dynamics_mixin;
 using cubeai::rl::policies::UniformDiscretePolicy;
 using cubeai::rl::algos::dp::IterativePolicyEval;
-
+using cubeai::rl::algos::dp::IterativePolicyEvalConfig;
+using cubeai::rl::RLSerialAgentTrainer;
+using cubeai::rl::RLSerialTrainerConfig;
 typedef gymfcpp::TimeStep<uint_t> time_step_t;
 
 
-class FrozenLakeEnv: public DiscreteWorldBase<gymfcpp::TimeStep<uint_t>>, public with_dynamics_mixin
+/*class FrozenLakeEnv: public DiscreteWorldBase<gymfcpp::TimeStep<uint_t>>, public with_dynamics_mixin
 {
 
 public:
@@ -84,27 +86,33 @@ FrozenLakeEnv::build(bool reset){
 std::vector<std::tuple<real_t, uint_t, real_t, bool>>
 FrozenLakeEnv::transition_dynamics(uint_t s, uint_t aidx)const{
     return env_impl_.p(s, aidx);
-}
+}*/
 
 }
 
 int main() {
 
-    using namespace exe;
+    using namespace rl_example_6;
 
     Py_Initialize();
-    auto gym_module = boost::python::import("gym");
+    auto gym_module = boost::python::import("__main__");
     auto gym_namespace = gym_module.attr("__dict__");
 
-    FrozenLakeEnv env(gym_namespace);
-    env.build(true);
+    gymfcpp::FrozenLake<4> env("v0", gym_namespace);
+    env.make();
 
-    auto policy = std::make_shared<UniformDiscretePolicy>(env.n_states(), env.n_actions());
-    IterativePolicyEval<time_step_t> policy_eval(100, 1.0e-8, 1.0, env, policy);
-    policy_eval.train();
+    //auto policy = std::make_shared<UniformDiscretePolicy>(env.n_states(), env.n_actions());
+    UniformDiscretePolicy policy(env.n_states(), env.n_actions());
+    IterativePolicyEvalConfig config;
 
-    // save the value function into a csv file
-    policy_eval.save("iterative_policy_eval.csv");
+    IterativePolicyEval<gymfcpp::FrozenLake<4>, UniformDiscretePolicy> algorithm(config, policy);
+
+    RLSerialTrainerConfig trainer_config = {100, 10000, 1.0e-8};
+
+    RLSerialAgentTrainer<gymfcpp::FrozenLake<4>, IterativePolicyEval<gymfcpp::FrozenLake<4>, UniformDiscretePolicy>> trainer(trainer_config, algorithm);
+
+    auto info = trainer.train(env);
+    std::cout<<info<<std::endl;
 
    return 0;
 }
