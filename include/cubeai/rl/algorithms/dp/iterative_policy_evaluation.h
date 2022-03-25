@@ -3,10 +3,10 @@
 
 #include "cubeai/base/cubeai_types.h"
 #include "cubeai/rl/algorithms/dp/dp_algo_base.h"
-#include "cubeai/rl/worlds/discrete_world.h"
 #include "cubeai/rl/policies/discrete_policy_base.h"
 #include "cubeai/io/csv_file_writer.h"
 #include "cubeai/utils/iteration_counter.h"
+#include "cubeai/io/csv_file_writer.h"
 
 #include <chrono>
 #include <cmath>
@@ -64,17 +64,22 @@ public:
     ///
     /// \brief actions_before_training_episode
     ///
-    virtual void actions_before_episode_begins(env_type&, uint_t episode_idx)override{}
+    virtual void actions_before_episode_begins(env_type&, uint_t /*episode_idx*/)override{}
 
     ///
     /// \brief actions_after_training_episode
     ///
-    virtual void actions_after_episode_ends(env_type&, uint_t episode_idx)override{}
+    virtual void actions_after_episode_ends(env_type&, uint_t /*episode_idx*/)override{}
 
     ///
     /// \brief on_episode Do one on_episode of the algorithm
     ///
     virtual EpisodeInfo on_training_episode(env_type& env, uint_t episode_idx) override;
+
+    ///
+    ///
+    ///
+    void save(const std::string& filename)const;
 
 protected:
 
@@ -104,12 +109,12 @@ IterativePolicyEval<EnvType, PolicyType>::IterativePolicyEval(IterativePolicyEva
 template<typename EnvType, typename PolicyType>
 void
 IterativePolicyEval<EnvType, PolicyType>::actions_before_training_begins(env_type& env){
-    v_ = blaze::generate(env.n_states(), []( size_t index ){ return 0.0; } );
+    v_ = blaze::generate(env.n_states(), []( size_t /*index*/ ){ return 0.0; } );
 }
 
 template<typename EnvType, typename PolicyType>
 void
-IterativePolicyEval<EnvType, PolicyType>::actions_after_training_ends(env_type& env){
+IterativePolicyEval<EnvType, PolicyType>::actions_after_training_ends(env_type& /*env*/){
 
     if(config_.save_path != ""){
         CSVWriter file_writer(config_.save_path, CSVWriter::default_delimiter(), true);
@@ -120,8 +125,6 @@ IterativePolicyEval<EnvType, PolicyType>::actions_after_training_ends(env_type& 
             file_writer.write_row(row);
         }
     }
-
-
 }
 
 template<typename EnvType, typename PolicyType>
@@ -134,12 +137,12 @@ IterativePolicyEval<EnvType, PolicyType>::on_training_episode(env_type& env, uin
 
 
     cubeai::utils::IterationCounter itr_counter(env.n_states());
+    uint_t s = 0;
     while(itr_counter.continue_iterations()){
     //for(uint_t s=0; s < env.n_states(); ++s){
 
         // every time we query itr_counter we increase the
         // counter so we miss the zero state
-        auto s = itr_counter.current_iteration_index() - 1;
         auto old_v = v_[s];
 
         auto new_v = 0.0;
@@ -151,21 +154,21 @@ IterativePolicyEval<EnvType, PolicyType>::on_training_episode(env_type& env, uin
             auto aidx = action_prob.first;
             auto action_p = action_prob.second;
 
-            auto transition_dyn = env.transition_dynamics(s, aidx);
+            // get transition dynamic from the environment
+            auto transition_dyn = env.p(s, aidx);
 
             for(auto& dyn: transition_dyn){
                 auto prob = std::get<0>(dyn);
                 auto next_state = std::get<1>(dyn);
                 auto reward = std::get<2>(dyn);
-                auto done = std::get<3>(dyn);
-
                 new_v += action_p * prob * (reward + config_.gamma * v_[next_state]);
-
+                episode_rewards += reward;
             }
         }
 
         delta = std::max(delta, std::fabs(old_v - new_v));
         v_[s] = new_v;
+        s += 1;
     }
 
     auto end = std::chrono::steady_clock::now();
@@ -178,13 +181,29 @@ IterativePolicyEval<EnvType, PolicyType>::on_training_episode(env_type& env, uin
     info.total_time = elapsed_seconds;
 
     if( delta < config_.tolerance){
-        episode_info.stop_training = true;
+        info.stop_training = true;
     }
 
-    return info;
-    //this->iter_controller_().update_residual(delta);
-
+    return info;    
 }
+
+template<typename EnvType, typename PolicyType>
+void
+IterativePolicyEval<EnvType, PolicyType>::save(const std::string& filename)const{
+
+    CSVWriter writer(filename, ',', true);
+
+    std::vector<std::string> columns(2);
+    columns[0] = "State Id";
+    columns[1] = "Value";
+    writer.write_column_names(columns);
+
+    for(uint_t s=0; s < v_.size(); ++s){
+        auto row = std::make_tuple(s, v_[s]);
+        writer.write_row(row);
+    }
+}
+
 
 }
 

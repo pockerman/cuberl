@@ -4,8 +4,7 @@
 #include "cubeai/base/cubeai_types.h"
 #include "cubeai/io/csv_file_writer.h"
 #include "cubeai/rl/algorithms/rl_algorithm_base.h"
-#include "cubeai/rl/algorithms/algorithm_base.h"
-#include "cubeai/rl/worlds/discrete_world.h"
+//#include "cubeai/rl/algorithms/algorithm_base.h"
 
 #include <tuple>
 #include <vector>
@@ -33,14 +32,6 @@ public:
     /// \brief Destructor
     ///
     virtual ~DPAlgoBase() = default;
-
-    ///
-    /// \brief save. Save the value function
-    /// to a CSV file. Applications can override this
-    /// behaviour if not suitable.
-    /// \param filename
-    ///
-    //virtual void save(const std::string& filename)const;
 
 protected:
 

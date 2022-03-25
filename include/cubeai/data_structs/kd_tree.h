@@ -147,11 +147,11 @@ split_distance(std::shared_ptr<Node> node, const DataType& data, const uint_t k)
 /// into left-median-right. The coordinate chosen depends
 /// on the level passed.
 
-template<typename Iterator>
+template<typename Iterator, typename ComparisonPolicy>
 std::tuple<typename std::iterator_traits<Iterator>::value_type,
            std::pair<Iterator, Iterator>,
            std::pair<Iterator, Iterator>>
-partiion_on_median(Iterator&& begin, Iterator&& end, uint_t level, uint_t k){
+partiion_on_median(Iterator begin, Iterator end, uint_t level, uint_t k, const ComparisonPolicy& comp_policy){
 
 
     typedef typename std::iterator_traits<Iterator>::value_type value_type;
@@ -167,17 +167,19 @@ partiion_on_median(Iterator&& begin, Iterator&& end, uint_t level, uint_t k){
     auto compare = [&](const value_type& v1, const value_type& v2){
 
         auto idx = level % k;
-        return v1[idx] < v2[idx];
+        return comp_policy(v1, v2, idx); //v1[idx] < v2[idx];
     };
 
+    std::vector<value_type> v(begin, end);
+
     // rearrange the elements
-    std::nth_element(begin_, begin_ + median_idx, end_ , compare);
+    std::nth_element(begin, begin, end , compare);
 
-    auto median = *(begin_ + median_idx);
+    //auto median = *(begin_ + median_idx);
 
-    auto left = std::make_pair<Iterator,   Iterator>(std::forward<Iterator>(begin_), begin_ + median_idx);
-    auto right = std::make_pair<Iterator,   Iterator>(begin_ + median_idx + 1, std::forward<Iterator>(end_));
-    return std::make_tuple(median, left, right);
+    //auto left = std::make_pair<Iterator,   Iterator>(begin_, begin_ + median_idx);
+    //auto right = std::make_pair<Iterator,   Iterator>(begin_ + median_idx + 1, end_);
+    //return std::make_tuple(median, left, right);
 
 }
 
@@ -221,8 +223,8 @@ public:
     ///
     ///
     ///
-    template<typename Iterator, typename ComparisonPolicy>
-    KDTree(uint_t k, Iterator begin, Iterator end, const ComparisonPolicy& policy);
+    template<typename Iterator, typename SimilarityPolicy, typename ComparisonPolicy>
+    KDTree(uint_t k, Iterator begin, Iterator end, const SimilarityPolicy& sim_policy, const ComparisonPolicy& policy);
 
     ///
     /// \brief empty
@@ -244,6 +246,13 @@ public:
     template<typename ComparisonPolicy>
     std::shared_ptr<node_type>
     search(const data_type& data, const ComparisonPolicy& calculator)const{ return search_(root_, data, calculator);}
+
+    ///
+    ///
+    ///
+    template<typename Iterator, typename SimilarityPolicy, typename ComparisonPolicy>
+    void build(Iterator begin, Iterator end,
+               const SimilarityPolicy& sim_policy, const ComparisonPolicy& comp_policy){create_(begin, end, 0, sim_policy, comp_policy);}
 
     ///
     /// \brief insert
@@ -318,12 +327,15 @@ private:
                                            const ComparisonPolicy& calculator, PriorityQueueType& pq)const;
 
 
-    template<typename Iterator, typename ComparisonPolicy>
-    void create_(Iterator begin, Iterator end, uint_t level, const ComparisonPolicy& comp_policy);
+    template<typename Iterator, typename SimilarityPolicy, typename ComparisonPolicy>
+    void create_(Iterator begin, Iterator end, uint_t level,
+                 const SimilarityPolicy& sim_policy, const ComparisonPolicy& comp_policy);
 
 
-    template<typename Iterator, typename ComparisonPolicy>
-    std::shared_ptr<node_type> do_create_(Iterator begin, Iterator end, uint_t level, const ComparisonPolicy& comp_policy);
+    template<typename Iterator, typename SimilarityPolicy, typename ComparisonPolicy>
+    std::shared_ptr<node_type> do_create_(Iterator begin, Iterator end, uint_t level,
+                                          const SimilarityPolicy& sim_policy,
+                                          const ComparisonPolicy& comp_policy);
 
 };
 
@@ -336,12 +348,12 @@ KDTree<NodeType>::KDTree(uint_t k)
 {}
 
 template<typename NodeType>
-template<typename Iterator, typename ComparisonPolicy>
-KDTree<NodeType>::KDTree(uint_t k, Iterator begin, Iterator end, const ComparisonPolicy& comp_policy)
+template<typename Iterator, typename SimilarityPolicy, typename ComparisonPolicy>
+KDTree<NodeType>::KDTree(uint_t k, Iterator begin, Iterator end, const SimilarityPolicy& sim_policy, const ComparisonPolicy& comp_policy)
     :
      KDTree<NodeType>(k)
 {
-    create_(begin, end, 0, comp_policy);
+    create_(begin, end, 0, sim_policy, comp_policy);
 }
 
 template<typename NodeType>
@@ -508,9 +520,9 @@ KDTree<NodeType>::insert_(std::shared_ptr<node_type>& node, const data_type& dat
 }
 
 template<typename NodeType>
-template<typename Iterator, typename ComparisonPolicy>
+template<typename Iterator, typename SimilarityPolicy, typename ComparisonPolicy>
 void
-KDTree<NodeType>::create_(Iterator begin, Iterator end, uint_t level, const ComparisonPolicy& comp_policy){
+KDTree<NodeType>::create_(Iterator begin, Iterator end, uint_t level, const SimilarityPolicy& sim_policy, const ComparisonPolicy& comp_policy){
 
 
     auto n_points = std::distance(begin, end);
@@ -522,6 +534,7 @@ KDTree<NodeType>::create_(Iterator begin, Iterator end, uint_t level, const Comp
     }
 
     if(n_points == 1){
+
         auto data = *begin;
 
         // create the root
@@ -530,28 +543,27 @@ KDTree<NodeType>::create_(Iterator begin, Iterator end, uint_t level, const Comp
         return;
     }
 
-
     // otherwise partition the range
-    auto [median, left, right] = detail::partiion_on_median(std::forward<Iterator>(begin), std::forward<Iterator>(end), level, k_);
+    auto [median, left, right] = detail::partiion_on_median(begin, end, level, k_, comp_policy);
 
     // create root
-    root_ = std::make_shared<NodeType>(level, median, nullptr, nullptr);
-    ++n_nodes_;
+    //root_ = std::make_shared<NodeType>(level, median, nullptr, nullptr);
+    //++n_nodes_;
 
     // create left and right subtrees
-    auto left_tree = do_create_(left.first, left.second, level + 1, comp_policy);
+    /*auto left_tree = do_create_(left.first, left.second, level + 1, sim_policy, comp_policy);
 
     // create left and right subtrees
-    auto right_tree = do_create_(right.first, right.second, level + 1, comp_policy);
+    auto right_tree = do_create_(right.first, right.second, level + 1, sim_policy, comp_policy);
 
     root_->left = left_tree;
-    root_->right = right_tree;
+    root_->right = right_tree;*/
 }
 
 template<typename NodeType>
-template<typename Iterator, typename ComparisonPolicy>
+template<typename Iterator, typename SimilarityPolicy, typename ComparisonPolicy>
 std::shared_ptr<NodeType>
-KDTree<NodeType>::do_create_(Iterator begin, Iterator end, uint_t level, const ComparisonPolicy& comp_policy){
+KDTree<NodeType>::do_create_(Iterator begin, Iterator end, uint_t level, const SimilarityPolicy& sim_policy, const ComparisonPolicy& comp_policy){
 
     auto n_points = std::distance(begin, end);
 
@@ -565,7 +577,7 @@ KDTree<NodeType>::do_create_(Iterator begin, Iterator end, uint_t level, const C
         auto data = *begin;
 
         // check if the data exist
-        auto found = search_(root_, data, comp_policy);
+        auto found = search_(root_, data, sim_policy);
 
         if(found != nullptr){
             found->n_copies += 1;
@@ -577,11 +589,10 @@ KDTree<NodeType>::do_create_(Iterator begin, Iterator end, uint_t level, const C
     }
 
     // otherwise partition the range
-    auto [median, left, right] = detail::partiion_on_median(std::forward<Iterator>(begin), std::forward<Iterator>(end), level, k_);
-            //detail::partiion_on_median(begin, end, level, k_);
+    auto [median, left, right] = detail::partiion_on_median(std::forward<Iterator>(begin), std::forward<Iterator>(end), level, k_, comp_policy);
 
-    auto left_tree = do_create_(left.first, left.second, level + 1, comp_policy);
-    auto right_tree = do_create_(right.first, right.second, level + 1, comp_policy);
+    auto left_tree = do_create_(left.first, left.second, level + 1, sim_policy, comp_policy);
+    auto right_tree = do_create_(right.first, right.second, level + 1, sim_policy, comp_policy);
     ++n_nodes_;
     return std::make_shared<NodeType>(level, median, left_tree, right_tree);
 
