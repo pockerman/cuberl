@@ -19,97 +19,145 @@ namespace dp {
 ///
 /// \brief The PolicyImprovement class
 ///
-template<typename TimeStepTp>
-class PolicyImprovement: public DPAlgoBase<TimeStepTp>
+template<typename EnvType, typename PolicyType, typename PolicyAdaptorType>
+class PolicyImprovement: public DPAlgoBase<EnvType>
 {
 public:
 
     ///
     /// \brief env_t
     ///
-    typedef typename DPAlgoBase<TimeStepTp>::env_t env_t;
+    typedef typename DPAlgoBase<EnvType>::env_type env_type;
+
+    ///
+    /// \brief policy_type
+    ///
+    typedef PolicyType policy_type;
+
+    ///
+    /// \brief policy_adaptor_type
+    ///
+    typedef PolicyAdaptorType policy_adaptor_type;
 
     ///
     /// \brief IterativePolicyEval
     ///
-    PolicyImprovement(uint_t n_episodes,  real_t gamma, const DynVec<real_t>& val_func,
-                      env_t& env, std::shared_ptr<cubeai::rl::policies::DiscretePolicyBase> policy,
-                      std::shared_ptr<cubeai::rl::policies::DiscretePolicyAdaptorBase> policy_adaptor);
+    PolicyImprovement(real_t gamma, const DynVec<real_t>& val_func,
+                      policy_type& policy,
+                      policy_adaptor_type& policy_adaptor);
 
     ///
-    /// \brief on_episode
+    /// \brief actions_before_training_begins. Execute any actions the
+    /// algorithm needs before starting the iterations
     ///
-    virtual void on_episode()override final;
+    virtual void actions_before_training_begins(env_type& /*env*/)override{}
+
+    ///
+    /// \brief actions_after_training_ends. Actions to execute after
+    /// the training iterations have finisehd
+    ///
+    virtual void actions_after_training_ends(env_type& /*env*/)override{}
+
+    ///
+    /// \brief actions_before_training_episode
+    ///
+    virtual void actions_before_episode_begins(env_type&, uint_t /*episode_idx*/)override{}
+
+    ///
+    /// \brief actions_after_training_episode
+    ///
+    virtual void actions_after_episode_ends(env_type&, uint_t /*episode_idx*/)override{}
+
+    ///
+    /// \brief on_episode Do one on_episode of the algorithm
+    ///
+    virtual EpisodeInfo on_training_episode(env_type& env, uint_t episode_idx) override;
 
     ///
     /// \brief policy
     /// \return
     ///
-    const cubeai::rl::policies::DiscretePolicyBase& policy()const{return  *policy_;}
+    const policy_type& policy()const{return  policy_;}
 
     ///
     /// \brief policy
     /// \return
     ///
-    cubeai::rl::policies::DiscretePolicyBase& policy(){return  *policy_;}
+    policy_type& policy(){return  policy_;}
 
     ///
-    /// \brief policy_ptr
-    /// \return
+    /// \brief set_value_function
+    /// \param v
     ///
-    std::shared_ptr<cubeai::rl::policies::DiscretePolicyBase> policy_ptr(){return  policy_;}
+    void set_value_function(const DynVec<real_t>& v){v_ = v;}
 
     ///
     /// \brief update_policy_ptr
     /// \param ptr
     ///
-    void update_policy_ptr(std::shared_ptr<cubeai::rl::policies::DiscretePolicyBase> ptr){policy_ = ptr;}
-
+    //void update_policy_ptr(std::shared_ptr<cubeai::rl::policies::DiscretePolicyBase> ptr){policy_ = ptr;}
 
 protected:
 
     ///
+    /// \brief gamma_
+    ///
+    real_t gamma_;
+
+    ///
+    /// \brief v_
+    ///
+    DynVec<real_t> v_;
+
+    ///
     /// \brief policy_
     ///
-    std::shared_ptr<cubeai::rl::policies::DiscretePolicyBase> policy_;
+    policy_type& policy_;
 
     ///
     /// \brief policy_adaptor_
     ///
-    std::shared_ptr<cubeai::rl::policies::DiscretePolicyAdaptorBase> policy_adaptor_;
+    policy_adaptor_type& policy_adaptor_;
 
 };
 
-template<typename TimeStepTp>
-PolicyImprovement<TimeStepTp>::PolicyImprovement(uint_t n_episodes,  real_t gamma, const DynVec<real_t>& val_func,
-                                                 env_t& env, std::shared_ptr<cubeai::rl::policies::DiscretePolicyBase> policy,
-                                                 std::shared_ptr<cubeai::rl::policies::DiscretePolicyAdaptorBase> policy_adaptor)
+template<typename EnvType, typename PolicyType, typename PolicyAdaptorType>
+PolicyImprovement<EnvType, PolicyType, PolicyAdaptorType>::PolicyImprovement(real_t gamma, const DynVec<real_t>& val_func,
+                                                 policy_type& policy, policy_adaptor_type& policy_adaptor)
     :
-      DPAlgoBase<TimeStepTp>(n_episodes, 1.0e-4, gamma, env),
+      DPAlgoBase<EnvType>(),
+      gamma_(gamma),
+      v_(val_func),
       policy_(policy),
       policy_adaptor_(policy_adaptor)
-{
-    this->value_func() = val_func;
-}
+{}
 
-template<typename TimeStepTp>
-void
-PolicyImprovement<TimeStepTp>::on_episode(){
+template<typename EnvType, typename PolicyType, typename PolicyAdaptorType>
+EpisodeInfo
+PolicyImprovement<EnvType, PolicyType, PolicyAdaptorType>::on_training_episode(env_type& env, uint_t episode_idx){
+
+    auto start = std::chrono::steady_clock::now();
 
     std::map<std::string, std::any> options;
-    for(uint_t s=0; s<this->env_ref_().n_states(); ++s){
 
-        auto state_actions = state_actions_from_v(this->env_ref_(), this->value_func(),
-                                                  this->gamma(), s);
+    uint_t counter = 0;
+    for(uint_t s=0; s<env.n_states(); ++s){
+
+        auto state_actions = state_actions_from_v(env, v_, gamma_, s);
 
         options.insert_or_assign("state", s);
         options.insert_or_assign("state_actions", std::any(state_actions));
-        this->policy_ = this->policy_adaptor_->operator()(options);
-
+        policy_ = policy_adaptor_(options);
+        ++counter;
     }
 
-    this->iter_controller_().update_residual(1.0e-5);
+    auto end = std::chrono::steady_clock::now();
+    std::chrono::duration<real_t> elapsed_seconds = end-start;
 
+    EpisodeInfo info;
+    info.episode_index = episode_idx;
+    info.episode_iterations = counter;
+    info.total_time = elapsed_seconds;
 }
 
 
