@@ -170,16 +170,15 @@ partiion_on_median(Iterator begin, Iterator end, uint_t level, uint_t k, const C
         return comp_policy(v1, v2, idx); //v1[idx] < v2[idx];
     };
 
-    std::vector<value_type> v(begin, end);
 
     // rearrange the elements
-    std::nth_element(begin, begin, end , compare);
+    std::nth_element(begin, begin + median_idx, end , compare);
 
-    //auto median = *(begin_ + median_idx);
+    auto median = *(begin + median_idx);
 
-    //auto left = std::make_pair<Iterator,   Iterator>(begin_, begin_ + median_idx);
-    //auto right = std::make_pair<Iterator,   Iterator>(begin_ + median_idx + 1, end_);
-    //return std::make_tuple(median, left, right);
+    auto left = std::make_pair<Iterator,   Iterator>(std::forward<Iterator>(begin), begin + median_idx);
+    auto right = std::make_pair<Iterator,   Iterator>(begin + median_idx + 1, std::forward<Iterator>(end));
+    return std::make_tuple(median, left, right);
 
 }
 
@@ -547,17 +546,17 @@ KDTree<NodeType>::create_(Iterator begin, Iterator end, uint_t level, const Simi
     auto [median, left, right] = detail::partiion_on_median(begin, end, level, k_, comp_policy);
 
     // create root
-    //root_ = std::make_shared<NodeType>(level, median, nullptr, nullptr);
-    //++n_nodes_;
+    root_ = std::make_shared<NodeType>(level, median, nullptr, nullptr);
+    ++n_nodes_;
 
     // create left and right subtrees
-    /*auto left_tree = do_create_(left.first, left.second, level + 1, sim_policy, comp_policy);
+    auto left_tree = do_create_(left.first, left.second, level + 1, sim_policy, comp_policy);
 
     // create left and right subtrees
     auto right_tree = do_create_(right.first, right.second, level + 1, sim_policy, comp_policy);
 
     root_->left = left_tree;
-    root_->right = right_tree;*/
+    root_->right = right_tree;
 }
 
 template<typename NodeType>

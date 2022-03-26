@@ -105,13 +105,13 @@ public:
     KNearestNeighbors(uint_t dim);
 
     ///
-    ///
+    /// \brief Fit the data
     ///
     template<typename T, typename ComparisonPolicy>
     TrainResult fit(const DynMat<T>& data, const DynVec<uint_t>& labels, const ComparisonPolicy& comp_policy);
 
     ///
-    /// \brief Fit the dataset
+    /// \brief Fit the dataset. Makes a copy of the dataset
     ///
     template<typename TabularDataSetType, typename SimilarityPolicy>
     TrainResult fit(const TabularDataSetType& data, const SimilarityPolicy& comp_policy);
