@@ -1,6 +1,8 @@
 # cubeAI
 
-CubeAI is a C++ library containing implementations of various reinforcement learning, filtering and planning algorithms
+CubeAI is a C++ library containing implementations of various reinforcement learning, filtering and planning algorithms.
+The library documentation (under development) can be found here <a href="https://pockerman-py-cubeai.readthedocs.io/en/latest/">PyCubeAI</a>
+The Python flavor of the library can be found at <a href="https://github.com/pockerman/py_cube_ai">PyCubeAI</a>.
  
 
 ## Examples

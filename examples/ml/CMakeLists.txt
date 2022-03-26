@@ -1,6 +1,6 @@
 
 ADD_SUBDIRECTORY(ml_example_1)
-#ADD_SUBDIRECTORY(ml_example_2)
+ADD_SUBDIRECTORY(ml_example_2)
 
 
 #ADD_SUBDIRECTORY(example_3)

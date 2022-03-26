@@ -15,7 +15,7 @@
 #include <iostream>
 
 
-namespace example21{
+namespace ml_example_2{
 
 using cubeai::real_t;
 using cubeai::uint_t;
@@ -42,7 +42,7 @@ public:
 
 int main(){
 
-using namespace example21;
+using namespace ml_example_2;
 
 
  try{
@@ -59,7 +59,7 @@ using namespace example21;
        };
 
        auto info = classifier.fit(data, comparison);
-       /*std::cout<<cubeai::CubeAIConsts::info_str()<<info<<std::endl;
+       std::cout<<cubeai::CubeAIConsts::info_str()<<info<<std::endl;
 
        auto row = data[0];
        std::cout<<"True class="<<row.second<<"->"<<data.get_class_name(row.second)<<std::endl;
@@ -70,9 +70,8 @@ using namespace example21;
 
        std::cout<<cubeai::CubeAIConsts::info_str()<<" Query point is "<<row<<std::endl;
        for(auto& p : closest_points){
-
            std::cout<<"Distance="<<p.first<<", "<<p.second<<std::endl;
-       }*/
+       }
 
 }
 catch(std::exception& e){
