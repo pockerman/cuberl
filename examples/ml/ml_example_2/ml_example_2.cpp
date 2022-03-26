@@ -49,8 +49,7 @@ using namespace ml_example_2;
 
        cubeai::datasets::IrisDataSet data;
 
-       std::cout<<cubeai::CubeAIConsts::info_str()<<data<<std::endl;
-
+       std::cout<<data<<std::endl;
 
        KNearestNeighbors<cubeai::datasets::IrisDataSet::point_type> classifier(data.n_columns());
 
@@ -59,7 +58,7 @@ using namespace ml_example_2;
        };
 
        auto info = classifier.fit(data, comparison);
-       std::cout<<cubeai::CubeAIConsts::info_str()<<info<<std::endl;
+       std::cout<<info<<std::endl;
 
        auto row = data[0];
        std::cout<<"True class="<<row.second<<"->"<<data.get_class_name(row.second)<<std::endl;
