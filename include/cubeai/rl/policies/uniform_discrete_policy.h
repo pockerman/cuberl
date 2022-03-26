@@ -29,6 +29,13 @@ public:
     UniformDiscretePolicy(uint_t n_states, uint_t n_actions, real_t val);
 
     ///
+    /// \brief operator ()
+    /// \param sidx
+    /// \return
+    ///
+    std::vector<std::pair<uint_t, real_t>> operator()(uint_t sidx)const{return (*this)[sidx];}
+
+    ///
     /// \brief operator []
     ///
     virtual std::vector<std::pair<uint_t, real_t>> operator[](uint_t sidx)const override final;

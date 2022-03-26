@@ -167,24 +167,27 @@ RLSerialAgentTrainer<EnvType, AgentType>::train(env_type& env){
 
     this->actions_before_training_begins(env);
 
+    uint_t episode_counter = 0;
     while(itr_ctrl_.continue_iterations()){
 
-        this->actions_before_episode_begins(env, itr_ctrl_.get_current_iteration());
-        auto episode_info = agent_.on_training_episode(env, itr_ctrl_.get_current_iteration());
+        this->actions_before_episode_begins(env, episode_counter);
+        auto episode_info = agent_.on_training_episode(env, episode_counter);
 
-        //if(output_msg_frequency_ != CubeAIConsts::INVALID_SIZE_TYPE &&
-        //        output_msg_frequency_ % itr_ctrl_.get_current_iteration() == 0){
+        if(output_msg_frequency_ != CubeAIConsts::INVALID_SIZE_TYPE &&
+                episode_counter % output_msg_frequency_  == 0){
 
             std::cout<<episode_info<<std::endl;
-        //}
+        }
 
         total_reward_per_episode_.push_back(episode_info.episode_reward);
         n_itrs_per_episode_.push_back(episode_info.episode_iterations);
-        this->actions_after_episode_ends(env, itr_ctrl_.get_current_iteration());
+        this->actions_after_episode_ends(env, episode_counter);
 
         if(episode_info.stop_training){
+            std::cout<<CubeAIConsts::info_str()<<" Stopping training at index="<<episode_counter<<std::endl;
             break;
         }
+        episode_counter += 1;
     }
 
     this->actions_after_training_ends(env);
