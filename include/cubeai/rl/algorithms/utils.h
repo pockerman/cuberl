@@ -22,13 +22,13 @@ auto state_actions_from_v(const WorldTp& env, const DynVec<real_t>& v,
 
     for(uint_t a=0; a < env.n_actions(); ++a){
 
-        const auto& transition_dyn = env.transition_dynamics(state, a);
+        const auto& transition_dyn = env.p(state, a);
 
         for(auto& dyn: transition_dyn){
             auto prob = std::get<0>(dyn);
             auto next_state = std::get<1>(dyn);
             auto reward = std::get<2>(dyn);
-            auto done = std::get<3>(dyn);
+            //auto done = std::get<3>(dyn);
             q[a] += prob * (reward + gamma * v[next_state]);
         }
     }

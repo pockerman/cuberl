@@ -81,6 +81,24 @@ public:
     ///
     void save(const std::string& filename)const;
 
+    ///
+    /// \brief value_function
+    /// \return
+    ///
+    DynVec<real_t> get_value_function()const{return v_;}
+
+    ///
+    /// \brief get_policy
+    /// \return
+    ///
+    policy_type get_policy()const{return policy_;}
+
+    ///
+    /// \brief update_policy
+    /// \param other
+    ///
+    void update_policy(const policy_type& other){policy_.update(other);}
+
 protected:
 
 
@@ -117,13 +135,7 @@ void
 IterativePolicyEval<EnvType, PolicyType>::actions_after_training_ends(env_type& /*env*/){
 
     if(config_.save_path != ""){
-        CSVWriter file_writer(config_.save_path, CSVWriter::default_delimiter(), true);
-        file_writer.write_column_names({"state_index", "value_function"});
-        std::vector<real_t> row(1);
-        for(auto item: v_){
-            row[0] = item;
-            file_writer.write_row(row);
-        }
+        save(config_.save_path);
     }
 }
 
@@ -191,16 +203,12 @@ template<typename EnvType, typename PolicyType>
 void
 IterativePolicyEval<EnvType, PolicyType>::save(const std::string& filename)const{
 
-    CSVWriter writer(filename, ',', true);
-
-    std::vector<std::string> columns(2);
-    columns[0] = "State Id";
-    columns[1] = "Value";
-    writer.write_column_names(columns);
+    CSVWriter file_writer(filename, ',', true);
+    file_writer.write_column_names({"state_index", "value_function"});
 
     for(uint_t s=0; s < v_.size(); ++s){
         auto row = std::make_tuple(s, v_[s]);
-        writer.write_row(row);
+        file_writer.write_row(row);
     }
 }
 

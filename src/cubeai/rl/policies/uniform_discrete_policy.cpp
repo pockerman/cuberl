@@ -28,7 +28,7 @@ bool operator != (const std::pair<uint_t, uint_t>& s1, const std::pair<uint_t, u
 
 UniformDiscretePolicy::UniformDiscretePolicy(uint_t n_states, uint_t n_actions)
     :
-      DiscretePolicyBase(PolicyType::DISCRETE_UNIFORM),
+      //DiscretePolicyBase(PolicyType::DISCRETE_UNIFORM),
       n_states_(n_states),
       n_actions_(n_actions),
       val_(-1.0),
@@ -38,10 +38,15 @@ UniformDiscretePolicy::UniformDiscretePolicy(uint_t n_states, uint_t n_actions)
     init_();
 }
 
+void
+UniformDiscretePolicy::update(const UniformDiscretePolicy& other){
+    state_actions_prob_ = other.state_actions_prob_;
+}
+
 
 UniformDiscretePolicy::UniformDiscretePolicy(uint_t n_states, uint_t n_actions, real_t val)
     :
-     DiscretePolicyBase(PolicyType::DISCRETE_UNIFORM),
+     //DiscretePolicyBase(PolicyType::DISCRETE_UNIFORM),
      n_states_(n_states),
      n_actions_(n_actions),
      val_(val),
@@ -88,19 +93,19 @@ UniformDiscretePolicy::update(uint_t sidx, const std::vector<std::pair<uint_t, r
 }
 
 bool
-UniformDiscretePolicy::equals(const DiscretePolicyBase& other)const{
+UniformDiscretePolicy::equals(const UniformDiscretePolicy& other)const{
 
-    if(other.type() != PolicyType::DISCRETE_UNIFORM){
+    /*if(other.type() != PolicyType::DISCRETE_UNIFORM){
+        return false;
+    }*/
+
+    //const auto& pol = dynamic_cast<const UniformDiscretePolicy&>(other);
+
+    if(shape() != other.shape()){
         return false;
     }
 
-    const auto& pol = dynamic_cast<const UniformDiscretePolicy&>(other);
-
-    if(shape() != pol.shape()){
-        return false;
-    }
-
-    if(val_ != pol.val_){
+    if(val_ != other.val_){
         return false;
     }
 
@@ -113,11 +118,11 @@ UniformDiscretePolicy::equals(const DiscretePolicyBase& other)const{
             auto aidx = state_actions_prob_[s][a].first;
             auto value = state_actions_prob_[s][a].second;
 
-            if(aidx != pol.state_actions_prob_[s][a].first){
+            if(aidx != other.state_actions_prob_[s][a].first){
                 return false;
             }
 
-            if(value != pol.state_actions_prob_[s][a].second){
+            if(value != other.state_actions_prob_[s][a].second){
                 return false;
             }
         }
@@ -141,14 +146,6 @@ UniformDiscretePolicy::init_(){
 
 }
 
-std::shared_ptr<DiscretePolicyBase>
-UniformDiscretePolicy::make_copy()const{
-
-    auto ptr = std::make_shared<UniformDiscretePolicy>(n_states_, n_actions_, val_);
-    ptr->state_actions_prob_ = state_actions_prob_;
-
-    return ptr;
-}
 
 std::ostream&
 UniformDiscretePolicy::print(std::ostream& out)const{
