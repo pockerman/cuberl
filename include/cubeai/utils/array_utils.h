@@ -70,7 +70,7 @@ std::vector<uint_t> max_indices(const DynVec<T>& vec){
     auto max_val = blaze::max(vec);
 
     auto result = std::vector<uint_t>();
-    auto counter = 0;
+    //auto counter = 0;
 
     for(uint_t i=0; i<vec.size(); ++i){
         T value = vec[i];

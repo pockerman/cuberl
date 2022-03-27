@@ -115,7 +115,7 @@ PolicyIteration<EnvType, PolicyType, PolicyAdaptorType>::PolicyIteration(PolicyI
     config_(config),
     v_(),
     policy_eval_({config.gamma, config.tolerance}, policy),
-    policy_imp_(1, gamma, DynVec<real_t>(), policy, policy_adaptor)
+    policy_imp_(config.gamma, DynVec<real_t>(), policy, policy_adaptor)
 {}
 
 
@@ -168,9 +168,9 @@ PolicyIteration<EnvType, PolicyType, PolicyAdaptorType>::on_training_episode(env
         info.stop_training = true;
     }
 
-    policy_eval_.update_policy_ptr(new_policy);
-    policy_eval_.reset();
-    policy_imp_.reset();
+    policy_eval_.update_policy(new_policy);
+    //policy_eval_.reset();
+    //policy_imp_.reset();
 
     auto end = std::chrono::steady_clock::now();
     std::chrono::duration<real_t> elapsed_seconds = end-start;

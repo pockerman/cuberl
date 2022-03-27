@@ -91,12 +91,6 @@ public:
     ///
     void set_value_function(const DynVec<real_t>& v){v_ = v;}
 
-    ///
-    /// \brief update_policy_ptr
-    /// \param ptr
-    ///
-    //void update_policy_ptr(std::shared_ptr<cubeai::rl::policies::DiscretePolicyBase> ptr){policy_ = ptr;}
-
 protected:
 
     ///
@@ -158,6 +152,7 @@ PolicyImprovement<EnvType, PolicyType, PolicyAdaptorType>::on_training_episode(e
     info.episode_index = episode_idx;
     info.episode_iterations = counter;
     info.total_time = elapsed_seconds;
+    return info;
 }
 
 

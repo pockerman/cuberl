@@ -2,7 +2,7 @@
 #define UNIFORM_DISCRETE_POLICY_H
 
 #include "cubeai/base/cubeai_types.h"
-#include "cubeai/rl/policies/discrete_policy_base.h"
+//#include "cubeai/rl/policies/discrete_policy_base.h"
 
 #include <vector>
 #include <utility>
@@ -14,7 +14,7 @@ namespace policies {
 ///
 /// \brief The UniformDiscretePolicy class
 ///
-class UniformDiscretePolicy: public DiscretePolicyBase
+class UniformDiscretePolicy final //: public DiscretePolicyBase
 {
 public:
 
@@ -38,23 +38,23 @@ public:
     ///
     /// \brief operator []
     ///
-    virtual std::vector<std::pair<uint_t, real_t>> operator[](uint_t sidx)const override final;
+    std::vector<std::pair<uint_t, real_t>> operator[](uint_t sidx)const;
 
     ///
     /// \brief Update the policy for state with index sidx
     ///
-    virtual void update(uint_t sidx, const std::vector<std::pair<uint_t, real_t>>& vals)override final;
+    void update(uint_t sidx, const std::vector<std::pair<uint_t, real_t>>& vals);
 
     ///
     /// \brief equals
     ///
-    virtual bool equals(const DiscretePolicyBase& other)const override final;
+    bool equals(const UniformDiscretePolicy& other)const;
 
     ///
     /// \brief state_actions_values
     /// \return
     ///
-    virtual std::vector<std::vector<std::pair<uint_t, real_t>>>& state_actions_values() override final{return state_actions_prob_;}
+    std::vector<std::vector<std::pair<uint_t, real_t>>>& state_actions_values(){return state_actions_prob_;}
 
     ///
     /// \brief shape
@@ -63,16 +63,17 @@ public:
     std::pair<uint_t, uint_t> shape()const{return {n_states_, n_actions_};}
 
     ///
-    /// \brief make_copy. Make a copy of this
+    /// \brief update
+    /// \param other
     ///
-    virtual std::shared_ptr<DiscretePolicyBase> make_copy()const override final;
+    void update(const UniformDiscretePolicy& other);
 
     ///
     /// \brief print
     /// \param out
     /// \return
     ///
-    virtual std::ostream& print(std::ostream& out)const override final;
+    std::ostream& print(std::ostream& out)const;
 
 private:
 
@@ -101,6 +102,16 @@ private:
     ///
     void init_();
 };
+
+inline
+bool operator==(const UniformDiscretePolicy& p1, const UniformDiscretePolicy& p2){
+    return p1.equals(p2);
+}
+
+inline
+bool operator !=(const UniformDiscretePolicy& p1, const UniformDiscretePolicy& p2){
+    return !(p1 == p2);
+}
 
 }
 }

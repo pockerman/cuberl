@@ -6,12 +6,12 @@
 #include "cubeai/rl/algorithms/dp/dp_algo_base.h"
 #include "cubeai/rl/algorithms/dp/policy_improvement.h"
 #include "cubeai/rl/algorithms/utils.h"
-#include "cubeai/rl/policies/policy_adaptor_base.h"
-#include "cubeai/rl/policies/discrete_policy_base.h"
-
+#include "cubeai/rl/episode_info.h"
+#include "cubeai/io/csv_file_writer.h"
 
 #include <memory>
 #include <cmath>
+#include <string>
 
 #ifdef KERNEL_PRINT_DBG_MSGS
 #include <iostream>
@@ -22,42 +22,70 @@ namespace rl {
 namespace algos {
 namespace dp {
 
+struct ValueIterationConfig
+{
+    uint_t n_max_iterations;
+    real_t gamma;
+    real_t tolerance;
+    std::string save_path{""};
+};
+
 ///
 /// \brief ValueIteration class
 ///
-template<typename TimeStepTp>
-class ValueIteration: public DPAlgoBase<TimeStepTp>
+template<typename EnvType, typename PolicyType, typename PolicyAdaptorType>
+class ValueIteration: public DPAlgoBase<EnvType>
 {
 public:
 
     ///
     /// \brief env_t
     ///
-    typedef typename DPAlgoBase<TimeStepTp>::env_t env_t;
+    typedef typename DPAlgoBase<EnvType>::env_type env_type;
+
+    ///
+    /// \brief policy_type
+    ///
+    typedef PolicyType policy_type;
+
+    ///
+    /// \brief policy_adaptor_type
+    ///
+    typedef PolicyAdaptorType policy_adaptor_type;
 
     ///
     /// \brief ValueIteration
     ///
-    ValueIteration(uint_t n_max_iterations, real_t tolerance,
-                   env_t& env, real_t gamma, std::shared_ptr<cubeai::rl::policies::DiscretePolicyBase> policy,
-                   std::shared_ptr<cubeai::rl::policies::DiscretePolicyAdaptorBase> policy_adaptor);
+    ValueIteration(const ValueIterationConfig config,
+                   policy_type& policy,
+                   policy_adaptor_type& policy_adaptor);
 
     ///
-    /// \brief on_episode
-    ///
-    virtual void on_episode() override final;
-
-    ///
-    /// \brief actions_before_training_episodes. Execute any actions the
+    /// \brief actions_before_training_begins. Execute any actions the
     /// algorithm needs before starting the iterations
     ///
-    virtual void actions_before_training_episodes() override final;
+    virtual void actions_before_training_begins(env_type& env)override;
 
     ///
-    /// \brief actions_after_training_episodes. Actions to execute after
+    /// \brief actions_after_training_ends. Actions to execute after
     /// the training iterations have finisehd
     ///
-    virtual void actions_after_training_episodes() override final;
+    virtual void actions_after_training_ends(env_type& /*env*/)override;
+
+    ///
+    /// \brief actions_before_training_episode
+    ///
+    virtual void actions_before_episode_begins(env_type&, uint_t /*episode_idx*/)override{}
+
+    ///
+    /// \brief actions_after_training_episode
+    ///
+    virtual void actions_after_episode_ends(env_type&, uint_t /*episode_idx*/)override{}
+
+    ///
+    /// \brief on_episode Do one on_episode of the algorithm
+    ///
+    virtual EpisodeInfo on_training_episode(env_type& env, uint_t episode_idx) override;
 
     ///
     /// \brief policy_ptr
@@ -66,81 +94,104 @@ public:
     std::shared_ptr<cubeai::rl::policies::DiscretePolicyBase> policy_ptr(){return  policy_;}
 
     ///
-    /// \brief update_policy_ptr
-    /// \param ptr
     ///
-    void update_policy_ptr(std::shared_ptr<cubeai::rl::policies::DiscretePolicyBase> ptr){policy_ = ptr;}
+    ///
+    void save(const std::string& filename)const;
 
 private:
 
     ///
+    /// \brief config_
+    ///
+    ValueIterationConfig config_;
+
+    ///
+    /// \brief v_
+    ///
+    DynVec<real_t> v_;
+
+    ///
     /// \brief policy_
     ///
-    std::shared_ptr<cubeai::rl::policies::DiscretePolicyBase> policy_;
+    policy_type& policy_;
 
     ///
     /// \brief policy_imp_
     ///
-    PolicyImprovement<TimeStepTp> policy_imp_;
+    PolicyImprovement<EnvType, PolicyType, PolicyAdaptorType> policy_imp_;
 
 };
 
-template<typename TimeStepTp>
-ValueIteration<TimeStepTp>::ValueIteration(uint_t n_max_iterations, real_t tolerance,
-                                           env_t& env, real_t gamma, std::shared_ptr<cubeai::rl::policies::DiscretePolicyBase> policy,
-                                           std::shared_ptr<cubeai::rl::policies::DiscretePolicyAdaptorBase> policy_adaptor)
+template<typename EnvType, typename PolicyType, typename PolicyAdaptorType>
+ValueIteration<EnvType, PolicyType, PolicyAdaptorType>::ValueIteration(const ValueIterationConfig config,
+                                                                       policy_type& policy,
+                                                                       policy_adaptor_type& policy_adaptor)
     :
-   DPAlgoBase<TimeStepTp>(n_max_iterations, tolerance, gamma, env),
+   DPAlgoBase<EnvType>(),
+   config_(config),
    policy_(policy),
-   policy_imp_(1, gamma, DynVec<real_t>(), env, policy, policy_adaptor)
+   policy_imp_(config.gamma, DynVec<real_t>(),  policy, policy_adaptor)
 {}
 
 
-template<typename TimeStepTp>
+template<typename EnvType, typename PolicyType, typename PolicyAdaptorType>
 void
-ValueIteration<TimeStepTp>::actions_before_training_episodes(){
-    this->DPAlgoBase<TimeStepTp>::actions_before_training_episodes();
-    policy_imp_.actions_before_training_episodes();
+ValueIteration<EnvType, PolicyType, PolicyAdaptorType>::actions_before_training_begins(env_type& env){
+
+    policy_imp_.actions_before_training_begins(env);
 }
 
-template<typename TimeStepTp>
-void
-ValueIteration<TimeStepTp>::on_episode(){
+template<typename EnvType, typename PolicyType, typename PolicyAdaptorType>
+EpisodeInfo
+ValueIteration<EnvType, PolicyType, PolicyAdaptorType>::on_training_episode(env_type& env, uint_t episode_idx){
 
+    EpisodeInfo info;
     auto delta = 0.0;
-    for(uint_t s=0; s< this->env_ref_().n_states(); ++s){
+    for(uint_t s=0; s< env.n_states(); ++s){
 
-        auto v = this->value_func()[s];
-        auto max_val = blaze::max(state_actions_from_v(this->env_ref_(), this->value_func(), this->gamma(), s));
+        auto v = v_[s];
+        auto max_val = blaze::max(state_actions_from_v(env, v_, config_.gamma, s));
 
- #if defined (CUBEAI_DEBUG) && defined (CUBEAI_PRINT_DBG_MSGS)
-        if(this->is_verbose()){
-            std::cout<<"Max val for state="<<s<<" is "<<max_val<<std::endl;
-        }
-#endif
-
-        this->value_func()[s] = max_val;
-        delta = std::max(delta, std::fabs(this->value_func()[s] - v));
+        v_[s] = max_val;
+        delta = std::max(delta, std::fabs(v_[s] - v));
     }
-
-#if defined (CUBEAI_DEBUG) && defined (CUBEAI_PRINT_DBG_MSGS)
-    if(this->is_verbose()){
-        std::cout<<"V="<<this->value_func()<<std::endl;
-    }
-#endif
 
     // update residual
-    this->iter_controller_().update_residual( delta );
+    //this->iter_controller_().update_residual( delta );
+
+    if(delta < config_.tolerance){
+        info.stop_training = true;
+    }
+
+    info.episode_index = episode_idx;
+    return info;
 }
 
-template<typename TimeStepTp>
+template<typename EnvType, typename PolicyType, typename PolicyAdaptorType>
 void
-ValueIteration<TimeStepTp>::actions_after_training_episodes(){
+ValueIteration<EnvType, PolicyType, PolicyAdaptorType>::actions_after_training_ends(env_type& env){
 
-    policy_imp_.value_func() = this->value_func();
-    policy_imp_.on_episode();
-    policy_ = policy_imp_.policy().make_copy();
+    policy_imp_.set_value_function(v_);
+    policy_imp_.on_training_episode(env, 0);
+    policy_.update( policy_imp_.policy()); //.make_copy();
 
+    if(config_.save_path != ""){
+        save(config_.save_path);
+    }
+
+}
+
+template<typename EnvType, typename PolicyType, typename PolicyAdaptorType>
+void
+ValueIteration<EnvType, PolicyType, PolicyAdaptorType>::save(const std::string& filename)const{
+
+    CSVWriter file_writer(filename, ',', true);
+    file_writer.write_column_names({"state_index", "value_function"});
+
+    for(uint_t s=0; s < v_.size(); ++s){
+        auto row = std::make_tuple(s, v_[s]);
+        file_writer.write_row(row);
+    }
 }
 
 }

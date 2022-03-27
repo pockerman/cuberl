@@ -93,6 +93,12 @@ public:
     ///
     policy_type get_policy()const{return policy_;}
 
+    ///
+    /// \brief update_policy
+    /// \param other
+    ///
+    void update_policy(const policy_type& other){policy_.update(other);}
+
 protected:
 
 
