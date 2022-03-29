@@ -2,6 +2,7 @@
 #define TD_ALGO_BASE_H
 
 #include "cubeai/rl/algorithms/algorithm_base.h"
+#include "cubeai/rl/algorithms/rl_algorithm_base.h"
 #include "cubeai/rl/algorithms/rl_algo_config.h"
 #include "cubeai/rl/worlds/envs_concepts.h"
 #include "cubeai/rl/worlds/discrete_world.h"
@@ -29,8 +30,8 @@ struct TDAlgoConfig: RLAlgoConfig
 ///\brief The TDAlgoBase class. Base class
 /// for deriving TD algorithms
 ///
-template<envs::discrete_world_concept EnvTp>
-class TDAlgoBase: public AlgorithmBase
+template<typename EnvType>
+class TDAlgoBase: public RLAlgoBase<EnvType>
 {
 public:
 
@@ -39,10 +40,6 @@ public:
     ///
     typedef EnvTp env_type;
 
-    ///
-    /// \brief value_func_t
-    ///
-    typedef  DynVec<real_t> value_func_type;
 
     ///
     /// \brief action_t
@@ -53,11 +50,6 @@ public:
     /// \brief state_t
     ///
     typedef typename env_type::state_type state_type;
-
-    ///
-    /// \brief q_table_t
-    ///
-    typedef std::unordered_map<action_type, DynVec<real_t>> q_table_type;
 
     ///
     /// \brief Destructor
@@ -93,26 +85,10 @@ public:
     ///
     uint_t seed()const noexcept{return seed_;}
 
-    ///
-    /// \brief q_table
-    /// \return
-    ///
-    q_table_type& q_table()noexcept{return q_;}
 
-    ///
-    /// \brief q_table
-    ///
-    const q_table_type& q_table()const noexcept{return q_;}
 
-    ///
-    /// \brief value_func
-    ///
-    value_func_type& value_func(){return v_;}
 
-    ///
-    /// \brief value_func
-    ///
-    const value_func_type& value_func()const{return v_;}
+
 
     ///
     /// \brief reset
@@ -144,39 +120,6 @@ public:
     ///
     virtual void make_value_function();
 
-    ///
-    /// \brief avg_scores
-    ///
-    std::deque<real_t>& avg_scores(){return avg_scores_;}
-
-    ///
-    /// \brief avg_scores
-    ///
-    const std::deque<real_t>& avg_scores()const{return avg_scores_;}
-
-    ///
-    /// \brief get_rewards
-    /// \return
-    ///
-    const DynVec<real_t>& get_rewards()const noexcept{return rewards_;}
-
-    ///
-    /// \brief get_rewards
-    /// \return
-    ///
-    DynVec<real_t>& get_rewards() noexcept{return rewards_;}
-
-    ///
-    /// \brief get_iterations
-    /// \return
-    ///
-    const std::vector<uint_t>& get_iterations()const{return iterations_;}
-
-    ///
-    /// \brief get_iterations
-    /// \return
-    ///
-    std::vector<uint_t>& get_iterations(){return iterations_;}
 
 protected:
 
@@ -193,75 +136,15 @@ protected:
      TDAlgoBase(uint_t n_episodes, real_t tolerance, real_t gamma,
                 real_t eta, uint_t plot_f, uint_t max_num_iterations_per_episode, env_type& env);
 
-     ///
-     /// \brief env_ref_
-     /// \return
-     ///
-     env_type& env_ref_(){return env_;}
-
-     ///
-     /// \brief env_ref_
-     /// \return
-     ///
-     const env_type& env_ref_()const{return env_;}
-
-     ///
-     /// \brief tmp_scores
-     /// \return
-     ///
-     std::deque<real_t>& tmp_scores(){return tmp_scores_;}
-
-     ///
-     /// \brief tmp_scores
-     /// \return
-     ///
-     const std::deque<real_t>& tmp_scores()const{return tmp_scores_;}
 
 private:
 
-     ///
-     /// \brief gamma_
-     ///
-     real_t gamma_;
 
-     ///
-     /// \brief alpha_ The learning rate
-     ///
-     real_t eta_;
 
      ///
      /// \brief seed_
      ///
      uint_t seed_;
-
-     ///
-     /// \brief env_
-     ///
-     env_type& env_;
-
-     ///
-     /// \brief v_
-     ///
-     DynVec<real_t> v_;
-
-     ///
-     /// \brief q_
-     ///
-     std::unordered_map<uint_t, DynVec<real_t>> q_;
-
-     /// monitor the performance
-     std::deque<real_t> tmp_scores_;
-     std::deque<real_t> avg_scores_;
-
-     ///
-     /// \brief rewards_
-     ///
-     DynVec<real_t> rewards_;
-
-     ///
-     /// \brief iteraions_
-     ///
-     std::vector<uint_t> iterations_;
 
 };
 
@@ -386,7 +269,7 @@ TDAlgoBase<EnvTp>::save_avg_scores(const std::string& filename)const{
     }
 }
 
-template<envs::discrete_world_concept EnvTp>
+/*template<envs::discrete_world_concept EnvTp>
 void
 TDAlgoBase<EnvTp>::save_state_action_function(const std::string& filename)const{
 
@@ -411,7 +294,7 @@ TDAlgoBase<EnvTp>::save_state_action_function(const std::string& filename)const{
         auto row = std::make_tuple(itr_b->first, vals[0], vals[1], vals[2], vals[3]);
         writer.write_row(row);
     }
-}
+}*/
 
 
 }
