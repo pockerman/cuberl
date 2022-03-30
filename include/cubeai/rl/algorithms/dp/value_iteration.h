@@ -88,12 +88,6 @@ public:
     virtual EpisodeInfo on_training_episode(env_type& env, uint_t episode_idx) override;
 
     ///
-    /// \brief policy_ptr
-    /// \return
-    ///
-    std::shared_ptr<cubeai::rl::policies::DiscretePolicyBase> policy_ptr(){return  policy_;}
-
-    ///
     ///
     ///
     void save(const std::string& filename)const;
