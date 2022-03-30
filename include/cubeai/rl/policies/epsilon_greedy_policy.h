@@ -3,6 +3,8 @@
 
 #include "cubeai/base/cubeai_types.h"
 #include "cubeai/utils/array_utils.h"
+#include "cubeai/maths/matrix_utilities.h"
+
 #include <random>
 #include <cmath>
 
@@ -106,6 +108,26 @@ EpsilonGreedyPolicy::operator()(const QMapTp& q_map, uint_t state)const{
 
     //std::random_device rd;
     std::mt19937 gen(seed_); //rd());
+
+    // generate a number in [0, 1]
+    std::uniform_real_distribution<> real_dist_(0.0, 1.0);
+
+    if(real_dist_(gen) > eps_){
+        // select greedy action with probability 1 - epsilon
+        return blaze::argmax(actions);
+    }
+
+    //std::mt19937 another_gen(seed_);
+    std::uniform_int_distribution<> distrib_(0,  n_actions_ - 1);
+    return distrib_(gen);
+}
+
+template<>
+uint_t
+EpsilonGreedyPolicy::operator()(const DynMat<real_t>& q_map, uint_t state)const{
+
+    const DynVec<real_t> actions = maths::get_row(q_map, state);
+    std::mt19937 gen(seed_);
 
     // generate a number in [0, 1]
     std::uniform_real_distribution<> real_dist_(0.0, 1.0);

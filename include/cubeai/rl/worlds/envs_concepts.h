@@ -3,7 +3,6 @@
 
 #if __cplusplus >= 202002L
 
-#include "cubeai/rl/worlds/discrete_world.h"
 #include <type_traits>
 
 namespace cubeai {
@@ -14,9 +13,7 @@ namespace envs {
 /// \brief The concept of discrete world
 ///
 template<typename EnvTp>
-concept discrete_world_concept = std::is_integral<typename EnvTp::action_type>::value;
-
-//std::is_base_of<DiscreteWorldBase<typename T::time_step_type>, T>::value;
+concept discrete_world_concept = std::is_integral<typename EnvTp::action_type>::value && std::is_integral<typename EnvTp::state_type>::value;
 
 ///
 /// \brief The concept of a discrete action space
@@ -29,7 +26,6 @@ concept discrete_action_space_concept = std::is_integral<typename EnvTp::action_
 ///
 template<typename EnvTp>
 concept discrete_state_space_concept = std::is_integral<typename EnvTp::state_type>::value;
-
 
 ///
 /// \brief The concept of a discrete action space

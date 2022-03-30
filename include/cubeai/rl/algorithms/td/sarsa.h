@@ -6,16 +6,18 @@
 #include "cubeai/rl/episode_info.h"
 #include "cubeai/base/cubeai_consts.h"
 #include "cubeai/base/cubeai_config.h"
+#include "cubeai/io/csv_file_writer.h"
+#include "cubeai/maths/matrix_utilities.h"
 
 #ifdef CUBEAI_DEBUG
 #include <cassert>
 #endif
 
-#include "boost/accumulators/accumulators.hpp"
-#include <boost/accumulators/statistics/stats.hpp>
-#include "boost/accumulators/statistics/mean.hpp"
-#include "boost/bind/bind.hpp"
-#include "boost/ref.hpp"
+//#include "boost/accumulators/accumulators.hpp"
+//#include <boost/accumulators/statistics/stats.hpp>
+//#include "boost/accumulators/statistics/mean.hpp"
+//#include "boost/bind/bind.hpp"
+//#include "boost/ref.hpp"
 
 #include <chrono>
 #include <iostream>
@@ -27,7 +29,7 @@ namespace rl {
 namespace algos {
 namespace td {
 
-using namespace boost::placeholders;
+//using namespace boost::placeholders;
 
 struct SarsaConfig
 {
@@ -70,8 +72,7 @@ public:
     ///
     /// \brief Sarsa
     ///
-    Sarsa(SarsaConfig config,
-          env_type& env, const ActionSelector& selector);
+    Sarsa(SarsaConfig config, const ActionSelector& selector);
 
     ///
     /// \brief actions_before_training_begins. Execute any actions the
@@ -98,7 +99,7 @@ public:
     ///
     /// \brief on_episode Do one on_episode of the algorithm
     ///
-    virtual EpisodeInfo on_training_episode(env_type&, uint_t /*episode_idx*/) = 0;
+    virtual EpisodeInfo on_training_episode(env_type&, uint_t episode_idx);
 
     ///
     ///
@@ -184,7 +185,7 @@ Sarsa<EnvTp, ActionSelector>::on_training_episode(env_type& env, uint_t episode_
         episode_score += reward;
 
         if(!done){
-            auto next_action = action_selector_(this->q_table(), state);
+            auto next_action = action_selector_(q_table_, state);
             update_q_table_(action, state, next_state, next_action, reward);
             state = next_state;
             action = next_action;
@@ -206,11 +207,28 @@ Sarsa<EnvTp, ActionSelector>::on_training_episode(env_type& env, uint_t episode_
     info.episode_reward = episode_score;
     info.episode_iterations = itr;
     info.total_time = elapsed_seconds;
+    return info;
 }
 
 template<envs::discrete_world_concept EnvTp, typename ActionSelector>
 void
 Sarsa<EnvTp, ActionSelector>::save(std::string filename)const{
+
+    CSVWriter file_writer(filename, ',', true);
+    std::vector<std::string> col_names(1 + q_table_.columns());
+    col_names[0] = "state_index";
+
+    for(uint_t i = 0; i< q_table_.columns(); ++i){
+        col_names[i + 1] = "action_" + std::to_string(i);
+    }
+
+    file_writer.write_column_names(col_names);
+
+    for(uint_t s=0; s < q_table_.rows(); ++s){
+        auto actions = maths::get_row(q_table_, s);
+        auto row = std::make_tuple(s, actions);
+        file_writer.write_row(row);
+    }
 
 }
 
@@ -219,10 +237,10 @@ void
 Sarsa<EnvTp, ActionSelector>::update_q_table_(const action_type& action, const state_type& cstate,
                                                    const state_type& next_state, const action_type& next_action, real_t reward){
 
-    auto q_current = q_table_[cstate][action];
-    auto q_next = next_state != CubeAIConsts::invalid_size_type() ? q_table_[next_state][next_action] : 0.0;
+    auto q_current = q_table_(cstate, action);
+    auto q_next = next_state != CubeAIConsts::invalid_size_type() ? q_table_(next_state, next_action) : 0.0;
     auto td_target = reward + config_.gamma * q_next;
-    q_table_[cstate][action] = q_current + (config_.eta * (td_target - q_current));
+    q_table_(cstate, action) = q_current + (config_.eta * (td_target - q_current));
 
 }
 
