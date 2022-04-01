@@ -11,7 +11,9 @@
 #include "cubeai/rl/algorithms/td/td_algo_base.h"
 #include "cubeai/rl/rl_mixins.h"
 #include "cubeai/rl/worlds/envs_concepts.h"
+#include "cubeai/rl/episode_info.h"
 
+#include <chrono>
 #include <random>
 
 namespace cubeai{
@@ -19,13 +21,28 @@ namespace rl{
 namespace algos{
 namespace td{
 
+struct DoubleQLearningConfig
+{
+
+    std::string path{""};
+    real_t tolerance;
+    real_t gamma;
+    real_t eta;
+    uint_t max_num_iterations_per_episode;
+    uint_t n_episodes;
+    uint_t seed{42};
+
+};
+
 
 ///
 /// \brief The class DoubleQLearning. Simple tabular implemtation
 /// of double q-learning algorithm.
 ///
-template<envs::discrete_world_concept EnvTp, typename ActionSelector, typename TableTp>
-class DoubleQLearning final: public TDAlgoBase<EnvTp>, protected with_double_q_table_mixin<TableTp>, protected with_double_q_table_max_action_mixin
+template<envs::discrete_world_concept EnvTp, typename ActionSelector>
+class DoubleQLearning final: public TDAlgoBase<EnvTp>,
+                             protected with_double_q_table_mixin<DynMat<real_t>>,
+                             protected with_double_q_table_max_action_mixin
 {
 public:
 
@@ -53,25 +70,43 @@ public:
     ///
     /// \brief Constructor
     ///
-    DoubleQLearning(TDAlgoConfig config, env_type& env, const ActionSelector& selector);
+    DoubleQLearning(const DoubleQLearningConfig config, const ActionSelector& selector);
 
     ///
-    /// \brief on_episode. Performs the iterations for
-    /// one training episode
+    /// \brief actions_before_training_begins. Execute any actions the
+    /// algorithm needs before starting the iterations
     ///
-    virtual void on_episode()override final;
+    virtual void actions_before_training_begins(env_type&);
+
+    ///
+    /// \brief actions_after_training_ends. Actions to execute after
+    /// the training iterations have finisehd
+    ///
+    virtual void actions_after_training_ends(env_type&);
+
+    ///
+    /// \brief actions_before_training_episode
+    ///
+    virtual void actions_before_episode_begins(env_type&, uint_t /*episode_idx*/){}
+
+    ///
+    /// \brief actions_after_training_episode
+    ///
+    virtual void actions_after_episode_ends(env_type&, uint_t episode_idx){ action_selector_.adjust_on_episode(episode_idx);}
+
+    ///
+    /// \brief on_episode Do one on_episode of the algorithm
+    ///
+    virtual EpisodeInfo on_training_episode(env_type&, uint_t episode_idx);
 
     ///
     ///
     ///
-    virtual void actions_before_training_episodes()override final;
+    void save(std::string filename)const;
 
 private:
 
-    ///
-    /// \brief current_score_counter_
-    ///
-    uint_t current_score_counter_;
+    DoubleQLearningConfig config_;
 
     ///
     /// \brief action_selector_. This is typically the policy
@@ -88,51 +123,50 @@ private:
 
 };
 
-template <envs::discrete_world_concept EnvTp, typename ActionSelector, typename TableTp>
-DoubleQLearning<EnvTp, ActionSelector, TableTp>::DoubleQLearning(TDAlgoConfig config, env_type& env, const ActionSelector& selector)
+template <envs::discrete_world_concept EnvTp, typename ActionSelector>
+DoubleQLearning<EnvTp, ActionSelector>::DoubleQLearning(const DoubleQLearningConfig config, const ActionSelector& selector)
     :
-     TDAlgoBase<EnvTp>(config, env),
-     with_double_q_table_mixin<TableTp>(),
+     TDAlgoBase<EnvTp>(),
+     with_double_q_table_mixin<DynMat<real_t>>(),
+     config_(config),
      action_selector_(selector)
 {}
 
 
-template<envs::discrete_world_concept EnvTp, typename ActionSelector, typename TableTp>
+template<envs::discrete_world_concept EnvTp, typename ActionSelector>
 void
-DoubleQLearning<EnvTp, ActionSelector, TableTp>::actions_before_training_episodes(){
-
-    this->TDAlgoBase<EnvTp>::actions_before_training_episodes();
-
-    auto states = this->env_ref_().get_states();
-    this->with_double_q_table_mixin<TableTp>::initialize(states, this->env_ref_().n_actions(), 0.0);
+DoubleQLearning<EnvTp, ActionSelector>::actions_before_training_begins(env_type& env){
+    this->with_double_q_table_mixin<DynMat<real_t>>::initialize(env.n_states(), env.n_actions(), 0.0);
 }
 
-template<envs::discrete_world_concept EnvTp, typename ActionSelector, typename TableTp>
-void
-DoubleQLearning<EnvTp, ActionSelector, TableTp>::on_episode(){
+template<envs::discrete_world_concept EnvTp, typename ActionSelector>
+EpisodeInfo
+DoubleQLearning<EnvTp, ActionSelector>::on_training_episode(env_type& env, uint_t episode_idx){
 
-     // typedef typename with_double_q_table_mixin<TableTp>::state_type discrete_state_type;
+    auto start = std::chrono::steady_clock::now();
+    EpisodeInfo info;
 
     // total score for the episode
-    auto total_episode_reward = 0.0;
-    auto state = this->env_ref_().reset().observation();
+    auto episode_score = 0.0;
+
+    auto state = env.reset().observation();
 
     uint_t itr=0;
-    for(;  itr < this->n_iterations_per_episode(); ++itr){
+    for(;  itr < config_.max_num_iterations_per_episode; ++itr){
 
         // select an action
-        auto action = action_selector_(this->with_double_q_table_mixin<TableTp>::q_table_1,
-                                       this->with_double_q_table_mixin<TableTp>::q_table_2, state);
+        auto action = action_selector_(this->with_double_q_table_mixin<DynMat<real_t>>::q_table_1,
+                                       this->with_double_q_table_mixin<DynMat<real_t>>::q_table_2, state);
 
         // Take an action on the environment
-        auto step_type_result = this->env_ref_().step(action);
+        auto step_type_result = env.step(action);
 
         auto next_state = step_type_result.observation();
         auto reward = step_type_result.reward();
         auto done = step_type_result.done();
 
         // accumulate score
-        total_episode_reward += reward;
+        episode_score += reward;
 
         // update the table
         update_q_table_(action, state, next_state, reward);
@@ -143,35 +177,25 @@ DoubleQLearning<EnvTp, ActionSelector, TableTp>::on_episode(){
         }
     }
 
-    this->get_iterations()[this->current_episode_idx()] = itr;
-    this->get_rewards()[this->current_episode_idx()] = total_episode_reward;
+    auto end = std::chrono::steady_clock::now();
+    std::chrono::duration<real_t> elapsed_seconds = end-start;
 
-    // make any adjustments to the way
-    // actions are selected given the experience collected
-    // in the episode
-    action_selector_.adjust_on_episode(this->current_episode_idx());
-    if(current_score_counter_ >= this->render_env_frequency_){
-        current_score_counter_ = 0;
-    }
+    info.episode_index = episode_idx;
+    info.episode_reward = episode_score;
+    info.episode_iterations = itr;
+    info.total_time = elapsed_seconds;
+    return info;
+
 }
 
-template <envs::discrete_world_concept EnvTp, typename ActionSelector, typename TableTp>
+template <envs::discrete_world_concept EnvTp, typename ActionSelector>
 void
-DoubleQLearning<EnvTp, ActionSelector, TableTp>::update_q_table_(const action_type& action, const state_type& cstate,
+DoubleQLearning<EnvTp, ActionSelector>::update_q_table_(const action_type& action, const state_type& cstate,
                                                                  const state_type& next_state, real_t reward){
-
-//#ifdef CUBEAI_DEBUG
-//    assert(action < this->env_ref_().n_actions() && "Inavlid action idx");
-//    assert(cstate < this->env_ref_().n_states() && "Inavlid state");
-//
-//    if(next_state != CubeAIConsts::invalid_size_type())
-//        assert(next_state < this->env_ref_().n_states() && "Inavlid next_state idx");
-//#endif
-
 
     // flip a coin 50% of the time we update Q1
     // whilst 50% of the time Q2
-    std::mt19937 gen(this->seed()); //rd());
+    std::mt19937 gen(config_.seed); //rd());
 
     // generate a number in [0, 1]
     std::uniform_real_distribution<> real_dist_(0.0, 1.0);
@@ -180,44 +204,44 @@ DoubleQLearning<EnvTp, ActionSelector, TableTp>::update_q_table_(const action_ty
     if(real_dist_(gen) <= 0.5){
 
         // the current qvalue
-        auto q_current = this->with_double_q_table_mixin<TableTp>::template get<1>(cstate, action);
+        auto q_current = this->with_double_q_table_mixin<DynMat<real_t>>::template get<1>(cstate, action);
         auto Qsa_next = 0.0;
 
         //if(this->env_ref_().is_valid_state(next_state)){
-            auto max_act = this->with_double_q_table_max_action_mixin::max_action(this->with_double_q_table_mixin<TableTp>::q_table_1,
+            auto max_act = this->with_double_q_table_max_action_mixin::max_action(this->with_double_q_table_mixin<DynMat<real_t>>::q_table_1,
                                                                                   next_state, this->env_ref_().n_actions());
 
             // value of next state
-            Qsa_next = this->with_double_q_table_mixin<TableTp>::template get<2>(next_state, max_act);
+            Qsa_next = this->with_double_q_table_mixin<DynMat<real_t>>::template get<2>(next_state, max_act);
          //}
 
          // construct TD target
-         auto target = reward + (this->gamma() * Qsa_next);
+         auto target = reward + (config_.gamma * Qsa_next);
 
          // get updated value
-         auto new_value = q_current + (this->eta() * (target - q_current));
-         this->with_double_q_table_mixin<TableTp>::template set<1>(cstate, action, new_value);
+         auto new_value = q_current + (config_.eta * (target - q_current));
+         this->with_double_q_table_mixin<DynMat<real_t>>::template set<1>(cstate, action, new_value);
     }
     else{
 
         // the current qvalue
-        auto q_current = this->with_double_q_table_mixin<TableTp>::template get<2>(cstate, action);
+        auto q_current = this->with_double_q_table_mixin<DynMat<real_t>>::template get<2>(cstate, action);
         auto Qsa_next = 0.0;
 
-        //if(this->env_ref_().is_valid_state(next_state)){
-            auto max_act = this->with_double_q_table_max_action_mixin::max_action(this->with_double_q_table_mixin<TableTp>::q_table_2,
+
+        auto max_act = this->with_double_q_table_max_action_mixin::max_action(this->with_double_q_table_mixin<DynMat<real_t>>::q_table_2,
                                                                                   next_state, this->env_ref_().n_actions());
 
             // value of next state
-            Qsa_next = this->with_double_q_table_mixin<TableTp>::template get<1>(next_state, max_act);
-         //}
+        Qsa_next = this->with_double_q_table_mixin<DynMat<real_t>>::template get<1>(next_state, max_act);
+
 
          // construct TD target
-         auto target = reward + (this->gamma() * Qsa_next);
+         auto target = reward + (config_.gamma * Qsa_next);
 
          // get updated value
-         auto new_value = q_current + (this->eta() * (target - q_current));
-         this->with_double_q_table_mixin<TableTp>::template set<2>(cstate, action, new_value);
+         auto new_value = q_current + (config_.eta * (target - q_current));
+         this->with_double_q_table_mixin<DynMat<real_t>>::template set<2>(cstate, action, new_value);
     }
 }
 

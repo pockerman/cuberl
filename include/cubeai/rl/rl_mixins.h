@@ -165,7 +165,43 @@ struct with_double_q_table_mixin< DynMat<real_t> >
     /// \param init_value
     ///
     void initialize(const std::vector<index_type>& indices, action_type n_actions, real_t init_value);
+
+    ///
+    ///
+    ///
+    template<int index>
+    value_type get(const state_type& state, const action_type action)const;
+
+    template<int index>
+    void set(const state_type& state, const action_type action, const value_type value);
 };
+
+template<>
+with_double_q_table_mixin< DynMat<real_t>>::value_type
+with_double_q_table_mixin< DynMat<real_t>>::get<1>(const state_type& state, const action_type action)const{
+    return q_table_1(state, action);
+}
+
+template<>
+with_double_q_table_mixin< DynMat<real_t>>::value_type
+with_double_q_table_mixin< DynMat<real_t>>::get<2>(const state_type& state, const action_type action)const{
+    return q_table_2(state, action);
+}
+
+template<>
+void
+with_double_q_table_mixin< DynMat<real_t>>::set<1>(const state_type& state, const action_type action, const value_type value){
+    q_table_1(state, action) = value;
+}
+
+template<>
+void
+with_double_q_table_mixin< DynMat<real_t>>::set<2>(const state_type& state, const action_type action, const value_type value){
+    q_table_2(state, action) = value;
+}
+
+
+
 
 template<typename KeyTp>
 struct with_double_q_table_mixin<std::map<KeyTp, DynVec<real_t>>>
