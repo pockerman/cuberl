@@ -13,12 +13,6 @@
 #include <cassert>
 #endif
 
-//#include "boost/accumulators/accumulators.hpp"
-//#include <boost/accumulators/statistics/stats.hpp>
-//#include "boost/accumulators/statistics/mean.hpp"
-//#include "boost/bind/bind.hpp"
-//#include "boost/ref.hpp"
-
 #include <chrono>
 #include <iostream>
 #include <string>
@@ -29,8 +23,10 @@ namespace rl {
 namespace algos {
 namespace td {
 
-//using namespace boost::placeholders;
 
+///
+/// \brief The SarsaConfig struct
+///
 struct SarsaConfig
 {
     uint_t n_episodes;
