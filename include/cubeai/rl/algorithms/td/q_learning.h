@@ -93,7 +93,7 @@ public:
     ///
     /// \brief actions_after_training_episode
     ///
-    virtual void actions_after_episode_ends(env_type&, uint_t /*episode_idx*/){}
+    virtual void actions_after_episode_ends(env_type&, uint_t episode_idx){action_selector_.adjust_on_episode(episode_idx);}
 
     ///
     /// \brief on_episode Do one on_episode of the algorithm
@@ -193,7 +193,6 @@ QLearning<EnvTp, ActionSelector>::on_training_episode(env_type& env, uint_t epis
 
             update_q_table_(action, state, CubeAIConsts::invalid_size_type(),
                             CubeAIConsts::invalid_size_type(), reward);
-
 
 
             break;
