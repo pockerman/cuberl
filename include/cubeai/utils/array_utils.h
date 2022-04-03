@@ -3,10 +3,12 @@
 
 #include "cubeai/base/cubeai_types.h"
 #include "cubeai/base/cubeai_consts.h"
+#include "cubeai_concepts.h"
 
 #include <vector>
 #include <algorithm> // for std::max/min_element
 #include <iterator> // for std::distance
+#include <cmath> // std::pow
 
 namespace cubeai {
 
@@ -39,6 +41,22 @@ uint_t bin_index(const typename SequenceTp::value_type& x, const SequenceTp& seq
     }
 
     return CubeAIConsts::invalid_size_type();
+}
+
+///
+///
+///
+template<utils::concepts::float_or_integral_vector VectorType>
+VectorType
+exponentiate(const VectorType& vec){
+    VectorType vec_exp(vec.size());
+    uint_t counter = 0;
+    static auto func = [&counter](const auto& data){
+        return std::pow(data, counter++);
+    };
+    std::transform(vec.begin(), vec.end(),
+                   vec_exp.begin(), func);
+    return vec_exp;
 }
 
 
