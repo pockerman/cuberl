@@ -3,8 +3,11 @@
 #if defined(USE_PYTORCH) && defined(USE_GYMFCPP)
 
 #include "cubeai/base/cubeai_types.h"
-#include "cubeai/rl/algorithms/pg/vanilla_reinforce.h"
+#include "cubeai/rl/algorithms/pg/simple_reinforce.h"
+#include "cubeai/rl/trainers/pytorch_rl_agent_trainer.h"
 #include "cubeai/ml/distributions/torch_categorical.h"
+#include "cubeai/optimization/optimizer_type.h"
+#include "cubeai/optimization/pytorch_optimizer_factory.h"
 
 #include "gymfcpp/gymfcpp_types.h"
 #include "gymfcpp/cart_pole_env.h"
@@ -13,9 +16,9 @@
 #include <torch/torch.h>
 #include <boost/python.hpp>
 
-#include <deque>
-#include <tuple>
 #include <iostream>
+#include <string>
+#include <any>
 
 
 namespace example{
@@ -25,8 +28,10 @@ namespace F = torch::nn::functional;
 using cubeai::real_t;
 using cubeai::uint_t;
 using cubeai::torch_tensor_t;
-using cubeai::rl::algos::pg::Reinforce;
-using cubeai::rl::algos::pg::ReinforceOpts;
+using cubeai::rl::algos::pg::SimpleReinforce;
+using cubeai::rl::algos::pg::ReinforceConfig;
+using cubeai::rl::PyTorchRLTrainer;
+using cubeai::rl::PyTorchRLTrainerConfig;
 using cubeai::ml::stats::TorchCategorical;
 using gymfcpp::CartPole;
 
@@ -47,6 +52,8 @@ public:
     void update_policy_loss(const LossValuesTp& vals);
 
     void step_backward_policy_loss();
+
+    torch_tensor_t compute_loss(){return loss_;}
 
 private:
 
@@ -117,19 +124,23 @@ int main(){
     try{
 
         Py_Initialize();
-        auto gym_module = boost::python::import("gym");
+        auto gym_module = boost::python::import("__main__");
         auto gym_namespace = gym_module.attr("__dict__");
 
-        auto world = CartPole("v0", gym_namespace, false);
-        world.make();
+        auto env = CartPole("v0", gym_namespace, false);
+        env.make();
 
         Policy policy;
-        torch::optim::Adam optimizer(policy->parameters(), torch::optim::AdamOptions(1e-2));
+        auto optimizer_ptr = std::make_unique<torch::optim::Adam>(policy->parameters(), torch::optim::AdamOptions(1e-2));
 
         // reinforce options
-        ReinforceOpts opts = {1000, 100, 100, 100, 1.0e-2, 0.1, 195.0, true};
-        Reinforce<CartPole, Policy, torch::optim::Adam> reinforce(opts, world, policy, optimizer);
-        reinforce.train();
+        ReinforceConfig opts = {1000, 100, 100, 100, 1.0e-2, 0.1, 195.0, true};
+        SimpleReinforce<CartPole, Policy> algorithm(opts, policy);
+
+        PyTorchRLTrainerConfig trainer_config{1.0e-8, 1001, 50};
+        PyTorchRLTrainer<CartPole, SimpleReinforce<CartPole, Policy>> trainer(trainer_config, algorithm, std::move(optimizer_ptr));
+
+        trainer.train(env);
 
     }
     catch(const boost::python::error_already_set&){
