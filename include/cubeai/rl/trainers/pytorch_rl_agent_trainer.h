@@ -18,8 +18,10 @@ namespace rl {
 
 struct PyTorchRLTrainerConfig
 {
-    uint_t n_episodes;
     real_t tolerance;
+    uint_t n_episodes;
+    uint_t out_msg_frequency;
+
 };
 
 template<typename EnvType, typename AgentType>
@@ -55,7 +57,7 @@ template<typename EnvType, typename AgentType>
 PyTorchRLTrainer<EnvType, AgentType>::PyTorchRLTrainer(const PyTorchRLTrainerConfig config, agent_type& agent,
                                                        std::unique_ptr<torch::optim::Optimizer> optimizer)
     :
-    IterativeRLTrainerBase<EnvType, AgentType>(config.n_episodes, config.tolerance, agent),
+    IterativeRLTrainerBase<EnvType, AgentType>(config.n_episodes, config.tolerance, agent, config.out_msg_frequency),
     optimizer_(std::move(optimizer))
 {}
 

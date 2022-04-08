@@ -5,7 +5,7 @@
 #include "cubeai/rl/algorithms/rl_algorithm_base.h"
 #include "cubeai/rl/episode_info.h"
 #include "cubeai/maths/basic_array_statistics.h"
-
+#include "cubeai/utils/array_utils.h"
 #include "gymfcpp/render_mode_enum.h"
 
 #include <vector>
@@ -150,7 +150,7 @@ private:
     ///
     /// \brief do_step_
     ///
-    void do_step_(env_type& env);
+    uint_t do_step_(env_type& env);
 
 };
 
@@ -165,16 +165,16 @@ SimpleReinforce<EnvType, PolicyTp>::SimpleReinforce(ReinforceConfig config, poli
 
 template<typename WorldTp, typename PolicyTp>
 void
-SimpleReinforce<WorldTp, PolicyTp>::actions_before_training_begins(env_type& env){
+SimpleReinforce<WorldTp, PolicyTp>::actions_before_training_begins(env_type& /*env*/){
 
     scores_.clear();
     reset_internal_structs_();
 
 }
 
-/*template<typename WorldTp, typename PolicyTp, typename OptimizerTp>
+template<typename WorldTp, typename PolicyTp>
 void
-Reinforce<WorldTp, PolicyTp, OptimizerTp>::reset_internal_structs_()noexcept{
+SimpleReinforce<WorldTp, PolicyTp>::reset_internal_structs_()noexcept{
 
     std::vector<real_t> empty;
     std::swap(saved_log_probs_, empty);
@@ -185,7 +185,7 @@ Reinforce<WorldTp, PolicyTp, OptimizerTp>::reset_internal_structs_()noexcept{
     std::swap(scores_deque_, empty_deque);
 
 }
-*/
+
 /*template<typename WorldTp, typename PolicyTp, typename OptimizerTp>
 void
 Reinforce<WorldTp, PolicyTp, OptimizerTp>::compute_discounts_(std::vector<real_t>& data)const noexcept{
@@ -209,13 +209,14 @@ SimpleReinforce<WorldTp, PolicyTp>::compute_total_reward_(const std::vector<real
 }
 
 template<typename WorldTp, typename PolicyTp>
-void
+uint_t
 SimpleReinforce<WorldTp, PolicyTp>::do_step_(env_type& env){
 
     //  for every episode reset the environment
     auto state = env.reset().observation();
 
-    for(uint_t itr=0; itr < config_.max_itrs_per_episode; ++itr){
+    uint_t itr = 0;
+    for(; itr < config_.max_itrs_per_episode; ++itr){
 
             auto [action, log_prob] = policy_ptr_ -> act(state);
 
@@ -234,6 +235,8 @@ SimpleReinforce<WorldTp, PolicyTp>::do_step_(env_type& env){
             }
     }
 
+    return itr;
+
 }
 
 template<typename WorldTp, typename PolicyTp>
@@ -247,7 +250,7 @@ SimpleReinforce<WorldTp, PolicyTp>::on_training_episode(env_type& env, uint_t ep
     //auto state = world_ptr_ ->reset().observation();
     reset_internal_structs_();
 
-    do_step_(env);
+    auto itrs = do_step_(env);
 
     auto rewards_sum = std::accumulate(rewards_.begin(), rewards_.end(), 0.0);
 
@@ -263,7 +266,8 @@ SimpleReinforce<WorldTp, PolicyTp>::on_training_episode(env_type& env, uint_t ep
     discounts.reserve(rewards_.size() + 1);
 
     //discounts = [self.gamma ** i for i in range(len(self.rewards) + 1)]
-    compute_discounts_(discounts);
+    //compute_discounts_(discounts);
+    exponentiate(discounts);
 
     // R = sum([a * b for a, b in zip(discounts, self.rewards)])
     auto R = compute_total_reward_(discounts);
@@ -280,7 +284,7 @@ SimpleReinforce<WorldTp, PolicyTp>::on_training_episode(env_type& env, uint_t ep
     //opt_ptr_ -> zero_grad();
 
     // backward propagate policy loss i.e. policy_loss.backward();
-    policy_ptr_ -> step_backward_policy_loss();
+    //policy_ptr_ -> step_backward_policy_loss();
     //opt_ptr_ -> step();
 
     //auto scores_mean = std::accumulate(scores_deque_.begin(), scores_deque_.end(), 0.0);
@@ -293,12 +297,12 @@ SimpleReinforce<WorldTp, PolicyTp>::on_training_episode(env_type& env, uint_t ep
     }*/
 
     auto end = std::chrono::steady_clock::now();
-    std::chrono::duration<real_t> elapsed_seconds = end-start;
+    std::chrono::duration<real_t> elapsed_seconds = end - start;
 
     EpisodeInfo info;
     info.episode_index = episode_idx;
-    //info.episode_reward = episode_rewards;
-    info.episode_iterations = episode_idx;
+    info.episode_reward = R;
+    info.episode_iterations = itrs;
     info.total_time = elapsed_seconds;
     return info;
 }

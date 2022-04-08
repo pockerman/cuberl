@@ -16,8 +16,6 @@
 #include <torch/torch.h>
 #include <boost/python.hpp>
 
-#include <deque>
-#include <tuple>
 #include <iostream>
 #include <string>
 #include <any>
@@ -139,14 +137,8 @@ int main(){
         ReinforceConfig opts = {1000, 100, 100, 100, 1.0e-2, 0.1, 195.0, true};
         SimpleReinforce<CartPole, Policy> algorithm(opts, policy);
 
-        //std::map<std::string, std::any> options;
-        //options.insert({"lr", 0.01});
-
-        //auto optimizer_opts = cubeai::optim::pytorch::build_pytorch_optimizer_options(cubeai::optim::OptimzerType::ADAM, options);
-        //auto optimizer_ptr = cubeai::optim::pytorch::build_pytorch_optimizer(cubeai::optim::OptimzerType::ADAM, policy, options);
-
-        PyTorchRLTrainerConfig trainer_config{1000, 1.0e-8};
-        PyTorchRLTrainer<CartPole, SimpleReinforce<CartPole, Policy>> trainer(trainer_config, algorithm, optimizer_ptr);
+        PyTorchRLTrainerConfig trainer_config{1.0e-8, 1001, 50};
+        PyTorchRLTrainer<CartPole, SimpleReinforce<CartPole, Policy>> trainer(trainer_config, algorithm, std::move(optimizer_ptr));
 
         trainer.train(env);
 

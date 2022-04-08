@@ -60,6 +60,7 @@ public:
     /// the iterations are finished
     ///
     virtual void actions_after_training_ends(env_type& env){agent_.actions_after_training_ends(env);}
+
 protected:
 
     ////
@@ -68,7 +69,8 @@ protected:
     /// \param tolerance
     /// \param agent
     ///
-    IterativeRLTrainerBase(uint_t max_episodes, real_t tolerance, agent_type& agent);
+    IterativeRLTrainerBase(uint_t max_episodes, real_t tolerance,
+                           agent_type& agent, uint_t out_msg_frequency=CubeAIConsts::INVALID_SIZE_TYPE);
 
     ///
     /// \brief itr_ctrl_ Handles the iteration over the
@@ -99,10 +101,12 @@ protected:
 };
 
 template<typename EnvType, typename AgentType>
-IterativeRLTrainerBase<EnvType, AgentType>::IterativeRLTrainerBase(uint_t max_episodes, real_t tolerance, agent_type& agent)
+IterativeRLTrainerBase<EnvType, AgentType>::IterativeRLTrainerBase(uint_t max_episodes, real_t tolerance,
+                                                                   agent_type& agent, uint_t out_msg_frequency)
     :
       itr_ctrl_(max_episodes, tolerance),
-      agent_(agent)
+      agent_(agent),
+      output_msg_frequency_(out_msg_frequency)
 {}
 
 template<typename EnvType, typename AgentType>
