@@ -28,7 +28,7 @@
 
 namespace rl_example_18{
 
-typedef boost::python::api::object obj_t;
+
 using cubeai::real_t;
 using cubeai::uint_t;
 using cubeai::DynVec;
