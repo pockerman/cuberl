@@ -24,7 +24,7 @@ The following is an indicative list of examples. More tutorials can be found at 
 - <a href="examples/example_15/example_15.cpp">Example 15: Approximate Monte Carlo on ```MountainCar-v0```</a>
 - <a href="examples/example_16/example_16.cpp">Example 16: Monte Carlo tree search on ```Taxi-v3```</a>
 - <a href="examples/example_17/example_17.cpp">Example 17: A* search on a road network  from Open Street Map data</a> 
-- <a href="examples/example_18/example_18.cpp">Example 18: Double Q-learning on  ```CartPole-v0``` </a> 
+- <a href="https://pockerman-py-cubeai.readthedocs.io/en/latest/ExamplesCpp/rl/rl_example_18.html">Example 18: Double Q-learning on  ```CartPole-v0``` </a> 
 - <a href="#">Example 19: Path planning with rapidly-exploring random trees (TODO)</a> 
 - <a href="#">Example 20: Path planning with dynamic windows (TODO) </a>   
 
@@ -35,15 +35,10 @@ The following is an indicative list of examples. More tutorials can be found at 
 - <a href="https://pockerman-py-cubeai.readthedocs.io/en/latest/ExamplesCpp/rl/rl_example_13.html">Example 13: Reinforce algorithm on ```CartPole-v0```</a>
 - <a href="examples/example_21/example_21.cpp">Example 21: Simple logistic regression</a>
 
+## Installation
 
-## Dependencies
+Installation instructions and dependencies can be found <a href="https://pockerman-py-cubeai.readthedocs.io/en/latest/install.html">here</a>.
 
-- CMake
-- Python >= 3.8
-- PyTorch C++ bindings
-- <a href="https://bitbucket.org/blaze-lib/blaze/src/master/">Blaze</a> (version >= 3.8)
-- Blas library, e.g. OpenBLAS (required by Blaze)
-- <a href="#">gymfcpp</a>
 
 ### Documentation dependencies
 
@@ -54,43 +49,4 @@ There are extra dependencies if you want to generate the documentation. Namely,
 - sphinx_rtd_theme
 - breathe
 - m2r2
-
-## Installation
-
-- Install the dependencies
-- ```mkdir build && cd build```
-- ```cmake ..```
-- ```make install```
-
-If you are using ```gymfcpp``` you need to export the path to the Python version you are using. For ecample:
-
-```
-export CPLUS_INCLUDE_PATH="$CPLUS_INCLUDE_PATH:/usr/include/python3.8/"
-```
-
-Depending on the values of the ```CMAKE_BUILD_TYPE```, the produced shared library will be installed in ```CMAKE_INSTALL_PREFIX/dbg/``` or ```CMAKE_INSTALL_PREFIX/opt/``` directories.
-
-## Issues
-
-### ```pyconfig.h``` not found
-
-- Export the path to your Python library directory as shown above
-
-### Problems with Blaze includes
-
-- ```cubeai``` is using Blaze-3.8. As of this version the ```FIND_PACKAGE( blaze )``` command does not populate ```BLAZE_INCLUDE_DIRS``` 
-therefore you manually have to set the variable appropriately for your system.
-
-
-
-## References
-
-- <a href="https://pytorch.org/cppdocs/">PyTorch C++ API</a>
-
-
-## Images
-
-![Following a path](images/path_following.gif "Following a path")
-
-![State value function](images/state_value_function.png "State value function")
 
