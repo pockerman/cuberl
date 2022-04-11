@@ -12,6 +12,8 @@
 #include "cubeai/rl/rl_mixins.h"
 #include "cubeai/rl/worlds/envs_concepts.h"
 #include "cubeai/rl/episode_info.h"
+#include "cubeai/io/csv_file_writer.h"
+#include "cubeai/maths/matrix_utilities.h"
 
 #include <chrono>
 #include <random>
@@ -242,6 +244,30 @@ DoubleQLearning<EnvTp, ActionSelector>::update_q_table_(const action_type& actio
          // get updated value
          auto new_value = q_current + (config_.eta * (target - q_current));
          this->with_double_q_table_mixin<DynMat<real_t>>::template set<2>(cstate, action, new_value);
+    }
+}
+
+template <envs::discrete_world_concept EnvTp, typename ActionSelector>
+void
+DoubleQLearning<EnvTp, ActionSelector>::save(std::string filename)const{
+
+    CSVWriter file_writer(filename, ',', true);
+    std::vector<std::string> col_names(1 + this->with_double_q_table_mixin<DynMat<real_t>>::q_table_1.columns());
+    col_names[0] = "state_index";
+
+    for(uint_t i = 0; i< this->with_double_q_table_mixin<DynMat<real_t>>::q_table_1.columns(); ++i){
+        col_names[i + 1] = "action_" + std::to_string(i);
+    }
+
+    file_writer.write_column_names(col_names);
+
+    for(uint_t s=0; s < this->with_double_q_table_mixin<DynMat<real_t>>::q_table_1.rows(); ++s){
+
+        auto actions = maths::get_row(this->with_double_q_table_mixin<DynMat<real_t>>::q_table_1, s);
+        file_writer.write_row(std::make_tuple(s, actions));
+
+        actions = maths::get_row(this->with_double_q_table_mixin<DynMat<real_t>>::q_table_2, s);
+        file_writer.write_row(std::make_tuple(s, actions));
     }
 }
 
