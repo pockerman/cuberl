@@ -60,6 +60,11 @@ namespace cubeai
     using DynVec = blaze::DynamicVector<T, blaze::columnVector>;
 
     ///
+    ///
+    ///
+    using FloatVec = DynVec<real_t>;
+
+    ///
     /// \brief Null type. Simple placeholder
     ///
     struct Null{};

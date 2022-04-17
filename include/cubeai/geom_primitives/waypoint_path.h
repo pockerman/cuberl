@@ -1,70 +1,109 @@
 #ifndef WAYPOINT_PATH_H
 #define WAYPOINT_PATH_H
-#include "cubic_engine/base/cubic_engine_types.h"
-#include "kernel/geometry/geom_point.h"
-#include "kernel/geometry/generic_line.h"
+
+#include "cubeai/base/cubeai_types.h"
+#include "cubeai/geom_primitives/geom_point.h"
+#include "cubeai/geom_primitives/generic_line.h"
+
 
 #include <vector>
+#include <utility>
 #include <stdexcept>
 
-namespace cengine{
-namespace grids {
+namespace cubeai{
+namespace geom_primitives {
 
 /// \brief Helper class to represent a waypoint
 template<int dim, typename Data>
-struct WayPoint: public kernel::GeomPoint<dim>
+struct WayPoint: public GeomPoint<dim>
 {
-    typedef kernel::GeomPoint<dim> position_t;
+    typedef GeomPoint<dim> position_t;
     typedef Data data_t;
     uint_t id;
     data_t data;
     bool is_active_point;
 
+    ///
     /// constructor
+    ///
     WayPoint(const position_t& p, uint_t id_, const data_t& data_=data_t())
         :
-          kernel::GeomPoint<dim>(p),
+          GeomPoint<dim>(p),
           id(id_),
-          data(data),
+          data(data_),
           is_active_point(true)
     {}
 
+    ///
     /// \brief Return the id of the point
+    ///
     uint_t get_id()const{return id;}
 
+    ///
     /// \brief Writable reference to the data
+    ///
     data_t& get_data(){return data;}
 
+    ///
     /// \brief Read reference to the data
+    ///
     const data_t& get_data()const{return data;}
 
+    ///
     /// \brief Returns true if the waypoint is active
+    ///
     bool is_active()const{return is_active_point;}
 };
 
 
 struct LineSegmentData
 {
+    ///
     /// \brief The maximum velocity
     /// allowed on the edge
-    real_t Vmax{0.0};
+    ///
+    real_t vmax{0.0};
 
+    ///
+    /// \brief The minimum velocity
+    /// allowed on the edge
+    ///
+    real_t vmin{0.0};
+
+    ///
+    /// \brief The maximum velocity
+    /// allowed on the edge
+    ///
+    real_t wmax{0.0};
+
+    ///
+    /// \brief The minimum velocity
+    /// allowed on the edge
+    ///
+    real_t wmin{0.0};
+
+    ///
     /// \brief The orientation of the
     /// segment with respect to the global coordinate
     /// frame. This may also dictate the orientation
     /// that a reference vehicle may have on the segment
+    ///
     real_t theta{0.0};
 
+    ///
     /// \brief The angular velocity on the segment
+    ///
     real_t w{0.0};
 
+    ///
     /// \brief The angular velocity on the segement
+    ///
     real_t v{0.0};
 
 };
 
 template<int dim, typename NodeData, typename SegmentData>
-class LineSegment: private kernel::kernel_detail::generic_line_base<WayPoint<dim, NodeData>>
+class LineSegment: public GenericLine<WayPoint<dim, NodeData>>
 {
 public:
 
@@ -72,14 +111,14 @@ public:
     typedef NodeData node_data_t;
     typedef SegmentData segment_data_t;
     typedef WayPoint<dim, NodeData> w_point_t;
-    typedef kernel::kernel_detail::generic_line_base<w_point_t> base;
-    typedef typename base::node_type node_type;
+    //typedef kernel::kernel_detail::generic_line_base<w_point_t> base;
+    //typedef typename base::node_type node_type;
 
-    using base::start;
-    using base::end;
-    using base::get_id;
-    using base::set_id;
-    using base::has_valid_id;
+    //using base::start;
+    //using base::end;
+    //using base::get_id;
+    //using base::set_id;
+    //using base::has_valid_id;
 
     /// \brief Constructor
     LineSegment(uint_t id, const w_point_t& v1,
@@ -138,7 +177,7 @@ LineSegment<dim, NodeData, SegmentData>::LineSegment(uint_t id,
                                                      const typename LineSegment<dim, NodeData, SegmentData>::w_point_t& v2,
                                                      const typename LineSegment<dim, NodeData, SegmentData>::segment_data_t& data)
     :
-     kernel::kernel_detail::generic_line_base<WayPoint<dim, NodeData>>(v1, v2, id),
+     GenericLine<WayPoint<dim, NodeData>>(v1, v2, id),
      internal_points_(),
      data_(data),
      is_active_(true)
@@ -167,10 +206,12 @@ LineSegment<dim, NodeData, SegmentData>::get_vertex(uint_t v)const{
     throw std::logic_error("Vertex index not in [0,1]");
 }
 
+///
 /// \brief class WaypointPath models a path formed
 /// by line segments and way points. The Data
 /// template parameter represents the data held
 /// at the waypoints of the path
+///
 template<int dim, typename PointData, typename EdgeData>
 class WaypointPath
 {
@@ -180,7 +221,7 @@ public:
 
     typedef PointData w_point_data_t;
     typedef WayPoint<dim, w_point_data_t> w_point_t;
-    typedef kernel::GeomPoint<dim> point_t;
+    typedef GeomPoint<dim> point_t;
     typedef EdgeData segment_data_t;
     typedef LineSegment<dim, w_point_data_t, segment_data_t> segment_t;
     typedef segment_t element_t;
@@ -193,22 +234,34 @@ public:
     typedef typename std::vector<segment_t*>::iterator element_iterator_impl;
     typedef typename std::vector<segment_t*>::const_iterator celement_iterator_impl;
 
+    ///
     /// \brief Constructor
+    ///
     WaypointPath();
 
+    ///
     /// \brief Destructor
+    ///
     ~WaypointPath();
 
+    ///
     /// \brief How many waypoints the pah has
+    ///
     uint_t n_nodes()const{return waypoints_.size();}
 
+    ///
     /// \brief How many segments the path has
+    ///
     uint_t n_elements()const{return segments_.size();}
 
+    ///
     /// \brief Reserve space for waypoints
+    ///
     void reserve_nodes(uint_t n);
 
+    ///
     /// \brief Reserve space for
+    ///
     void reserve_elements(uint_t n);
 
     /// \brief clear the memory allocated for points and
@@ -218,13 +271,13 @@ public:
     /// \brief Add a new waypoint in the path
     /// and get a writable pointer default
     /// waypoint data is assumed
-    w_point_t* add_node(const kernel::GeomPoint<dim>& position)
+    w_point_t* add_node(const GeomPoint<dim>& position)
     {return add_node(position, w_point_data_t());}
 
 
     /// \brief Add a new waypoint in the path and get back
     /// a writable reference of the newly added point
-    w_point_t* add_node(const kernel::GeomPoint<dim>& position,
+    w_point_t* add_node(const GeomPoint<dim>& position,
                         const w_point_data_t& data);
 
     /// \brief Add a new segment in the path and get back
@@ -306,7 +359,7 @@ WaypointPath<dim, PointData, EdgeData>::clear(){
 
 template<int dim, typename PointData, typename EdgeData>
 typename WaypointPath<dim, PointData, EdgeData>::w_point_t*
-WaypointPath<dim, PointData, EdgeData>::add_node(const kernel::GeomPoint<dim>& position,
+WaypointPath<dim, PointData, EdgeData>::add_node(const GeomPoint<dim>& position,
                                                       const typename WaypointPath<dim, PointData, EdgeData>::w_point_data_t& data){
 
     uint_t id = waypoints_.size();
@@ -377,6 +430,23 @@ WaypointPath<dim, PointData, EdgeData>::element(uint_t e)const{
     }
 
     return segments_[e];
+}
+
+template<typename PointData, typename EdgeData>
+std::pair<bool, GeomPoint<2>>
+compute_projection_of_point_on_path(const WaypointPath<2, PointData, EdgeData>& path, const GeomPoint<2>& point){
+
+    auto segments_begin = path.elements_begin();
+    auto segments_end = path.elements_end();
+
+    for(; segments_begin != segments_end; ++segments_begin){
+
+        if(point_in_line_vertices(*segments_begin. point)){
+            return {true, compute_projection_of_point_on_line(segments_begin, point)};
+        }
+    }
+
+    return {false, GeomPoint<2>()};
 }
 
 }

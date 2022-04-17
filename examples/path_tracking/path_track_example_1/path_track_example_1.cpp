@@ -1,4 +1,7 @@
 #include "cubeai/base/cubeai_types.h"
+#include "cubeai/control/pure_pursuit_path_tracker.h"
+#include "cubeai/geom_primitives/waypoint_path.h"
+#include "cubeai/robots/diff_drive_robot.h"
 
 
 #include <cmath>
@@ -8,76 +11,77 @@
 #include <random>
 #include <algorithm>
 
-namespace exe
+namespace path_track_example_1
 {
 
 using cubeai::real_t;
 using cubeai::uint_t;
 using cubeai::DynMat;
 using cubeai::DynVec;
+using cubeai::geom_primitives::WaypointPath;
+using cubeai::geom_primitives::WayPoint;
+using cubeai::geom_primitives::LineSegmentData;
+using cubeai::robots::DiffDriveRobot;
+using cubeai::control::PurePursuit2DPathTracker;
 
-// create transition matrix
-DynMat<real_t> create_transition_matrix(){
-    return DynMat<real_t>({{0.9, 0.1}, {0.5, 0.5}});
+const uint_t N_STEPS = 10;
+const real_t DT = 0.01;
+
+struct WaypointData
+{
+    real_t v;
+    real_t w;
+};
+
+typedef WaypointPath<2, WaypointData, LineSegmentData> path_type;
+
+
+
+path_type build_path(){
+
+
 }
 
-// create transition matrix
-DynMat<real_t> compute_matrix_power(const DynMat<real_t>& mat, uint_t power ){
+class Agent
+{
 
-    auto result = mat;
+public:
 
-    for(uint i=0; i<power - 1; ++i){
-        result *= mat;
-    }
+    void step(const path_type& path);
+private:
 
-    return result;
-}
 
-void print_matrix(const DynMat<real_t>& mat){
-    std::cout<<"["<<mat(0, 0)<<" , "<<mat(0, 1)<<"]"<<std::endl;
-    std::cout<<"["<<mat(1, 0)<<" , "<<mat(1, 1)<<"]"<<std::endl;
+   DiffDriveRobot robot_;
+   PurePursuit2DPathTracker path_tracker_;
+};
+
+void
+Agent::step(const path_type& path){
+
+    // find the velocity commands
+    auto current_pose = robot_.get_pose();
+    auto vel_cmds = path_tracker_.execute(path, current_pose);
+
+    // execute the commands
+
 }
 
 }
 
 int main() {
 
-    using namespace exe;
+    using namespace path_track_example_1;
 
-    auto transition = create_transition_matrix();
+    // build the path
+    auto path = build_path();
 
-    std::cout<<"After 3 steps..."<<std::endl;
-    // after 3 steps
-    auto t_3 = compute_matrix_power(transition, 3 );
-    print_matrix(t_3);
+    Agent agent;
 
-    std::cout<<"After 50 steps..."<<std::endl;
-    // after 3 steps
-    auto t_50 = compute_matrix_power(transition, 50 );
-    print_matrix(t_50);
+    for(uint_t itr=0; itr<N_STEPS; ++itr){
 
-    std::cout<<"After 100 steps..."<<std::endl;
-    // after 3 steps
-    auto t_100 = compute_matrix_power(transition, 100 );
-    print_matrix(t_100);
+        agent.step(path);
+    }
 
-    // initial vector
-    auto v1 = DynVec<real_t>({1.0, 0.0});
-
-    // We can calculate the probability of being
-    // in a specific state after k iterations multiplying
-    // the initial distribution and the transition matrix: v⋅Tk.
-
-    std::cout<<"v_3="<<blaze::trans(v1) * t_3<<std::endl;
-    std::cout<<"v_50="<<blaze::trans(v1) * t_50<<std::endl;
-    std::cout<<"v_100="<<blaze::trans(v1) * t_100<<std::endl;
-
-    // initial vector
-    v1 = DynVec<real_t>({0.5, 0.5});
-
-    std::cout<<"v_3="<<blaze::trans(v1) * t_3<<std::endl;
-    std::cout<<"v_50="<<blaze::trans(v1) * t_50<<std::endl;
-    std::cout<<"v_100="<<blaze::trans(v1) * t_100<<std::endl;
 
 
 
