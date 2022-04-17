@@ -39,7 +39,22 @@ typedef WaypointPath<2, WaypointData, LineSegmentData> path_type;
 
 path_type build_path(){
 
+    path_type path;
 
+    // a path with 10 points
+    path.reserve_nodes(10);
+
+    path.add_node({0.0, 0.0});
+    path.add_node({1.0, 1.0});
+    path.add_node({2.0, 1.0});
+    path.add_node({2.5, 1.5});
+    path.add_node({3.5, 2.5});
+    path.add_node({4.0, 2.5});
+    path.add_node({5.0, 2.5});
+    path.add_node({6.0, 1.5});
+    path.add_node({7.0, 0.5});
+    path.add_node({8.0, 0.0});
+    return path;
 }
 
 class Agent

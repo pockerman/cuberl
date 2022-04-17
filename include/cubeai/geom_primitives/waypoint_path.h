@@ -4,6 +4,7 @@
 #include "cubeai/base/cubeai_types.h"
 #include "cubeai/geom_primitives/geom_point.h"
 #include "cubeai/geom_primitives/generic_line.h"
+#include "cubeai/geom_primitives/geometry_utils.h"
 
 
 #include <vector>
@@ -35,6 +36,18 @@ struct WayPoint: public GeomPoint<dim>
     {}
 
     ///
+    /// \brief WayPoint
+    /// \param other
+    ///
+    WayPoint(const WayPoint& other);
+
+    ///
+    /// \brief WayPoint
+    /// \param other
+    ///
+    WayPoint(WayPoint&& other);
+
+    ///
     /// \brief Return the id of the point
     ///
     uint_t get_id()const{return id;}
@@ -54,6 +67,24 @@ struct WayPoint: public GeomPoint<dim>
     ///
     bool is_active()const{return is_active_point;}
 };
+
+template<int dim, typename Data>
+WayPoint<dim, Data>::WayPoint(const WayPoint<dim, Data>& other)
+    :
+    GeomPoint<dim>(other),
+    id(other.id),
+    data(other.data),
+    is_active_point(other.is_active_point)
+{}
+
+template<int dim, typename Data>
+WayPoint<dim, Data>::WayPoint(WayPoint<dim, Data>&& other)
+    :
+    GeomPoint<dim>(other),
+    id(other.id),
+    data(std::move(other.data)),
+    is_active_point(other.is_active_point)
+{}
 
 
 struct LineSegmentData
@@ -220,19 +251,19 @@ public:
     static const int dimension = dim;
 
     typedef PointData w_point_data_t;
-    typedef WayPoint<dim, w_point_data_t> w_point_t;
+    typedef WayPoint<dim, w_point_data_t> w_point_type;
     typedef GeomPoint<dim> point_t;
     typedef EdgeData segment_data_t;
-    typedef LineSegment<dim, w_point_data_t, segment_data_t> segment_t;
-    typedef segment_t element_t;
+    typedef LineSegment<dim, w_point_data_t, segment_data_t> segment_type;
+    typedef segment_type element_t;
 
     /// \brief point iteration
-    typedef typename std::vector<w_point_t*>::iterator node_iterator_impl;
-    typedef typename std::vector<w_point_t*>::const_iterator cnode_iterator_impl;
+    typedef typename std::vector<w_point_type>::iterator node_iterator_impl;
+    typedef typename std::vector<w_point_type>::const_iterator cnode_iterator_impl;
 
     /// \brief Line segment  iteration
-    typedef typename std::vector<segment_t*>::iterator element_iterator_impl;
-    typedef typename std::vector<segment_t*>::const_iterator celement_iterator_impl;
+    typedef typename std::vector<segment_type>::iterator element_iterator_impl;
+    typedef typename std::vector<segment_type>::const_iterator celement_iterator_impl;
 
     ///
     /// \brief Constructor
@@ -242,7 +273,7 @@ public:
     ///
     /// \brief Destructor
     ///
-    ~WaypointPath();
+    ~WaypointPath()=default;
 
     ///
     /// \brief How many waypoints the pah has
@@ -252,7 +283,7 @@ public:
     ///
     /// \brief How many segments the path has
     ///
-    uint_t n_elements()const{return segments_.size();}
+    //uint_t n_elements()const{return segments_.size();}
 
     ///
     /// \brief Reserve space for waypoints
@@ -260,45 +291,25 @@ public:
     void reserve_nodes(uint_t n);
 
     ///
-    /// \brief Reserve space for
-    ///
-    void reserve_elements(uint_t n);
-
     /// \brief clear the memory allocated for points and
     /// edges
+    ///
     void clear();
 
+    ///
     /// \brief Add a new waypoint in the path
     /// and get a writable pointer default
     /// waypoint data is assumed
-    w_point_t* add_node(const GeomPoint<dim>& position)
+    ///
+    w_point_type& add_node(const GeomPoint<dim>& position)
     {return add_node(position, w_point_data_t());}
 
-
+    ///
     /// \brief Add a new waypoint in the path and get back
     /// a writable reference of the newly added point
-    w_point_t* add_node(const GeomPoint<dim>& position,
-                        const w_point_data_t& data);
-
-    /// \brief Add a new segment in the path and get back
-    /// a writable reference of the newly added segment.
-    /// Throws std::logic_error if vid0 and vid1 are not
-    /// in the path
-    segment_t* add_element(uint_t vid0, uint_t vid1,
-                            const segment_data_t& data);
-
-    /// \brief Add a new segment in the path and get back
-    /// a writable reference of the newly added segment.
-    /// Throws std::logic_error if vid0 and vid1 are not
-    /// in the path
-    segment_t* add_element(uint_t vid0, uint_t vid1)
-    {return add_element(vid0, vid1, segment_data_t());}
-
-    /// \brief read/write access to the n-th segment
-    segment_t* element(uint_t e);
-
-    /// \brief read access to the n-th segment
-    const segment_t* element(uint_t e)const;
+    ///
+    w_point_type& add_node(const GeomPoint<dim>& position,
+                           const w_point_data_t& data);
 
     /// \brief Raw node iteration
     node_iterator_impl nodes_begin(){return waypoints_.begin();}
@@ -308,67 +319,40 @@ public:
     cnode_iterator_impl nodes_begin()const{return waypoints_.begin();}
     cnode_iterator_impl nodes_end()const{return waypoints_.end();}
 
-    /// \brief Raw elements iteration
-    element_iterator_impl elements_begin(){return segments_.begin();}
-    element_iterator_impl elements_end(){return segments_.end();}
 
-    /// \brief Raw elements iteration
-    celement_iterator_impl elements_begin()const{return segments_.begin();}
-    celement_iterator_impl elements_end()const{return segments_.end();}
 
 private:
 
     /// \brief The Waypoints of the path
-    std::vector<w_point_t*> waypoints_;
-
-    /// \brief The segments of the path
-    std::vector<segment_t*> segments_;
+    std::vector<w_point_type> waypoints_;
 
 };
 
 template<int dim, typename PointData, typename EdgeData>
 WaypointPath<dim, PointData, EdgeData>::WaypointPath()
     :
-      waypoints_(),
-      segments_()
+      waypoints_()
+      //segments_()
 {}
-
-template<int dim, typename PointData, typename EdgeData>
-WaypointPath<dim, PointData, EdgeData>::~WaypointPath(){
-    clear();
-}
 
 template<int dim, typename PointData, typename EdgeData>
 void
 WaypointPath<dim, PointData, EdgeData>::clear(){
-
-    for(uint_t i=0; i<waypoints_.size(); ++i){
-        if(waypoints_[i] != nullptr){
-            delete waypoints_[i];
-            waypoints_[i] = nullptr;
-        }
-    }
-
-    for(uint_t i=0; i<segments_.size(); ++i){
-        if(segments_[i] != nullptr){
-            delete segments_[i];
-            segments_[i] = nullptr;
-        }
-    }
+   waypoints_.clear();
 }
 
 template<int dim, typename PointData, typename EdgeData>
-typename WaypointPath<dim, PointData, EdgeData>::w_point_t*
+typename WaypointPath<dim, PointData, EdgeData>::w_point_type&
 WaypointPath<dim, PointData, EdgeData>::add_node(const GeomPoint<dim>& position,
                                                       const typename WaypointPath<dim, PointData, EdgeData>::w_point_data_t& data){
 
     uint_t id = waypoints_.size();
-    WaypointPath<dim, PointData, EdgeData>::w_point_t* p = new WaypointPath<dim, PointData, EdgeData>::w_point_t(position, id, data);
-    waypoints_.push_back(p);
+    //WaypointPath<dim, PointData, EdgeData>::w_point_t* p = new WaypointPath<dim, PointData, EdgeData>::w_point_t(position, id, data);
+    waypoints_.push_back(WaypointPath<dim, PointData, EdgeData>::w_point_type(position, id, data));
     return waypoints_[id];
 }
 
-template<int dim, typename PointData, typename EdgeData>
+/*template<int dim, typename PointData, typename EdgeData>
 typename WaypointPath<dim, PointData, EdgeData>::segment_t*
 WaypointPath<dim, PointData, EdgeData>::add_element(uint_t vid0, uint_t vid1,
                             const typename WaypointPath<dim, PointData, EdgeData>::segment_data_t& data){
@@ -391,7 +375,7 @@ WaypointPath<dim, PointData, EdgeData>::add_element(uint_t vid0, uint_t vid1,
     WaypointPath<dim, PointData, EdgeData>::segment_t* seg = new WaypointPath<dim, PointData, EdgeData>::segment_t(id, *v0, *v1, data);
     segments_.push_back(seg);
     return segments_[id];
-}
+}*/
 
 template<int dim, typename PointData, typename EdgeData>
 void
@@ -399,7 +383,7 @@ WaypointPath<dim, PointData, EdgeData>::reserve_nodes(uint_t n){
     waypoints_.reserve(n);
 }
 
-template<int dim, typename PointData, typename EdgeData>
+/*template<int dim, typename PointData, typename EdgeData>
 void
 WaypointPath<dim, PointData, EdgeData>::reserve_elements(uint_t n){
     segments_.reserve(n);
@@ -417,9 +401,9 @@ WaypointPath<dim, PointData, EdgeData>::element(uint_t e){
     }
 
     return segments_[e];
-}
+}*/
 
-template<int dim, typename PointData, typename EdgeData>
+/*template<int dim, typename PointData, typename EdgeData>
 const typename WaypointPath<dim, PointData, EdgeData>::segment_t*
 WaypointPath<dim, PointData, EdgeData>::element(uint_t e)const{
     if(e >= segments_.size()){
@@ -430,19 +414,27 @@ WaypointPath<dim, PointData, EdgeData>::element(uint_t e)const{
     }
 
     return segments_[e];
-}
+}*/
 
 template<typename PointData, typename EdgeData>
 std::pair<bool, GeomPoint<2>>
 compute_projection_of_point_on_path(const WaypointPath<2, PointData, EdgeData>& path, const GeomPoint<2>& point){
 
-    auto segments_begin = path.elements_begin();
-    auto segments_end = path.elements_end();
+    static const uint_t dummy_id = 0;
 
-    for(; segments_begin != segments_end; ++segments_begin){
+    auto nodes_begin = path.nodes_begin();
+    auto nodes_end = path.nodes_end();
 
-        if(point_in_line_vertices(*segments_begin. point)){
-            return {true, compute_projection_of_point_on_line(segments_begin, point)};
+    auto start = *nodes_begin;
+    ++nodes_begin;
+
+    for(; nodes_begin != nodes_end; ++nodes_begin){
+
+        auto end = *nodes_begin;
+        auto line = LineSegment<2, PointData, EdgeData>(dummy_id, start, end);
+
+        if(geom_utils::point_in_line_vertices(line, point)){
+            return {true, geom_utils::compute_projection_of_point_on_line(line, point)};
         }
     }
 
