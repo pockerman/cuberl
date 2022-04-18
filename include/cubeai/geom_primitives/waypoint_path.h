@@ -297,6 +297,30 @@ public:
     void clear();
 
     ///
+    /// \brief front
+    /// \return
+    ///
+    const w_point_type& front()const {return waypoints_.front();}
+
+    ///
+    /// \brief front
+    /// \return
+    ///
+    w_point_type& front(){return waypoints_.front();}
+
+    ///
+    /// \brief back
+    /// \return
+    ///
+    const w_point_type& back()const {return waypoints_.back();}
+
+    ///
+    /// \brief back
+    /// \return
+    ///
+    w_point_type& back(){return waypoints_.back();}
+
+    ///
     /// \brief Add a new waypoint in the path
     /// and get a writable pointer default
     /// waypoint data is assumed
@@ -439,6 +463,16 @@ compute_projection_of_point_on_path(const WaypointPath<2, PointData, EdgeData>& 
     }
 
     return {false, GeomPoint<2>()};
+}
+
+///
+///
+///
+template<typename PointData, typename EdgeData>
+std::vector<WayPoint<2, PointData>> find_intersections(const WaypointPath<2, PointData, EdgeData>& path,
+                                                       const geom_primitives::GeomPoint<2>& position, real_t lookahead_dist){
+
+
 }
 
 }

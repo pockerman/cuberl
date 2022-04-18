@@ -56,6 +56,7 @@ get_point_with_min_distance(const GeomPoint<dim>& p,
 std::pair<bool, real_t>
 has_intersection(real_t discriminant, real_t b, real_t a);
 
+
 template<typename LineType>
 bool
 point_in_line_vertices(const LineType& line, const GeomPoint<2>& p){

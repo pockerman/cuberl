@@ -20,12 +20,15 @@ using cubeai::DynMat;
 using cubeai::DynVec;
 using cubeai::geom_primitives::WaypointPath;
 using cubeai::geom_primitives::WayPoint;
+using cubeai::geom_primitives::GeomPoint;
 using cubeai::geom_primitives::LineSegmentData;
 using cubeai::robots::DiffDriveRobot;
 using cubeai::control::PurePursuit2DPathTracker;
 
 const uint_t N_STEPS = 10;
 const real_t DT = 0.01;
+const real_t GOAL_RADIUS = 0.5;
+const real_t LOOK_AHEAD_DIST = 1.5;
 
 struct WaypointData
 {
@@ -62,13 +65,23 @@ class Agent
 
 public:
 
+    Agent(const GeomPoint<2>& goal, real_t goal_radius, real_t lookahead_dist);
+
     void step(const path_type& path);
+
+
 private:
 
 
    DiffDriveRobot robot_;
    PurePursuit2DPathTracker path_tracker_;
 };
+
+Agent::Agent(const GeomPoint<2>& goal, real_t goal_radius, real_t lookahead_dist)
+     :
+       robot_(),
+       path_tracker_(goal, lookahead_dist, goal_radius)
+ {}
 
 void
 Agent::step(const path_type& path){
@@ -90,7 +103,7 @@ int main() {
     // build the path
     auto path = build_path();
 
-    Agent agent;
+    Agent agent(path.back(), GOAL_RADIUS, LOOK_AHEAD_DIST);
 
     for(uint_t itr=0; itr<N_STEPS; ++itr){
 
