@@ -4,9 +4,10 @@
 #include "cubeai/base/cubeai_types.h"
 
 #include "boost/noncopyable.hpp"
+#include "boost/circular_buffer.hpp"
 
-#include <deque>
-#include <memory>
+
+#include <random>
 
 namespace cubeai{
 namespace rl {
@@ -28,19 +29,19 @@ struct Transition
 /// \brief The ExperienceBuffer class. A buffer based on
 /// std::deque to accumulate items of type ExperienceTp.
 ///
-template<typename ExperienceTp, class AllocatorTp = std::allocator<ExperienceTp>>
+template<typename ExperienceType>
 class ExperienceBuffer: private boost::noncopyable{
 
 public:
 
-    typedef ExperienceTp value_type ;
-    typedef ExperienceTp experience_t;
-    typedef AllocatorTp allocator_t ;
+    typedef ExperienceType value_type ;
+    typedef ExperienceType experience_type;
 
-    typedef typename std::deque<experience_t, allocator_t>::iterator iterator;
-    typedef typename std::deque<experience_t, allocator_t>::const_iterator const_iterator;
-    typedef typename std::deque<experience_t, allocator_t>::reverse_iterator reverse_iterator;
-    typedef typename std::deque<experience_t, allocator_t>::const_reverse_iterator const_reverse_iterator;
+
+    //typedef typename std::deque<experience_t, allocator_t>::iterator iterator;
+    //typedef typename std::deque<experience_t, allocator_t>::const_iterator const_iterator;
+    //typedef typename std::deque<experience_t, allocator_t>::reverse_iterator reverse_iterator;
+    //typedef typename std::deque<experience_t, allocator_t>::const_reverse_iterator const_reverse_iterator;
 
     ///
     /// \brief ExperienceBuffer
@@ -50,33 +51,33 @@ public:
     ///
     /// \brief append Add the experience item in the buffer
     ///
-    void append(const experience_t& experience);
+    void append(const experience_type& experience);
 
     ///
     /// \brief size
     /// \return
     ///
-    uint_t size()const noexcept{return static_cast<uint_t>(experience_.size());}
+    uint_t size()const noexcept{return static_cast<uint_t>(buffer_.size());}
 
     ///
     /// \brief empty. Returns true if the buffer is empty
     /// \return
     ///
-    bool empty()const noexcept{return experience_.empty();}
+    bool empty()const noexcept{return buffer_.empty();}
 
     ///
     /// \brief clear
     ///
-    void clear()noexcept{experience_.clear(); max_size_ = 0;}
+    void clear()noexcept{buffer_.clear();}
 
     ///
     /// \brief sample. Sample batch_size experiences from the
     /// buffer and transfer them in the BatchTp container.
     ///
     template<typename BatchTp>
-    void sample(uint_t batch_size, BatchTp& batch)const;
+    void sample(uint_t batch_size, BatchTp& batch, uint_t seed=42)const;
 
-    iterator begin(){return experience_.begin();}
+    /*iterator begin(){return experience_.begin();}
     iterator end(){return experience_.end();}
 
     const_iterator begin()const{return experience_.begin();}
@@ -86,40 +87,34 @@ public:
     reverse_iterator rend(){return experience_.rend();}
 
     const_reverse_iterator rbegin()const{return experience_.rbegin();}
-    const_reverse_iterator rend()const{return experience_.rend();}
+    const_reverse_iterator rend()const{return experience_.rend();}*/
 
 private:
 
-    ///
-    /// \brief experience_. Buffer for the experience
-    ///
-    std::deque<experience_t, allocator_t> experience_;
-
-    ///
-    /// \brief max_size_ Max size of the buffer
-    ///
-    uint_t max_size_;
+   ///
+   /// \brief buffer_
+   ///
+   boost::circular_buffer<ExperienceType> buffer_;
 
 };
 
-template<typename ExperienceTp, class AllocatorTp>
-ExperienceBuffer<ExperienceTp, AllocatorTp>::ExperienceBuffer(uint_t max_size)
+template<typename ExperienceTp>
+ExperienceBuffer<ExperienceTp>::ExperienceBuffer(uint_t max_size)
     :
-      experience_(),
-      max_size_(max_size)
+      buffer_(max_size)
 {}
 
-template<typename ExperienceTp, class AllocatorTp>
+template<typename ExperienceTp>
 void
-ExperienceBuffer<ExperienceTp, AllocatorTp>::append(const experience_t& experience){
+ExperienceBuffer<ExperienceTp>::append(const experience_type& experience){
 
-    experience_.push_back(experience);
+    buffer_.push_back(experience);
 }
 
-template<typename ExperienceTp, class AllocatorTp>
+template<typename ExperienceTp>
 template<typename BatchTp>
 void
-ExperienceBuffer<ExperienceTp, AllocatorTp>::sample(uint_t batch_size, BatchTp& batch)const{
+ExperienceBuffer<ExperienceTp>::sample(uint_t batch_size, BatchTp& batch)const{
     throw std::logic_error("This function is not implemented!!!");
 }
 

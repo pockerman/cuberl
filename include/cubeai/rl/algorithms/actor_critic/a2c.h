@@ -147,12 +147,35 @@ public:
 
 private:
 
+    struct action_result
+    {
+        torch_tensor_t log_probs;
+        torch_tensor_t values;
+        torch_tensor_t actions;
+        torch_tensor_t entropies;
+
+    };
+
+    ///
+    /// \brief config_
+    ///
     A2CConfig config_;
 
     ///
     /// \brief policy_
     ///
     policy_type policy_;
+
+    ///
+    ///
+    ///
+    EpisodeInfo do_train_on_episode_(env_type&, uint_t /*episode_idx*/);
+
+    ///
+    /// \brief act_on_iteration_
+    /// \param state
+    ///
+    action_result act_on_iteration_(torch_tensor_t& state);
 
 };
 
@@ -175,7 +198,7 @@ A2C<EnvType, PolicyType>::actions_before_training_begins(env_type& env){
 
 template<typename EnvType, utils::concepts::pytorch_module PolicyType>
 EpisodeInfo
-A2C<EnvType, PolicyType>::on_training_episode(env_type&, uint_t episode_idx){
+A2C<EnvType, PolicyType>::on_training_episode(env_type& env, uint_t episode_idx){
 
     auto start = std::chrono::steady_clock::now();
 
@@ -185,12 +208,57 @@ A2C<EnvType, PolicyType>::on_training_episode(env_type&, uint_t episode_idx){
     auto end = std::chrono::steady_clock::now();
     std::chrono::duration<real_t> elapsed_seconds = end - start;
 
+    do_train_on_episode_(env, episode_idx);
+
     EpisodeInfo info;
     info.episode_index = episode_idx;
     info.episode_reward = R;
     info.episode_iterations = itrs;
     info.total_time = elapsed_seconds;
     return info;
+}
+
+template<typename EnvType, utils::concepts::pytorch_module PolicyType>
+EpisodeInfo
+A2C<EnvType, PolicyType>::do_train_on_episode_(env_type& env, uint_t /*episode_idx*/){
+
+    auto episode_score = 0.0;
+    auto episode_iterations = 0;
+
+
+    // this is in parallel all
+    // participating workers reset their
+    // environment and return their TimeStep
+    auto time_step = env.reset();
+    auto states = time_step.stack_observations();
+
+    // loop over the iterations
+    uint_t itrs = 0;
+    for(; itrs < config_.n_iterations_per_episode; ++ itrs){
+
+        auto action_result = act_on_iteration_(states);
+        auto next_state = env.step(action_result.actions);
+    }
+}
+
+template<typename EnvType, utils::concepts::pytorch_module PolicyType>
+typename A2C<EnvType, PolicyType>::action_result
+A2C<EnvType, PolicyType>::act_on_iteration_(torch_tensor_t& state){
+
+    // get the logits and the values
+    auto[logits, values] = policy_.forward(state);
+
+    // sample the actions
+    auto actions = policy_.sample(logits);
+    auto logprobs = policy_.log_probabilities(actions);
+
+    typedef typename A2C<EnvType, PolicyType>::action_result action_result;
+
+    action_result result;
+    result.actions = actions;
+    result.log_probs = logprobs;
+    result.values = values;
+    return result;
 }
 
 }

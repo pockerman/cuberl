@@ -41,11 +41,6 @@ LINK_DIRECTORIES(${Boost_LIBRARY_DIRS})
 LINK_DIRECTORIES(${GYMFCPP_LIB_DIRS})
 LINK_DIRECTORIES(${PYTHON_CONFIG_LIBS_PATH})
 
-# use the Boost link directories
-#LINK_DIRECTORIES(${Boost_LIBRARY_DIR})
-#LINK_DIRECTORIES(${CMAKE_INSTALL_PREFIX})
-#LINK_DIRECTORIES(${PYTHON_CONFIG_LIBS_PATH})
-
 # add the test dirs
 ADD_SUBDIRECTORY(test_array_utils)
 ADD_SUBDIRECTORY(test_mc_tree_search)
@@ -54,3 +49,4 @@ ADD_SUBDIRECTORY(test_basic_stats)
 ADD_SUBDIRECTORY(test_iteration_counter)
 ADD_SUBDIRECTORY(test_fixed_priority_queue)
 ADD_SUBDIRECTORY(test_a2c)
+ADD_SUBDIRECTORY(test_experience_buffer)
