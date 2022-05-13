@@ -1,120 +1,84 @@
-#include "cubeai/base/cubeai_config.h"
-
-#ifdef USE_PYTORCH
-
-#include "cubeai/rl/algorithms/actor_critic/a2c.h"
-#include "gymfcpp/cart_pole_env.h"
-
-
-#include <torch/torch.h>
-#include <boost/python.hpp>
+#include "cubeai/base/cubeai_types.h"
+#include "cubeai/data_structs/experience_buffer.h"
 
 #include <gtest/gtest.h>
 #include <vector>
 
 namespace{
 
-using cubeai::rl::algos::ac::A2CConfig;
-using cubeai::rl::algos::ac::A2C;
-using gymfcpp::CartPole;
-using gymfcpp::obj_t;
-
 using cubeai::real_t;
 using cubeai::uint_t;
-using cubeai::torch_tensor_t;
+using namespace cubeai::containers;
 
-class DummyEnv
+struct Experience
 {
-
-public:
-
-
-    DummyEnv(obj_t gym_namespace);
-
-    uint_t n_workers()const noexcept{return 1;}
-
-
-private:
-
-    CartPole env_;
-
-
+    uint_t item;
 };
-
-DummyEnv::DummyEnv(obj_t gym_namespace)
-    :
-      env_("v0", gym_namespace, true)
-
-{}
-
-class PolicyImpl: public torch::nn::Module
-{
-public:
-
-
-    PolicyImpl();
-
-    torch_tensor_t forward(torch_tensor_t){}
-
-    //template<typename StateTp>
-    //std::tuple<uint_t, real_t> act(const StateTp& state);
-    //
-    //template<typename LossValuesTp>
-    //void update_policy_loss(const LossValuesTp& vals);
-    //
-    //void step_backward_policy_loss();
-    //
-    //torch_tensor_t compute_loss(){return loss_;}
-
-private:
-
-   torch::nn::Linear fc1_;
-   torch::nn::Linear fc2_;
-
-   // placeholder for the loss
-   torch_tensor_t loss_;
-
-};
-
-PolicyImpl::PolicyImpl()
-    :
-      fc1_(nullptr),
-      fc2_(nullptr)
-{}
-
-TORCH_MODULE(Policy);
-
 }
 
 
 TEST(TestA2C, Test_Constructor) {
 
-    Py_Initialize();
-    auto gym_module = boost::python::import("__main__");
-    auto gym_namespace = gym_module.attr("__dict__");
+    ExperienceBuffer<Experience> buffer(3);
 
-    auto env = DummyEnv(gym_namespace);
+    ASSERT_TRUE(buffer.empty());
+    ASSERT_EQ(buffer.capacity(), static_cast<uint_t>(3));
+    ASSERT_EQ(buffer.size(), static_cast<uint_t>(0));
+}
 
-    A2CConfig config;
+TEST(TestA2C, Test_append) {
 
-    PolicyImpl policy;
-    A2C<DummyEnv, PolicyImpl> agent(config, policy);
+    ExperienceBuffer<Experience> buffer(3);
+
+    ASSERT_TRUE(buffer.empty());
+    ASSERT_EQ(buffer.capacity(), static_cast<uint_t>(3));
+
+    Experience exp1{1};
+    buffer.append(exp1);
+
+    Experience exp2{2};
+    buffer.append(exp2);
+
+    Experience exp3{3};
+    buffer.append(exp3);
+
+    ASSERT_EQ(buffer.size(), static_cast<uint_t>(3));
+    ASSERT_EQ(buffer[0].item, exp1.item);
+    ASSERT_EQ(buffer[1].item, exp2.item);
+    ASSERT_EQ(buffer[2].item, exp3.item);
+}
+
+TEST(TestA2C, Test_replacement) {
+
+    ExperienceBuffer<Experience> buffer(3);
+
+    ASSERT_TRUE(buffer.empty());
+    ASSERT_EQ(buffer.capacity(), static_cast<uint_t>(3));
+
+    Experience exp1{1};
+    buffer.append(exp1);
+
+    Experience exp2{2};
+    buffer.append(exp2);
+
+    Experience exp3{3};
+    buffer.append(exp3);
+
+    ASSERT_EQ(buffer.size(), static_cast<uint_t>(3));
+    ASSERT_EQ(buffer[0].item, exp1.item);
+    ASSERT_EQ(buffer[1].item, exp2.item);
+    ASSERT_EQ(buffer[2].item, exp3.item);
+
+    // now add an extra element
+    Experience exp4{4};
+    buffer.append(exp4);
+
+    ASSERT_EQ(buffer[0].item, exp2.item);
+    ASSERT_EQ(buffer[1].item, exp3.item);
+    ASSERT_EQ(buffer[2].item, exp4.item);
+
 
 }
 
-TEST(TestA2C, Test_on_training_episode) {
 
-    Py_Initialize();
-    auto gym_module = boost::python::import("__main__");
-    auto gym_namespace = gym_module.attr("__dict__");
 
-    auto env = DummyEnv(gym_namespace);
-
-    A2CConfig config;
-
-    PolicyImpl policy;
-    A2C<DummyEnv, PolicyImpl> agent(config, policy);
-    agent.on_training_episode(env, static_cast)
-
-}
-#endif

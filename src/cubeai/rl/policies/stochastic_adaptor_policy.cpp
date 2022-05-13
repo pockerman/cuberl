@@ -1,5 +1,5 @@
 #include "cubeai/rl/policies/stochastic_adaptor_policy.h"
-#include "cubeai/rl/policies/discrete_policy_base.h"
+
 #include "cubeai/base/cubeai_types.h"
 #include "cubeai/utils/array_utils.h"
 

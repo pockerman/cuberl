@@ -2,7 +2,7 @@
 #define STOCHASTIC_ADAPTOR_POLICY_H
 
 #include "cubeai/base/cubeai_types.h"
-#include "cubeai/rl/policies/policy_adaptor_base.h"
+//#include "cubeai/rl/policies/policy_adaptor_base.h"
 #include "cubeai/utils/array_utils.h"
 
 #include "cubeai/base/cubeai_config.h"
@@ -12,6 +12,7 @@
 #endif
 
 #include <memory>
+#include <any>
 
 namespace cubeai {
 namespace rl {

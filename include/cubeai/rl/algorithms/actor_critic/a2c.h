@@ -220,17 +220,15 @@ A2C<EnvType, PolicyType>::on_training_episode(env_type& env, uint_t episode_idx)
 
 template<typename EnvType, utils::concepts::pytorch_module PolicyType>
 EpisodeInfo
-A2C<EnvType, PolicyType>::do_train_on_episode_(env_type& env, uint_t /*episode_idx*/){
+A2C<EnvType, PolicyType>::do_train_on_episode_(env_type& env, uint_t episode_idx){
 
     auto episode_score = 0.0;
-    auto episode_iterations = 0;
-
 
     // this is in parallel all
     // participating workers reset their
     // environment and return their TimeStep
     auto time_step = env.reset();
-    auto states = time_step.stack_observations();
+    auto states = time_step.observation(); //stack_observations();
 
     // loop over the iterations
     uint_t itrs = 0;
@@ -239,6 +237,12 @@ A2C<EnvType, PolicyType>::do_train_on_episode_(env_type& env, uint_t /*episode_i
         auto action_result = act_on_iteration_(states);
         auto next_state = env.step(action_result.actions);
     }
+
+    EpisodeInfo info;
+    info.episode_index = episode_idx;
+    info.episode_reward = episode_score;
+    info.episode_iterations = itrs;
+    return info;
 }
 
 template<typename EnvType, utils::concepts::pytorch_module PolicyType>

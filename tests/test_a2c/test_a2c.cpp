@@ -4,6 +4,7 @@
 
 #include "cubeai/rl/algorithms/actor_critic/a2c.h"
 #include "gymfcpp/cart_pole_env.h"
+#include "gymfcpp/time_step.h"
 
 
 #include <torch/torch.h>
@@ -11,6 +12,7 @@
 
 #include <gtest/gtest.h>
 #include <vector>
+#include <tuple>
 
 namespace{
 
@@ -18,10 +20,13 @@ using cubeai::rl::algos::ac::A2CConfig;
 using cubeai::rl::algos::ac::A2C;
 using gymfcpp::CartPole;
 using gymfcpp::obj_t;
+using gymfcpp::TimeStep;
 
 using cubeai::real_t;
 using cubeai::uint_t;
 using cubeai::torch_tensor_t;
+
+typedef TimeStep<torch_tensor_t> time_step_t;
 
 class DummyEnv
 {
@@ -32,6 +37,8 @@ public:
     DummyEnv(obj_t gym_namespace);
 
     uint_t n_workers()const noexcept{return 1;}
+    time_step_t step(const torch_tensor_t& action);
+    time_step_t reset();
 
 
 private:
@@ -47,6 +54,16 @@ DummyEnv::DummyEnv(obj_t gym_namespace)
 
 {}
 
+time_step_t
+DummyEnv::reset(){
+    return time_step_t();
+}
+
+time_step_t
+DummyEnv::step(const torch_tensor_t& action){
+    return time_step_t();
+}
+
 class PolicyImpl: public torch::nn::Module
 {
 public:
@@ -54,7 +71,7 @@ public:
 
     PolicyImpl();
 
-    torch_tensor_t forward(torch_tensor_t){}
+    std::tuple<torch_tensor_t, torch_tensor_t> forward(torch_tensor_t);
 
     //template<typename StateTp>
     //std::tuple<uint_t, real_t> act(const StateTp& state);
@@ -65,6 +82,9 @@ public:
     //void step_backward_policy_loss();
     //
     //torch_tensor_t compute_loss(){return loss_;}
+
+    torch_tensor_t sample(torch_tensor_t actions){}
+    torch_tensor_t log_probabilities(torch_tensor_t actions){}
 
 private:
 
@@ -81,6 +101,11 @@ PolicyImpl::PolicyImpl()
       fc1_(nullptr),
       fc2_(nullptr)
 {}
+
+std::tuple<torch_tensor_t, torch_tensor_t>
+PolicyImpl::forward(torch_tensor_t){
+    return std::make_tuple(torch_tensor_t(), torch_tensor_t());
+}
 
 TORCH_MODULE(Policy);
 
@@ -114,7 +139,7 @@ TEST(TestA2C, Test_on_training_episode) {
 
     PolicyImpl policy;
     A2C<DummyEnv, PolicyImpl> agent(config, policy);
-    agent.on_training_episode(env, static_cast)
+    agent.on_training_episode(env, static_cast<uint_t>(0));
 
 }
 #endif
