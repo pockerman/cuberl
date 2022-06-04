@@ -20,6 +20,8 @@ using cubeai::rl::policies::EpsilonDecayOption;
 using cubeai::rl::RLSerialAgentTrainer;
 using cubeai::rl::RLSerialTrainerConfig;
 
+typedef  rlenvs_cpp::gymfcpp::CliffWorld env_type;
+
 }
 
 int main(){
@@ -28,11 +30,13 @@ int main(){
 
     try{
 
+
+
         Py_Initialize();
         auto gym_module = boost::python::import("__main__");
         auto gym_namespace = gym_module.attr("__dict__");
 
-        gymfcpp::CliffWorld env("v0", gym_namespace);
+        env_type env("v0", gym_namespace);
         env.make();
 
         std::cout<<"Number of states="<<env.n_states()<<std::endl;
@@ -47,12 +51,12 @@ int main(){
         sarsa_config.max_num_iterations_per_episode = 1000;
         sarsa_config.path = "sarsa_cliff_walking_v0.csv";
 
-        Sarsa<gymfcpp::CliffWorld, EpsilonGreedyPolicy> algorithm(sarsa_config, policy);
+        Sarsa<env_type, EpsilonGreedyPolicy> algorithm(sarsa_config, policy);
 
         RLSerialTrainerConfig trainer_config = {10, 10000, 1.0e-8};
 
-        RLSerialAgentTrainer<gymfcpp::CliffWorld,
-                Sarsa<gymfcpp::CliffWorld, EpsilonGreedyPolicy>> trainer(trainer_config, algorithm);
+        RLSerialAgentTrainer<env_type,
+                             Sarsa<env_type, EpsilonGreedyPolicy>> trainer(trainer_config, algorithm);
 
         auto info = trainer.train(env);
         std::cout<<info<<std::endl;

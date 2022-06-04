@@ -4,6 +4,7 @@
 
 #include "cubeai/rl/algorithms/actor_critic/a2c.h"
 #include "gymfcpp/cart_pole_env.h"
+#include "gymfcpp/serial_vector_env_wrapper.h"
 #include "gymfcpp/time_step.h"
 
 
@@ -18,9 +19,11 @@ namespace{
 
 using cubeai::rl::algos::ac::A2CConfig;
 using cubeai::rl::algos::ac::A2C;
-using gymfcpp::CartPole;
-using gymfcpp::obj_t;
-using gymfcpp::TimeStep;
+using rlenvs_cpp::gymfcpp::CartPole;
+using rlenvs_cpp::obj_t;
+using rlenvs_cpp::TimeStep;
+using rlenvs_cpp::SerialVectorEnvWrapper;
+using rlenvs_cpp::SerialVectorEnvWrapperConfig;
 
 using cubeai::real_t;
 using cubeai::uint_t;
@@ -28,7 +31,9 @@ using cubeai::torch_tensor_t;
 
 typedef TimeStep<torch_tensor_t> time_step_t;
 
-class DummyEnv
+typedef SerialVectorEnvWrapper<CartPole> env_type;
+
+/*class DummyEnv
 {
 
 public:
@@ -62,7 +67,7 @@ DummyEnv::reset(){
 time_step_t
 DummyEnv::step(const torch_tensor_t& action){
     return time_step_t();
-}
+}*/
 
 class PolicyImpl: public torch::nn::Module
 {
@@ -118,12 +123,12 @@ TEST(TestA2C, Test_Constructor) {
     auto gym_module = boost::python::import("__main__");
     auto gym_namespace = gym_module.attr("__dict__");
 
-    auto env = DummyEnv(gym_namespace);
+    //auto env = DummyEnv(gym_namespace);
 
     A2CConfig config;
 
     PolicyImpl policy;
-    A2C<DummyEnv, PolicyImpl> agent(config, policy);
+    A2C<env_type, PolicyImpl> agent(config, policy);
 
 }
 
@@ -133,12 +138,14 @@ TEST(TestA2C, Test_on_training_episode) {
     auto gym_module = boost::python::import("__main__");
     auto gym_namespace = gym_module.attr("__dict__");
 
-    auto env = DummyEnv(gym_namespace);
+    auto env_config = SerialVectorEnvWrapperConfig();
+    env_config.env_id="v0";
+    auto env = env_type(env_config, gym_namespace);
 
     A2CConfig config;
 
     PolicyImpl policy;
-    A2C<DummyEnv, PolicyImpl> agent(config, policy);
+    A2C<env_type, PolicyImpl> agent(config, policy);
     agent.on_training_episode(env, static_cast<uint_t>(0));
 
 }

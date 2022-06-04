@@ -33,7 +33,7 @@ using cubeai::rl::algos::pg::ReinforceConfig;
 using cubeai::rl::PyTorchRLTrainer;
 using cubeai::rl::PyTorchRLTrainerConfig;
 using cubeai::ml::stats::TorchCategorical;
-using gymfcpp::CartPole;
+using rlenvs_cpp::gymfcpp::CartPole;
 
 
 class PolicyImpl: public torch::nn::Module

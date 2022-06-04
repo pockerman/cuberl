@@ -38,7 +38,7 @@ using cubeai::rl::EpsilonDecayOptionType;
 using cubeai::rl::RLSerialAgentTrainer;
 using cubeai::rl::RLSerialTrainerConfig;
 using cubeai::rl::EpisodeInfo;
-using gymfcpp::StateAggregationCartPole;
+using rlenvs_cpp::gymfcpp::StateAggregationCartPole;
 
 const real_t EPS = 0.1;
 const real_t GAMMA = 1.0;

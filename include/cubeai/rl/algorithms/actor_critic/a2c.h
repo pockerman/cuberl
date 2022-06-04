@@ -16,6 +16,7 @@
 #include "cubeai/rl/algorithms/rl_algorithm_base.h"
 #include "cubeai/rl/episode_info.h"
 #include "cubeai/utils/cubeai_concepts.h"
+#include "cubeai/utils/torch_adaptor.h"
 
 #ifdef CUBEAI_DEBUG
 #include <cassert>
@@ -191,7 +192,7 @@ void
 A2C<EnvType, PolicyType>::actions_before_training_begins(env_type& env){
 
 #ifdef CUBEAI_DEBUG
-    assert(env.n_workers() == config_.n_workers && "Invalid number of workers");
+    assert(env.n_copies() == config_.n_workers && "Invalid number of workers");
 #endif
 
 }
@@ -228,14 +229,14 @@ A2C<EnvType, PolicyType>::do_train_on_episode_(env_type& env, uint_t episode_idx
     // participating workers reset their
     // environment and return their TimeStep
     auto time_step = env.reset();
-    auto states = time_step.observation(); //stack_observations();
+    auto states = time_step.template stack_states<torch_utils::TorchAdaptor>();  //observation(); //stack_observations();
 
     // loop over the iterations
     uint_t itrs = 0;
     for(; itrs < config_.n_iterations_per_episode; ++ itrs){
 
         auto action_result = act_on_iteration_(states);
-        auto next_state = env.step(action_result.actions);
+        auto next_state = env.step(torch_utils::TorchAdaptor::to_vector<uint_t>(action_result.actions));
     }
 
     EpisodeInfo info;

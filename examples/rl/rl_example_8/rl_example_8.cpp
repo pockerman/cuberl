@@ -29,7 +29,7 @@ using cubeai::rl::algos::dp::ValueIterationConfig;
 using cubeai::rl::RLSerialAgentTrainer;
 using cubeai::rl::RLSerialTrainerConfig;
 
-
+typedef rlenvs_cpp::gymfcpp::FrozenLake<4> env_type;
 }
 
 int main() {
@@ -40,7 +40,7 @@ int main() {
     auto gym_module = boost::python::import("__main__");
     auto gym_namespace = gym_module.attr("__dict__");
 
-    gymfcpp::FrozenLake<4> env("v0", gym_namespace);
+    env_type env("v0", gym_namespace);
     env.make();
 
     // start with a uniform random policy i.e.
@@ -53,13 +53,13 @@ int main() {
     config.gamma = 1.0;
     config.tolerance = 1.0e-8;
 
-    ValueIteration<gymfcpp::FrozenLake<4>, UniformDiscretePolicy,
+    ValueIteration<env_type, UniformDiscretePolicy,
             StochasticAdaptorPolicy<UniformDiscretePolicy> > algorithm(config, policy, policy_adaptor);
 
     RLSerialTrainerConfig trainer_config = {10, 10000, 1.0e-8};
 
-    RLSerialAgentTrainer<gymfcpp::FrozenLake<4>,
-            ValueIteration<gymfcpp::FrozenLake<4>,
+    RLSerialAgentTrainer<env_type,
+            ValueIteration<env_type,
                             UniformDiscretePolicy,
                             StochasticAdaptorPolicy<UniformDiscretePolicy>>> trainer(trainer_config, algorithm);
 

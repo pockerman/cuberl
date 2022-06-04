@@ -22,6 +22,7 @@ using cubeai::rl::policies::EpsilonDecayOption;
 using cubeai::rl::RLSerialAgentTrainer;
 using cubeai::rl::RLSerialTrainerConfig;
 
+typedef rlenvs_cpp::gymfcpp::CliffWorld env_type;
 }
 
 
@@ -35,7 +36,7 @@ int main(){
         auto gym_module = boost::python::import("__main__");
         auto gym_namespace = gym_module.attr("__dict__");
 
-        gymfcpp::CliffWorld env("v0", gym_namespace);
+        env_type env("v0", gym_namespace);
         env.make();
 
         std::cout<<"Number of states="<<env.n_states()<<std::endl;
@@ -50,12 +51,12 @@ int main(){
         qlearn_config.max_num_iterations_per_episode = 1000;
         qlearn_config.path = "qlearning_cliff_walking_v0.csv";
 
-        QLearning<gymfcpp::CliffWorld, EpsilonGreedyPolicy> algorithm(qlearn_config, policy);
+        QLearning<env_type, EpsilonGreedyPolicy> algorithm(qlearn_config, policy);
 
         RLSerialTrainerConfig trainer_config = {10, 10000, 1.0e-8};
 
-        RLSerialAgentTrainer<gymfcpp::CliffWorld,
-                QLearning<gymfcpp::CliffWorld, EpsilonGreedyPolicy>> trainer(trainer_config, algorithm);
+        RLSerialAgentTrainer<env_type,
+                QLearning<env_type, EpsilonGreedyPolicy>> trainer(trainer_config, algorithm);
 
         auto info = trainer.train(env);
         std::cout<<info<<std::endl;
