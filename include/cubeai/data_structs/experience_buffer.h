@@ -38,10 +38,10 @@ public:
     typedef ExperienceType experience_type;
 
 
-    //typedef typename std::deque<experience_t, allocator_t>::iterator iterator;
-    //typedef typename std::deque<experience_t, allocator_t>::const_iterator const_iterator;
-    //typedef typename std::deque<experience_t, allocator_t>::reverse_iterator reverse_iterator;
-    //typedef typename std::deque<experience_t, allocator_t>::const_reverse_iterator const_reverse_iterator;
+    typedef typename boost::circular_buffer<ExperienceType>::iterator iterator;
+    typedef typename boost::circular_buffer<ExperienceType>::const_iterator const_iterator;
+    typedef typename boost::circular_buffer<ExperienceType>::reverse_iterator reverse_iterator;
+    typedef typename boost::circular_buffer<ExperienceType>::const_reverse_iterator const_reverse_iterator;
 
     ///
     /// \brief ExperienceBuffer
@@ -97,17 +97,17 @@ public:
     template<typename BatchTp>
     void sample(uint_t batch_size, BatchTp& batch, uint_t seed=42)const;
 
-    /*iterator begin(){return experience_.begin();}
-    iterator end(){return experience_.end();}
+    iterator begin(){return buffer_.begin();}
+    iterator end(){return buffer_.end();}
 
-    const_iterator begin()const{return experience_.begin();}
-    const_iterator end()const{return experience_.end();}
+    const_iterator begin()const{return buffer_.begin();}
+    const_iterator end()const{return buffer_.end();}
 
-    reverse_iterator rbegin(){return experience_.rbegin();}
-    reverse_iterator rend(){return experience_.rend();}
+    reverse_iterator rbegin(){return buffer_.rbegin();}
+    reverse_iterator rend(){return buffer_.rend();}
 
-    const_reverse_iterator rbegin()const{return experience_.rbegin();}
-    const_reverse_iterator rend()const{return experience_.rend();}*/
+    const_reverse_iterator rbegin()const{return buffer_.rbegin();}
+    const_reverse_iterator rend()const{return buffer_.rend();}
 
 private:
 

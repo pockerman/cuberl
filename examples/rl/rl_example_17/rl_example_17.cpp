@@ -94,39 +94,43 @@ EpsilonGreedyPolicy::adjust_on_episode(uint_t episode)noexcept{
 
     switch(decay_op_)
     {
-    case EpsilonDecayOptionType::NONE:
-    {
-        return;
-    }
-    case EpsilonDecayOptionType::INVERSE_STEP:
-    {
-        if(episode == 0){
-            episode = 1;
+        case EpsilonDecayOptionType::NONE:
+        {
+            return;
         }
+        case EpsilonDecayOptionType::INVERSE_STEP:
+        {
+            if(episode == 0){
+                episode = 1;
+            }
 
-        // there are various methods to do epsilon
-        // reduction
-        eps_ = 1.0 / episode;
+            // there are various methods to do epsilon
+            // reduction
+            eps_ = 1.0 / episode;
 
-        if(eps_ < min_eps_){
-            eps_ = min_eps_;
+            if(eps_ < min_eps_){
+                eps_ = min_eps_;
+            }
+            break;
         }
-        break;
-    }
-    case EpsilonDecayOptionType::EXPONENTIAL:
-    {
-        eps_ = min_eps_ + (max_eps_ - min_eps_)*std::exp(-epsilon_decay_ * episode);
-        break;
-    }
-    case EpsilonDecayOptionType::CONSTANT_RATE:
-    {
-        eps_ -= epsilon_decay_;
-
-        if(eps_ < min_eps_){
-            eps_ = min_eps_;
+        case EpsilonDecayOptionType::EXPONENTIAL:
+        {
+            eps_ = min_eps_ + (max_eps_ - min_eps_)*std::exp(-epsilon_decay_ * episode);
+            break;
         }
-        break;
-    }
+        case EpsilonDecayOptionType::CONSTANT_RATE:
+        {
+            eps_ -= epsilon_decay_;
+
+            if(eps_ < min_eps_){
+                eps_ = min_eps_;
+            }
+            break;
+        }
+        case EpsilonDecayOptionType::INVALID_TYPE:
+        {
+
+        }
     }
 }
 
@@ -168,7 +172,7 @@ public:
     void actions_before_training_begins(env_type&);
     void actions_after_training_ends(env_type&){}
     void actions_before_episode_begins(env_type&, uint_t /*episode_idx*/){}
-    void actions_after_episode_ends(env_type&, uint_t episode_idx){action_selector_.adjust_on_episode(episode_idx);}
+    void actions_after_episode_ends(env_type&, uint_t episode_idx, const EpisodeInfo&){action_selector_.adjust_on_episode(episode_idx);}
 
     EpisodeInfo on_training_episode(env_type&, uint_t episode_idx);
     void save(std::string /*filename*/)const{}

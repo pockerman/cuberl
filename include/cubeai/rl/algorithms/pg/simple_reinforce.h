@@ -84,7 +84,8 @@ public:
     ///
     /// \brief actions_after_training_episode
     ///
-    virtual void actions_after_episode_ends(env_type&, uint_t /*episode_idx*/){}
+    virtual void actions_after_episode_ends(env_type&, uint_t /*episode_idx*/,
+                                            const EpisodeInfo& /*einfo*/);
 
     ///
     /// \brief on_episode Do one on_episode of the algorithm
@@ -305,6 +306,18 @@ SimpleReinforce<WorldTp, PolicyTp>::on_training_episode(env_type& env, uint_t ep
     info.episode_iterations = itrs;
     info.total_time = elapsed_seconds;
     return info;
+}
+
+template<typename WorldTp, typename PolicyTp>
+void
+SimpleReinforce<WorldTp, PolicyTp>::actions_after_episode_ends(env_type&, uint_t /*episode_idx*/,
+                                                               const EpisodeInfo& /*einfo*/){
+
+    // compute the loss
+    auto loss = compute_loss();
+    loss.backward();
+
+
 }
 
 }

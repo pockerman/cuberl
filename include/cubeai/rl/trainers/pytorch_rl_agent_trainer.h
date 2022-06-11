@@ -16,6 +16,12 @@
 namespace cubeai {
 namespace rl {
 
+// forward declare
+struct EpisodeInfo;
+
+///
+/// \brief The PyTorchRLTrainerConfig struct
+///
 struct PyTorchRLTrainerConfig
 {
     real_t tolerance;
@@ -24,6 +30,10 @@ struct PyTorchRLTrainerConfig
 
 };
 
+
+///
+///
+///
 template<typename EnvType, typename AgentType>
 class PyTorchRLTrainer final: public IterativeRLTrainerBase<EnvType, AgentType>
 {
@@ -42,7 +52,7 @@ public:
     /// \brief  actions_after_episode_ends. Execute any actions the algorithm needs after
     /// ending the episode
     ///
-    virtual void actions_after_episode_ends(env_type& env, uint_t episode_idx);
+    virtual void actions_after_episode_ends(env_type& env, uint_t episode_idx, const EpisodeInfo& einfo);
 
 
 protected:
@@ -63,14 +73,19 @@ PyTorchRLTrainer<EnvType, AgentType>::PyTorchRLTrainer(const PyTorchRLTrainerCon
 
 template<typename EnvType, typename AgentType>
 void
-PyTorchRLTrainer<EnvType, AgentType>::actions_after_episode_ends(env_type& env, uint_t episode_idx){
+PyTorchRLTrainer<EnvType, AgentType>::actions_after_episode_ends(env_type& env, uint_t episode_idx,
+                                                                 const EpisodeInfo& einfo){
 
-    this->IterativeRLTrainerBase<EnvType, AgentType>::actions_after_episode_ends(env, episode_idx);
+    //this->IterativeRLTrainerBase<EnvType, AgentType>::actions_after_episode_ends(env, episode_idx);
 
     optimizer_->zero_grad();
+
+    this->agent_.actions_after_episode_ends(env, episode_idx, einfo);
+
     // compute the loss
-    auto loss = this->agent_.compute_loss();
-    loss.backward();
+    //auto loss = this->agent_.compute_loss();
+    //loss.backward();
+
     optimizer_->step();
 }
 

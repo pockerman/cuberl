@@ -3,6 +3,8 @@
 
 #include "cubeai/base/cubeai_types.h"
 #include "cubeai/rl/episode_info.h"
+
+
 #include <boost/noncopyable.hpp>
 
 namespace cubeai{
@@ -44,7 +46,7 @@ public:
     ///
     /// \brief actions_after_training_episode
     ///
-    virtual void actions_after_episode_ends(env_type&, uint_t /*episode_idx*/){}
+    virtual void actions_after_episode_ends(env_type&, uint_t /*episode_idx*/, const EpisodeInfo& /*einfo*/){}
 
     ///
     /// \brief on_episode Do one on_episode of the algorithm

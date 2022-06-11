@@ -80,7 +80,7 @@ public:
     void actions_before_training_begins(env_type&);
     void actions_after_training_ends(env_type&){}
     void actions_before_episode_begins(env_type&, uint_t /*episode_idx*/){}
-    void actions_after_episode_ends(env_type&, uint_t episode_idx){ action_selector_.adjust_on_episode(episode_idx);}
+    void actions_after_episode_ends(env_type&, uint_t episode_idx, const cubeai::rl::EpisodeInfo&){ action_selector_.adjust_on_episode(episode_idx);}
 
     cubeai::rl::EpisodeInfo on_training_episode(env_type&, uint_t episode_idx);
 

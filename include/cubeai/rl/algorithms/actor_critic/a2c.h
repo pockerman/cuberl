@@ -35,6 +35,38 @@ namespace rl{
 namespace algos {
 namespace ac {
 
+namespace  {
+
+template<typename ExperienceType>
+torch_tensor_t stack_values(const cubeai::containers::ExperienceBuffer<ExperienceType>& buffer ){
+
+    for(const auto& item: buffer){
+
+
+    }
+}
+
+template<typename ExperienceType>
+torch_tensor_t stack_log_probs(const cubeai::containers::ExperienceBuffer<ExperienceType>& buffer ){
+
+    for(const auto& item: buffer){
+
+
+    }
+}
+
+template<typename ExperienceType>
+torch_tensor_t stack_rewards(const cubeai::containers::ExperienceBuffer<ExperienceType>& buffer ){
+
+    for(const auto& item: buffer){
+
+
+    }
+}
+
+
+}
+
 ///
 /// \brief The A2CConfig struct. Configuration for A2C class
 ///
@@ -144,7 +176,7 @@ public:
     ///
     /// \brief actions_after_training_episode
     ///
-    virtual void actions_after_episode_ends(env_type&, uint_t /*episode_idx*/){}
+    virtual void actions_after_episode_ends(env_type&, uint_t /*episode_idx*/, const EpisodeInfo& info);
 
     ///
     /// \brief on_episode Do one on_episode of the algorithm
@@ -154,18 +186,17 @@ public:
     ///
     /// \brief set_train_mode
     ///
-    void set_train_mode()noexcept{}
+    void set_train_mode()noexcept{policy_.train();}
 
     ///
     /// \brief set_evaluation_mode
     ///
-    void set_evaluation_mode()noexcept{}
+    void set_evaluation_mode()noexcept{policy_.eval();}
 
     ///
     ///
     ///
     std::vector<torch_tensor_t> parameters(bool recurse = true) const{return policy_ -> parameters(recurse);}
-
 
 
 private:
@@ -201,20 +232,14 @@ private:
     action_result act_on_iteration_(torch_tensor_t& state);
 
     ///
-    /// \brief compute_loss
-    /// \return
-    ///
-    torch_tensor_t compute_loss();
-
-    ///
     /// \brief optimize_model_
     /// \param logprobs
     /// \param entropies
     /// \param values
     /// \param rewards
     ///
-    void optimize_model_(torch_tensor_t logprobs, torch_tensor_t entropies,
-                         torch_tensor_t values, torch_tensor_t rewards);
+    void compute_loss_(torch_tensor_t logprobs, torch_tensor_t entropies,
+                       torch_tensor_t values, torch_tensor_t rewards);
 
 };
 
@@ -232,6 +257,8 @@ A2C<EnvType, PolicyType>::actions_before_training_begins(env_type& env){
 #ifdef CUBEAI_DEBUG
     assert(env.n_copies() == config_.n_workers && "Invalid number of workers");
 #endif
+
+    set_train_mode();
 
 }
 
@@ -309,6 +336,9 @@ A2C<EnvType, PolicyType>::do_train_on_episode_(env_type& env, uint_t episode_idx
     info.episode_index = episode_idx;
     info.episode_reward = episode_score;
     info.episode_iterations = itrs;
+    info.info["log_probs"] = stack_log_probs(buffer);
+    info.info["values"] = stack_values(buffer);
+    info.info["rewards"] = stack_rewards(buffer);
     return info;
 }
 
@@ -334,8 +364,48 @@ A2C<EnvType, PolicyType>::act_on_iteration_(torch_tensor_t& state){
 
 template<typename EnvType, utils::concepts::pytorch_module PolicyType>
 void
-A2C<EnvType, PolicyType>::optimize_model_(torch_tensor_t logprobs, torch_tensor_t entropies,
+A2C<EnvType, PolicyType>::actions_after_episode_ends(env_type&, uint_t /*episode_idx*/,
+                                                     const EpisodeInfo& info){
+
+        auto logprobs = info.info.find("log_probs");
+        auto values = info.info.find("values");
+        auto rewards = info.info.find("rewards");
+
+        // compute the loss
+        compute_loss_(logprobs, torch_tensor_t(), values, rewards);
+
+}
+
+template<typename EnvType, utils::concepts::pytorch_module PolicyType>
+void
+A2C<EnvType, PolicyType>::compute_loss_(torch_tensor_t logprobs, torch_tensor_t entropies,
             torch_tensor_t values, torch_tensor_t rewards){
+
+
+        /*
+        auto discounts: np.array = create_discounts_array(end=len(rewards),
+                                                     base=self.config.gamma, start=0, endpoint=False)
+
+        # get the discounted returns
+        discounted_returns: np.array = calculate_discounted_returns(rewards.numpy(),
+                                                                    discounts,
+                                                                    n_workers=self.config.n_workers)
+
+        advantages: np.array = self._compute_advantages(rewards=rewards.numpy(),
+                                                        values=values.detach().numpy())
+
+        loss: torch.Tensor = self._compute_loss_function(advantages=torch.from_numpy(advantages), values=values,
+                                                         entropies=entropies,
+                                                         returns=torch.from_numpy(discounted_returns),
+                                                         logprobs=logprobs[:-1])
+
+
+        loss.backward()
+
+        # clip the grad if needed
+        torch.nn.utils.clip_grad_norm_(self.parameters(),
+                                       self.config.max_grad_norm)
+                                     */
 
 }
 
