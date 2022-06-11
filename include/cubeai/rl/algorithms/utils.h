@@ -3,6 +3,10 @@
 
 #include "cubeai/base/cubeai_types.h"
 
+#include "cubeai/base/cubeai_config.h"
+
+
+
 #include <vector>
 #include <iostream>
 
@@ -36,6 +40,17 @@ auto state_actions_from_v(const WorldTp& env, const DynVec<real_t>& v,
     return q;
 }
 
+#ifdef USE_PYTORCH
+///
+/// \brief calculate_discounted_returns
+/// \param reward
+/// \param discounts
+/// \param n_workers
+/// \return
+///
+std::vector<real_t>
+calculate_discounted_returns(torch_tensor_t reward, torch_tensor_t discounts, uint_t n_workers);
+#endif
 }
 }
 }
