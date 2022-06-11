@@ -17,6 +17,9 @@
 #include "cubeai/rl/episode_info.h"
 #include "cubeai/utils/cubeai_concepts.h"
 #include "cubeai/utils/torch_adaptor.h"
+#include "cubeai/data_structs/experience_buffer.h"
+
+#include "gymfcpp/time_step_type.h"
 
 #ifdef CUBEAI_DEBUG
 #include <cassert>
@@ -24,6 +27,8 @@
 
 #include <string>
 #include <chrono>
+#include <map>
+#include <any>
 
 namespace cubeai{
 namespace rl{
@@ -71,6 +76,11 @@ struct A2CConfig
     ///
     ///
     uint_t n_iterations_per_episode{100};
+
+    ///
+    ///
+    ///
+    uint_t buffere_size{100};
 
     ///
     ///
@@ -142,9 +152,21 @@ public:
     virtual EpisodeInfo on_training_episode(env_type&, uint_t /*episode_idx*/);
 
     ///
+    /// \brief set_train_mode
+    ///
+    void set_train_mode()noexcept{}
+
+    ///
+    /// \brief set_evaluation_mode
+    ///
+    void set_evaluation_mode()noexcept{}
+
     ///
     ///
-    std::vector<torch::Tensor> parameters(bool recurse = true) const{return policy_ -> parameters(recurse);}
+    ///
+    std::vector<torch_tensor_t> parameters(bool recurse = true) const{return policy_ -> parameters(recurse);}
+
+
 
 private:
 
@@ -177,6 +199,22 @@ private:
     /// \param state
     ///
     action_result act_on_iteration_(torch_tensor_t& state);
+
+    ///
+    /// \brief compute_loss
+    /// \return
+    ///
+    torch_tensor_t compute_loss();
+
+    ///
+    /// \brief optimize_model_
+    /// \param logprobs
+    /// \param entropies
+    /// \param values
+    /// \param rewards
+    ///
+    void optimize_model_(torch_tensor_t logprobs, torch_tensor_t entropies,
+                         torch_tensor_t values, torch_tensor_t rewards);
 
 };
 
@@ -225,19 +263,47 @@ A2C<EnvType, PolicyType>::do_train_on_episode_(env_type& env, uint_t episode_idx
 
     auto episode_score = 0.0;
 
+    typedef torch_utils::TorchAdaptor::state_type state_type;
+    typedef torch_utils::TorchAdaptor::value_type value_type;
+
+    typedef std::tuple<state_type, state_type, value_type,
+            std::vector<typename EnvType::action_type>,
+            std::vector<rlenvs_cpp::TimeStepTp>,
+            std::map<std::string, std::any>> experience_type;
+
+    // create a buffer for experience accummulation
+    cubeai::containers::ExperienceBuffer<experience_type> buffer(config_.buffere_size);
+
     // this is in parallel all
     // participating workers reset their
     // environment and return their TimeStep
     auto time_step = env.reset();
-    auto states = time_step.template stack_states<torch_utils::TorchAdaptor>();  //observation(); //stack_observations();
+    auto state = time_step.template stack_states<torch_utils::TorchAdaptor>();
 
     // loop over the iterations
     uint_t itrs = 0;
     for(; itrs < config_.n_iterations_per_episode; ++ itrs){
 
-        auto action_result = act_on_iteration_(states);
-        auto next_state = env.step(torch_utils::TorchAdaptor::to_vector<uint_t>(action_result.actions));
+        auto action_result = act_on_iteration_(state);
+        auto next_time_step = env.step(torch_utils::TorchAdaptor::to_vector<uint_t>(action_result.actions));
+
+        auto next_state = next_time_step.template stack_states<torch_utils::TorchAdaptor>();
+        auto reward = next_time_step.template stack_rewards<torch_utils::TorchAdaptor>();
+
+        std::map<std::string, std::any> info;
+        info["log_probs"] = action_result.log_probs;
+        info["values"] = action_result.values;
+
+        buffer.append(std::make_tuple(state, next_state, reward,
+                                      next_time_step.stack_time_step_types(),
+                                      info));
+
+        /*if(buffer.size() < config_.buffere_size){
+            continue;
+        }*/
     }
+
+    // optimize the model
 
     EpisodeInfo info;
     info.episode_index = episode_idx;
@@ -265,6 +331,15 @@ A2C<EnvType, PolicyType>::act_on_iteration_(torch_tensor_t& state){
     result.values = values;
     return result;
 }
+
+template<typename EnvType, utils::concepts::pytorch_module PolicyType>
+void
+A2C<EnvType, PolicyType>::optimize_model_(torch_tensor_t logprobs, torch_tensor_t entropies,
+            torch_tensor_t values, torch_tensor_t rewards){
+
+}
+
+
 
 }
 

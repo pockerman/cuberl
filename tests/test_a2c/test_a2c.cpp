@@ -33,41 +33,6 @@ typedef TimeStep<torch_tensor_t> time_step_t;
 
 typedef SerialVectorEnvWrapper<CartPole> env_type;
 
-/*class DummyEnv
-{
-
-public:
-
-
-    DummyEnv(obj_t gym_namespace);
-
-    uint_t n_workers()const noexcept{return 1;}
-    time_step_t step(const torch_tensor_t& action);
-    time_step_t reset();
-
-
-private:
-
-    CartPole env_;
-
-
-};
-
-DummyEnv::DummyEnv(obj_t gym_namespace)
-    :
-      env_("v0", gym_namespace, true)
-
-{}
-
-time_step_t
-DummyEnv::reset(){
-    return time_step_t();
-}
-
-time_step_t
-DummyEnv::step(const torch_tensor_t& action){
-    return time_step_t();
-}*/
 
 class PolicyImpl: public torch::nn::Module
 {
@@ -122,8 +87,6 @@ TEST(TestA2C, Test_Constructor) {
     Py_Initialize();
     auto gym_module = boost::python::import("__main__");
     auto gym_namespace = gym_module.attr("__dict__");
-
-    //auto env = DummyEnv(gym_namespace);
 
     A2CConfig config;
 
