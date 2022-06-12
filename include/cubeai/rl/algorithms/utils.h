@@ -40,6 +40,26 @@ auto state_actions_from_v(const WorldTp& env, const DynVec<real_t>& v,
     return q;
 }
 
+///
+/// \brief create_discounts_array
+/// \param end
+/// \param base
+/// \param start
+/// \param endpoint
+/// \return
+///
+std::vector<real_t> create_discounts_array(real_t base, uint_t npoints);
+
+///
+/// \brief calculate_discounted_returns
+/// \param rewards
+/// \param discounts
+/// \param n_workers
+/// \return
+///
+std::vector<real_t> calculate_discounted_returns(const std::vector<real_t>& rewards,
+                                                 const std::vector<real_t>& discounts, uint_t n_workers);
+
 #ifdef USE_PYTORCH
 ///
 /// \brief calculate_discounted_returns

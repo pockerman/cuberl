@@ -14,6 +14,7 @@
 
 #include "cubeai/base/cubeai_types.h"
 #include "cubeai/rl/algorithms/rl_algorithm_base.h"
+#include "cubeai/rl/algorithms/utils.h"
 #include "cubeai/rl/episode_info.h"
 #include "cubeai/utils/cubeai_concepts.h"
 #include "cubeai/utils/torch_adaptor.h"
@@ -140,7 +141,9 @@ struct A2CConfig
     std::string save_model_path{""};
 };
 
-
+///
+///
+///
 template<typename EnvType, utils::concepts::pytorch_module PolicyType>
 class A2C final: public RLAlgoBase<EnvType>
 {
@@ -196,7 +199,7 @@ public:
     ///
     ///
     ///
-    std::vector<torch_tensor_t> parameters(bool recurse = true) const{return policy_ -> parameters(recurse);}
+    std::vector<torch_tensor_t> parameters(bool recurse = true) const{return policy_.parameters(recurse);}
 
 
 private:
@@ -218,7 +221,7 @@ private:
     ///
     /// \brief policy_
     ///
-    policy_type policy_;
+    policy_type& policy_;
 
     ///
     ///
@@ -238,8 +241,17 @@ private:
     /// \param values
     /// \param rewards
     ///
-    void compute_loss_(torch_tensor_t logprobs, torch_tensor_t entropies,
-                       torch_tensor_t values, torch_tensor_t rewards);
+    torch_tensor_t compute_loss_(torch_tensor_t logprobs, torch_tensor_t entropies,
+                                 torch_tensor_t values, torch_tensor_t rewards);
+
+    ///
+    /// \brief compute_advantages_
+    /// \param rewards
+    /// \param values
+    /// \return
+    ///
+    std::vector<real_t> compute_advantages_(const std::vector<real_t>& rewards,
+                                            const std::vector<real_t>& values);
 
 };
 
@@ -293,10 +305,11 @@ A2C<EnvType, PolicyType>::do_train_on_episode_(env_type& env, uint_t episode_idx
     typedef torch_utils::TorchAdaptor::state_type state_type;
     typedef torch_utils::TorchAdaptor::value_type value_type;
 
-    typedef std::tuple<state_type, state_type, value_type,
-            std::vector<typename EnvType::action_type>,
-            std::vector<rlenvs_cpp::TimeStepTp>,
-            std::map<std::string, std::any>> experience_type;
+    typedef std::tuple<state_type,
+                       state_type,
+                       value_type,
+                       std::vector<rlenvs_cpp::TimeStepTp>,
+                       std::map<std::string, std::any>> experience_type;
 
     // create a buffer for experience accummulation
     cubeai::containers::ExperienceBuffer<experience_type> buffer(config_.buffere_size);
@@ -372,21 +385,46 @@ A2C<EnvType, PolicyType>::actions_after_episode_ends(env_type&, uint_t /*episode
         auto rewards = info.info.find("rewards");
 
         // compute the loss
-        compute_loss_(logprobs, torch_tensor_t(), values, rewards);
+        auto loss = compute_loss_(std::any_cast<torch_tensor_t>(logprobs->second), torch_tensor_t(),
+                                  std::any_cast<torch_tensor_t>(values->second),
+                                  std::any_cast<torch_tensor_t>(rewards->second));
+
+        loss.backward();
 
 }
 
 template<typename EnvType, utils::concepts::pytorch_module PolicyType>
-void
-A2C<EnvType, PolicyType>::compute_loss_(torch_tensor_t logprobs, torch_tensor_t entropies,
+std::vector<real_t>
+A2C<EnvType, PolicyType>::compute_advantages_(const std::vector<real_t>& rewards,
+                                              const std::vector<real_t>& values){
+
+
+}
+
+template<typename EnvType, utils::concepts::pytorch_module PolicyType>
+torch_tensor_t
+A2C<EnvType, PolicyType>::compute_loss_(torch_tensor_t /*logprobs*/, torch_tensor_t /*entropies*/,
             torch_tensor_t values, torch_tensor_t rewards){
 
 
-        /*
-        auto discounts: np.array = create_discounts_array(end=len(rewards),
-                                                     base=self.config.gamma, start=0, endpoint=False)
+        // create the discounts
+        auto discounts = create_discounts_array(config_.gamma, rewards.size(0));
 
-        # get the discounted returns
+        auto vec_rewards = torch_utils::TorchAdaptor::to_vector<real_t>(rewards);
+        auto vec_values = torch_utils::TorchAdaptor::to_vector<real_t>(values.detach());
+
+        // calculate the discounted returns
+        auto discounted_returns = calculate_discounted_returns(vec_rewards, discounts, config_.n_workers);
+
+        // compute the advanatges
+        auto advantages = compute_advantages_(vec_rewards, vec_values);
+
+        // form the loss function
+
+        // clip the grad if needed
+        torch::nn::utils::clip_grad_norm_(parameters(), config_.max_grad_norm);
+
+        /*# get the discounted returns
         discounted_returns: np.array = calculate_discounted_returns(rewards.numpy(),
                                                                     discounts,
                                                                     n_workers=self.config.n_workers)
