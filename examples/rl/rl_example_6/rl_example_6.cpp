@@ -27,7 +27,9 @@ using cubeai::rl::algos::dp::IterativePolicyEval;
 using cubeai::rl::algos::dp::IterativePolicyEvalConfig;
 using cubeai::rl::RLSerialAgentTrainer;
 using cubeai::rl::RLSerialTrainerConfig;
-typedef gymfcpp::TimeStep<uint_t> time_step_t;
+//typedef gymfcpp::TimeStep<uint_t> time_step_t;
+
+typedef rlenvs_cpp::gymfcpp::FrozenLake<4> env_type;
 
 }
 
@@ -39,18 +41,18 @@ int main() {
     auto gym_module = boost::python::import("__main__");
     auto gym_namespace = gym_module.attr("__dict__");
 
-    gymfcpp::FrozenLake<4> env("v0", gym_namespace);
+    env_type env("v0", gym_namespace);
     env.make();
 
     UniformDiscretePolicy policy(env.n_states(), env.n_actions());
     IterativePolicyEvalConfig config;
     config.tolerance = 1.0e-8;
 
-    IterativePolicyEval<gymfcpp::FrozenLake<4>, UniformDiscretePolicy> algorithm(config, policy);
+    IterativePolicyEval<env_type, UniformDiscretePolicy> algorithm(config, policy);
 
     RLSerialTrainerConfig trainer_config = {10, 10000, 1.0e-8};
 
-    RLSerialAgentTrainer<gymfcpp::FrozenLake<4>, IterativePolicyEval<gymfcpp::FrozenLake<4>,
+    RLSerialAgentTrainer<env_type, IterativePolicyEval<env_type,
             UniformDiscretePolicy>> trainer(trainer_config, algorithm);
 
     auto info = trainer.train(env);

@@ -36,7 +36,7 @@ using cubeai::rl::RLSerialAgentTrainer;
 using cubeai::rl::RLSerialTrainerConfig;
 using cubeai::rl::agents::DummyAgent;
 using cubeai::utils::IterationCounter;
-using gymfcpp::MountainCar;
+using rlenvs_cpp::gymfcpp::MountainCar;
 
 
 template<cubeai::utils::concepts::float_or_integral_vector PolicyValuesType, typename StateType>
@@ -116,7 +116,7 @@ bool
 Criteria<EnvType>::continue_iterations()noexcept{
 
     if(counter_.continue_iterations()){
-        env_.render(gymfcpp::RenderModeType::human);
+        env_.render(rlenvs_cpp::RenderModeType::human);
         return true;
     }
 

@@ -13,6 +13,8 @@
 namespace cubeai {
 namespace rl {
 
+// forward declare
+struct EpisodeInfo;
 
 ///
 /// \brief The RLSerialTrainerConfig struct. Configuration
@@ -67,7 +69,7 @@ public:
     /// \brief  actions_after_episode_ends. Execute any actions the algorithm needs after
     /// ending the episode
     ///
-    virtual void actions_after_episode_ends(env_type&, uint_t);
+    virtual void actions_after_episode_ends(env_type&, uint_t /*episode_idx*/, const EpisodeInfo& einfo);
 
     ///
     /// \brief actions_after_training_ends. Execute any actions the algorithm needs after
@@ -148,8 +150,8 @@ RLSerialAgentTrainer<EnvType, AgentType>::actions_before_episode_begins(env_type
 
 template<typename EnvType, typename AgentType>
 void
-RLSerialAgentTrainer<EnvType, AgentType>::actions_after_episode_ends(env_type& env, uint_t episode_idx){
-    agent_.actions_after_episode_ends(env, episode_idx);
+RLSerialAgentTrainer<EnvType, AgentType>::actions_after_episode_ends(env_type& env, uint_t episode_idx, const EpisodeInfo& einfo){
+    agent_.actions_after_episode_ends(env, episode_idx, einfo);
 }
 
 template<typename EnvType, typename AgentType>
@@ -181,7 +183,7 @@ RLSerialAgentTrainer<EnvType, AgentType>::train(env_type& env){
 
         total_reward_per_episode_.push_back(episode_info.episode_reward);
         n_itrs_per_episode_.push_back(episode_info.episode_iterations);
-        this->actions_after_episode_ends(env, episode_counter);
+        this->actions_after_episode_ends(env, episode_counter, episode_info);
 
         if(episode_info.stop_training){
             std::cout<<CubeAIConsts::info_str()<<" Stopping training at index="<<episode_counter<<std::endl;

@@ -3,7 +3,12 @@
 
 #include "cubeai/base/cubeai_types.h"
 #include "cubeai/base/cubeai_consts.h"
-#include "cubeai_concepts.h"
+#include "cubeai/base/cubeai_config.h"
+#include "cubeai/utils/cubeai_concepts.h"
+
+#ifdef CUBEAI_DEBUG
+#include <cassert>
+#endif
 
 #include <vector>
 #include <algorithm> // for std::max/min_element
@@ -125,7 +130,16 @@ std::vector<uint_t> max_indices(const VecTp& vec){
 }
 
 
+template<typename T>
+std::vector<T> extract_subvector(const std::vector<T>& vec, uint_t end){
 
+#ifdef CUBEAI_DEBUG
+    assert(end <= vec.size() && "Invalid end index");
+#endif
+
+    return std::vector<real_t>(vec.begin(), vec.begin() + end);
+
+}
 
 }
 

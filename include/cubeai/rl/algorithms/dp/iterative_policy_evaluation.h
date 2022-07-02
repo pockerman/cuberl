@@ -3,7 +3,6 @@
 
 #include "cubeai/base/cubeai_types.h"
 #include "cubeai/rl/algorithms/dp/dp_algo_base.h"
-#include "cubeai/rl/policies/discrete_policy_base.h"
 #include "cubeai/io/csv_file_writer.h"
 #include "cubeai/utils/iteration_counter.h"
 #include "cubeai/io/csv_file_writer.h"
@@ -69,7 +68,7 @@ public:
     ///
     /// \brief actions_after_training_episode
     ///
-    virtual void actions_after_episode_ends(env_type&, uint_t /*episode_idx*/)override{}
+    virtual void actions_after_episode_ends(env_type&, uint_t /*episode_idx*/, const EpisodeInfo& /*einfo*/)override{}
 
     ///
     /// \brief on_episode Do one on_episode of the algorithm
