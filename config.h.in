@@ -31,6 +31,13 @@
 /*Use OpenCV */
 #cmakedefine USE_GYMFCPP
 
+/*Use CUDA */
+#cmakedefine USE_CUDA
+
+/*Use RL */
+#cmakedefine USE_RL
+
+
 
 #endif
 
