@@ -1,7 +1,7 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 3.6 FATAL_ERROR)
 MESSAGE(STATUS "Using CMake ${CMAKE_VERSION}")
 
-PROJECT(cubeai VERSION 0.0.2 LANGUAGES CXX C)
+PROJECT(cubeai VERSION 0.0.7 LANGUAGES CXX C)
 
 # -----------------------------------------------------------------------------
 # Prevent in-source builds.
@@ -36,6 +36,8 @@ SET(USE_LOG ON)
 SET(USE_PYTORCH ON)
 SET(USE_OPENCV OFF)
 SET(USE_GYMFCPP ON)
+SET(USE_CUDA ON)
+SET(USE_RL ON)
 SET(DATA_SET_FOLDER ${PROJECT_SOURCE_DIR}/data)
 SET(ENABLE_EXAMPLES_FLAG ON)
 SET(ENABLE_TESTS_FLAG ON)
@@ -55,21 +57,23 @@ IF(CMAKE_BUILD_TYPE STREQUAL "Debug")
 	SET(CUBEAI_PRINT_DBG_MSGS ON)
 ENDIF()
 
-SET(CMAKE_INSTALL_PREFIX /home/alex/qi3/cubeAI/install)
+#SET(CMAKE_INSTALL_PREFIX /home/alex/qi3/cubeAI/install)
 SET(CMAKE_LINKER_FLAGS "-pthread")
 
 # explicitly specify where the blaze c++ headers are
-SET(BLAZE_INCLUDE_DIRS "/home/alex/MySoftware/blaze-3.8/install/include")
+SET(BLAZE_INCLUDE_DIRS "/home/alex/MySoftware/blaze/install/include")
 
 # external JSON library
 SET(NLOHMANN_JSON_INCL_DIR "/home/alex/MySoftware/nlohman_json/install/include")
 
 # configuration for Python3
-SET(PYTHON_CONFIG_LIBS_PATH "/usr/lib/python3.8/config-3.8-x86_64-linux-gnu/")
+SET(PYTHON_CONFIG_LIBS_PATH "/usr/lib/python3.10/config-3.10-x86_64-linux-gnu/")
 
 
 IF(USE_GYMFCPP)
-	SET(GYMFCPP_INCLUDE_DIRS "/home/alex/qi3/cubeAI/gymcpp/src")
+
+	# heades for rl_envs_from_cpp
+	SET(GYMFCPP_INCLUDE_DIRS "/home/alex/qi3/cubeAI/rl_envs_from_cpp/src")
 	
 	IF(CMAKE_BUILD_TYPE MATCHES "Debug")
 		SET(GYMFCPP_LIB_DIRS  ${PROJECT_SOURCE_DIR}/gymcpp/install/dbg/)
@@ -93,7 +97,7 @@ ENDIF()
 
 
 # find Boost
-FIND_PACKAGE(Boost 1.65.0 REQUIRED)
+FIND_PACKAGE(Boost 1.74.0 REQUIRED)
 IF(Boost_FOUND)
 	MESSAGE( STATUS  "Found needed Boost C++ library.")
 	SET(Boost_USE_SHARED_LIBS ON)
@@ -118,6 +122,9 @@ IF(BLAZE_INCLUDE_DIRS MATCHES " ")
 	IF(NOT blaze_FOUND)
 		MESSAGE( FATAL_ERROR  "Could not find Blaze C++ library.")
 	ELSE()
+		
+   		add_library( blaze_target INTERFACE )
+   		target_link_libraries( blaze_target INTERFACE blaze::blaze )
 		INCLUDE_DIRECTORIES(${BLAZE_INCLUDE_DIRS})
 	ENDIF()
 ELSE()

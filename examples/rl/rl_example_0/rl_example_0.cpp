@@ -5,6 +5,9 @@
   *
   * */
 
+#include "cubeai/base/cubeai_config.h"
+
+#ifdef USE_RL
 
 #include "cubeai/base/cubeai_types.h"
 #include "cubeai/rl/algorithms/dummy/dummy_algorithm.h"
@@ -188,5 +191,14 @@ int main() {
 
    return 0;
 }
+#else
+
+#include <iostream>
+int main() {
+
+	std::cout<<"This example requires to configure the library with RL support. Set USE_RL to ON and rebuild"<<std::endl;
+}
+
+#endif
 
 
