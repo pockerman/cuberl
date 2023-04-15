@@ -24,68 +24,87 @@ SET(CUBEAILIB_VERSION_PATCH 7)
 SET(CUBEAILIB_VERSION "${CUBEAILIB_VERSION_MAJOR}.${CUBEAILIB_VERSION_MINOR}.${CUBEAILIB_VERSION_PATCH}-alpha")
 MESSAGE(STATUS "CubeAI lib Version ${CUBEAILIB_VERSION}")
 
+# configure the project accordingly
+
+# Set the build type options supported
+# Debug and Release
 SET(CMAKE_BUILD_TYPE "Debug")
+
 SET(CMAKE_CXX_COMPILER g++-11)
 SET(CMAKE_CXX_STANDARD 20)
 SET(CMAKE_CXX_STANDARD_REQUIRED True)
 SET(CMAKE_C_COMPILER gcc-11)
 SET(CMAKE_C_STANDARD 20)
 SET(CMAKE_C_STANDARD_REQUIRED True)
+
+
 SET(USE_OPENMP ON)
 SET(USE_LOG ON)
 SET(USE_PYTORCH ON)
 SET(USE_OPENCV OFF)
 SET(USE_GYMFCPP ON)
+SET(GYMFCPP_INCLUDE_DIRS "/home/alex/qi3/cubeai/external/rlenvs_cpp/src")
+SET(GYMFCPP_LIB_PATH "/home/alex/qi3/cubeai/external/rlenvs_cpp/install/dbg")
+
+# PyTorch
+SET(USE_PYTORCH ON)
+SET(PYTORCH_PATH "/home/alex/MySoftware/libtorch")
+	
 SET(USE_CUDA ON)
+
+# The CUDA compiler
+SET(CMAKE_CUDA_COMPILER "/usr/local/cuda/bin")
+
+# Which packages to use from the library
 SET(USE_RL ON)
 SET(DATA_SET_FOLDER ${PROJECT_SOURCE_DIR}/data)
 SET(ENABLE_EXAMPLES_FLAG ON)
-SET(ENABLE_TESTS_FLAG ON)
+
+# Testing
+SET(ENABLE_TESTS_FLAG OFF)
+SET(GTEST_INCLUDE_DIRS "/home/alex/MySoftware/gtest/install/include")
+SET(GTEST_BOTH_LIBRARIES "/home/alex/MySoftware/gtest/install/lib")
+
+# Documentation
 SET(ENABLE_DOC_FLAG OFF)
 
-
-IF(CMAKE_BUILD_TYPE STREQUAL "Debug")
-	SET(CMAKE_INSTALL_PREFIX  ${PROJECT_SOURCE_DIR}/install/dbg)
-	SET(CMAKE_CXX_FLAGS "-g ") # -Wall -Wextra")
-ELSEIF(CMAKE_BUILD_TYPE STREQUAL "Release")
-	SET(CMAKE_INSTALL_PREFIX  ${PROJECT_SOURCE_DIR}/install/opt)
-	SET(CMAKE_CXX_FLAGS "-O2")
-ENDIF()
-
-IF(CMAKE_BUILD_TYPE STREQUAL "Debug")
-	SET(CUBEAI_DEBUG ON)
-	SET(CUBEAI_PRINT_DBG_MSGS ON)
-ENDIF()
-
-#SET(CMAKE_INSTALL_PREFIX /home/alex/qi3/cubeAI/install)
-SET(CMAKE_LINKER_FLAGS "-pthread")
-
 # explicitly specify where the blaze c++ headers are
-SET(BLAZE_INCLUDE_DIRS "/home/alex/MySoftware/blaze/install/include")
+SET(BLAZE_INCLUDE_DIRS "/home/alex/qi3/cubeai/external/blaze-3.8.2/install/include")
 
-# external JSON library
+# Path to the nlohman_json JSON library
 SET(NLOHMANN_JSON_INCL_DIR "/home/alex/MySoftware/nlohman_json/install/include")
 
 # configuration for Python3
 SET(PYTHON_CONFIG_LIBS_PATH "/usr/lib/python3.10/config-3.10-x86_64-linux-gnu/")
 
 
-IF(USE_GYMFCPP)
-
-	# heades for rl_envs_from_cpp
-	SET(GYMFCPP_INCLUDE_DIRS "/home/alex/qi3/cubeAI/rl_envs_from_cpp/src")
-	
-	IF(CMAKE_BUILD_TYPE MATCHES "Debug")
-		SET(GYMFCPP_LIB_DIRS  ${PROJECT_SOURCE_DIR}/gymcpp/install/dbg/)
-	ELSE()
-		SET(GYMFCPP_LIB_DIRS  ${PROJECT_SOURCE_DIR}gymcpp/install/opt/)
-	ENDIF()
-	
+IF(CMAKE_BUILD_TYPE STREQUAL "Debug")
+	SET(CMAKE_INSTALL_PREFIX  ${PROJECT_SOURCE_DIR}/install/dbg)
+	SET(CMAKE_CXX_FLAGS "-g ") # -Wall -Wextra")
+	SET(CUBEAI_DEBUG ON)
+	SET(CUBEAI_PRINT_DBG_MSGS ON)
+ELSEIF(CMAKE_BUILD_TYPE STREQUAL "Release")
+	SET(CMAKE_INSTALL_PREFIX  ${PROJECT_SOURCE_DIR}/install/opt)
+	SET(CMAKE_CXX_FLAGS "-O2")
 ENDIF()
+
+SET(CMAKE_LINKER_FLAGS "-pthread")
+
 
 IF(PYTHON_CONFIG_LIBS_PATH MATCHES " ")
 	MESSAGE( FATAL_ERROR  "Python3 was not found.")
 ENDIF()
+
+IF(USE_GYMFCPP)
+
+	IF(CMAKE_BUILD_TYPE MATCHES "Debug")
+		SET(GYMFCPP_LIB_DIRS  ${GYMFCPP_LIB_PATH})
+	ELSE()
+		SET(GYMFCPP_LIB_DIRS  ${GYMFCPP_LIB_PATH})
+	ENDIF()
+	
+ENDIF()
+
 
 IF(ENABLE_TESTS_FLAG)
 	# if not manually populated we do a 
@@ -144,7 +163,7 @@ LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
 # if using PyTorch append the path to libtorch
 IF(USE_PYTORCH)
-	LIST(APPEND CMAKE_PREFIX_PATH /home/alex/MySoftware/libtorch)
+	LIST(APPEND CMAKE_PREFIX_PATH ${PYTORCH_PATH}) #/home/alex/MySoftware/libtorch)
 	FIND_PACKAGE(Torch REQUIRED CONFIG)
 	MESSAGE(STATUS "TORCH Include directory ${TORCH_INCLUDE_DIRS}")
 ENDIF()

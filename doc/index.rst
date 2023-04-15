@@ -8,6 +8,7 @@ Welcome to the CubeAI documentation!
    :caption: Contents:
 
    Introduction <self>
+   installation
    readme
    examples
    api_reference
