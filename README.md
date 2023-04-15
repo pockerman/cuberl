@@ -9,6 +9,7 @@ The following is an indicative list of examples. More tutorials can be found at 
 
 ## Examples
 
+### Reinforcement learning
 
 - <a href="https://pockerman-py-cubeai.readthedocs.io/en/latest/ExamplesCpp/rl/rl_example_0.html">Example 0: DummyAgent on  ```MountainCar-v0```</a>
 - <a href="examples/example_1/example_1.cpp">Example 1: Toy Markov chain</a>
@@ -25,6 +26,9 @@ The following is an indicative list of examples. More tutorials can be found at 
 - <a href="examples/example_16/example_16.cpp">Example 16: Monte Carlo tree search on ```Taxi-v3```</a>
 - <a href="examples/example_17/example_17.cpp">Example 17: A* search on a road network  from Open Street Map data</a> 
 - <a href="https://pockerman-py-cubeai.readthedocs.io/en/latest/ExamplesCpp/rl/rl_example_18.html">Example 18: Double Q-learning on  ```CartPole-v0``` </a> 
+
+### Path planning
+
 - <a href="#">Example 19: Path planning with rapidly-exploring random trees (TODO)</a> 
 - <a href="#">Example 20: Path planning with dynamic windows (TODO) </a>   
 
