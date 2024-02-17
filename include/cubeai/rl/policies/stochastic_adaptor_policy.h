@@ -13,6 +13,7 @@
 
 #include <memory>
 #include <any>
+#include <map>
 
 namespace cubeai {
 namespace rl {
@@ -35,7 +36,8 @@ public:
     /// \brief StochasticAdaptorPolicy
     /// \param policy
     ///
-    StochasticAdaptorPolicy(uint_t state_space_size, uint_t action_space_size, policy_type& policy);
+    StochasticAdaptorPolicy(uint_t state_space_size, uint_t action_space_size,
+                            policy_type& policy);
 
     ///
     /// \brief Destructor
@@ -68,7 +70,8 @@ private:
 };
 
 template<typename PolicyType>
-StochasticAdaptorPolicy<PolicyType>::StochasticAdaptorPolicy(uint_t state_space_size, uint_t action_space_size, policy_type& policy)
+StochasticAdaptorPolicy<PolicyType>::StochasticAdaptorPolicy(uint_t state_space_size,
+                                                             uint_t action_space_size, policy_type& policy)
     :
       //DiscretePolicyAdaptorBase(),
       state_space_size_(state_space_size),

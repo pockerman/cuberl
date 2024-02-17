@@ -9,6 +9,7 @@
 #endif
 
 #include <tuple>
+#include <map>
 #include <utility>
 
 namespace cubeai{
@@ -41,13 +42,15 @@ ResultVecTp linesplit(real_t a, real_t b, uint_t n){
 /// \brief The car plant data set is a simple dataset with two columns
 /// of real type and 12 observations
 ///
-std::pair<DynMat<real_t>, DynVec<real_t>> load_car_plant_dataset(uint_t label_idx=1, bool add_ones_column=true);
+std::pair<DynMat<real_t>, DynVec<real_t>> load_car_plant_dataset(uint_t label_idx=1,
+                                                                 bool add_ones_column=true);
 
 ///
 /// \brief The car plant data set is a simple dataset with two columns
 /// of real type and 12 observations
 ///
-std::pair<DynMat<real_t>, DynVec<real_t>> load_car_plant_multi_dataset(uint_t label_idx=2, bool add_ones_column=true);
+std::pair<DynMat<real_t>, DynVec<real_t>> load_car_plant_multi_dataset(uint_t label_idx=2,
+                                                                       bool add_ones_column=true);
 
 
 ///

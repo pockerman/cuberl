@@ -29,7 +29,7 @@
 #cmakedefine USE_OPENCV
 
 /*Use OpenCV */
-#cmakedefine USE_GYMFCPP
+#cmakedefine USE_RLENVS_CPP
 
 /*Use CUDA */
 #cmakedefine USE_CUDA

@@ -1,9 +1,8 @@
-
-#include "cubic_engine/base/config.h"
+#include "cubeai/base/cubeai_config.h"
 
 #ifdef USE_PLANNING
 
-#include "cubic_engine/planning/diff_drive_dynamic_window.h"
+#include "cubeai/planning/diff_drive_dynamic_window.h"
 
 
 namespace cengine{

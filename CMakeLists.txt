@@ -1,7 +1,13 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 3.6 FATAL_ERROR)
 MESSAGE(STATUS "Using CMake ${CMAKE_VERSION}")
 
-PROJECT(cubeai VERSION 0.0.7 LANGUAGES CXX C)
+
+SET(CUBEAILIB_VERSION_MAJOR 0)
+SET(CUBEAILIB_VERSION_MINOR 0)
+SET(CUBEAILIB_VERSION_PATCH 7)
+SET(CUBEAILIB_VERSION "${CUBEAILIB_VERSION_MAJOR}.${CUBEAILIB_VERSION_MINOR}.${CUBEAILIB_VERSION_PATCH}")
+PROJECT(cubeai VERSION ${CUBEAILIB_VERSION} LANGUAGES CXX C)
+MESSAGE(STATUS "CubeAI lib Version ${CUBEAILIB_VERSION}")
 
 # -----------------------------------------------------------------------------
 # Prevent in-source builds.
@@ -17,40 +23,32 @@ IF(COMMAND cmake_policy)
 	CMAKE_POLICY(SET CMP0048 NEW)
 ENDIF(COMMAND cmake_policy)
 
-
-SET(CUBEAILIB_VERSION_MAJOR 0)
-SET(CUBEAILIB_VERSION_MINOR 0)
-SET(CUBEAILIB_VERSION_PATCH 7)
-SET(CUBEAILIB_VERSION "${CUBEAILIB_VERSION_MAJOR}.${CUBEAILIB_VERSION_MINOR}.${CUBEAILIB_VERSION_PATCH}-alpha")
-MESSAGE(STATUS "CubeAI lib Version ${CUBEAILIB_VERSION}")
-
 # configure the project accordingly
 
 # Set the build type options supported
 # Debug and Release
 SET(CMAKE_BUILD_TYPE "Debug")
-
 SET(CMAKE_CXX_COMPILER g++-11)
 SET(CMAKE_CXX_STANDARD 20)
 SET(CMAKE_CXX_STANDARD_REQUIRED True)
 SET(CMAKE_C_COMPILER gcc-11)
 SET(CMAKE_C_STANDARD 20)
 SET(CMAKE_C_STANDARD_REQUIRED True)
-
+SET(CMAKE_LINKER_FLAGS "-pthread")
 
 SET(USE_OPENMP ON)
 SET(USE_LOG ON)
-SET(USE_PYTORCH ON)
+SET(USE_PYTORCH OFF)
 SET(USE_OPENCV OFF)
-SET(USE_GYMFCPP ON)
-SET(GYMFCPP_INCLUDE_DIRS "/home/alex/qi3/cubeai/external/rlenvs_cpp/src")
-SET(GYMFCPP_LIB_PATH "/home/alex/qi3/cubeai/external/rlenvs_cpp/install/dbg")
+SET(USE_RLENVS_CPP ON)
+SET(RLENVS_CPP_INCLUDE_DIRS "${PROJECT_SOURCE_DIR}/external/rlenvs_cpp/src")
+SET(RLENVS_CPP_LIB_PATH "${PROJECT_SOURCE_DIR}/external/rlenvs_cpp/install/dbg")
 
 # PyTorch
-SET(USE_PYTORCH ON)
+SET(USE_PYTORCH OFF)
 SET(PYTORCH_PATH "/home/alex/MySoftware/libtorch")
 	
-SET(USE_CUDA ON)
+SET(USE_CUDA OFF)
 
 # The CUDA compiler
 SET(CMAKE_CUDA_COMPILER "/usr/local/cuda/bin")
@@ -59,24 +57,9 @@ SET(CMAKE_CUDA_COMPILER "/usr/local/cuda/bin")
 SET(USE_RL ON)
 SET(DATA_SET_FOLDER ${PROJECT_SOURCE_DIR}/data)
 SET(ENABLE_EXAMPLES_FLAG ON)
-
-# Testing
-SET(ENABLE_TESTS_FLAG OFF)
-SET(GTEST_INCLUDE_DIRS "/home/alex/MySoftware/gtest/install/include")
-SET(GTEST_BOTH_LIBRARIES "/home/alex/MySoftware/gtest/install/lib")
-
-# Documentation
-SET(ENABLE_DOC_FLAG OFF)
-
-# explicitly specify where the blaze c++ headers are
-SET(BLAZE_INCLUDE_DIRS "/home/alex/qi3/cubeai/external/blaze-3.8.2/install/include")
-
-# Path to the nlohman_json JSON library
-SET(NLOHMANN_JSON_INCL_DIR "/home/alex/MySoftware/nlohman_json/install/include")
-
-# configuration for Python3
-SET(PYTHON_CONFIG_LIBS_PATH "/usr/lib/python3.10/config-3.10-x86_64-linux-gnu/")
-
+SET(ENABLE_TESTS_FLAG OFF) # Testing
+SET(ENABLE_DOC_FLAG OFF) # Documentation
+SET(BLAZE_INCLUDE_DIRS "${PROJECT_SOURCE_DIR}/external/blaze/install/include") # explicitly specify where the blaze c++ headers are
 
 IF(CMAKE_BUILD_TYPE STREQUAL "Debug")
 	SET(CMAKE_INSTALL_PREFIX  ${PROJECT_SOURCE_DIR}/install/dbg)
@@ -86,21 +69,17 @@ IF(CMAKE_BUILD_TYPE STREQUAL "Debug")
 ELSEIF(CMAKE_BUILD_TYPE STREQUAL "Release")
 	SET(CMAKE_INSTALL_PREFIX  ${PROJECT_SOURCE_DIR}/install/opt)
 	SET(CMAKE_CXX_FLAGS "-O2")
+    SET(CUBEAI_DEBUG OFF)
 ENDIF()
 
-SET(CMAKE_LINKER_FLAGS "-pthread")
 
 
-IF(PYTHON_CONFIG_LIBS_PATH MATCHES " ")
-	MESSAGE( FATAL_ERROR  "Python3 was not found.")
-ENDIF()
-
-IF(USE_GYMFCPP)
+IF(USE_RLENVS_CPP)
 
 	IF(CMAKE_BUILD_TYPE MATCHES "Debug")
-		SET(GYMFCPP_LIB_DIRS  ${GYMFCPP_LIB_PATH})
+		SET(RLENVS_CPP_LIB_DIRS  ${RLENVS_CPP_LIB_PATH})
 	ELSE()
-		SET(GYMFCPP_LIB_DIRS  ${GYMFCPP_LIB_PATH})
+		SET(RLENVS_CPP_LIB_DIRS  ${RLENVS_CPP_LIB_PATH})
 	ENDIF()
 	
 ENDIF()
@@ -150,20 +129,20 @@ ELSE()
 	INCLUDE_DIRECTORIES(${BLAZE_INCLUDE_DIRS})
 ENDIF()
 
-IF(NLOHMANN_JSON_INCL_DIR MATCHES " ")
+#IF(NLOHMANN_JSON_INCL_DIR MATCHES " ")
 
-	FIND_PACKAGE( nlohmann_json REQUIRED )
-	INCLUDE_DIRECTORIES(${INTERFACE_INCLUDE_DIRECTORIES})
-ELSE()
-	INCLUDE_DIRECTORIES(${NLOHMANN_JSON_INCL_DIR})
+#	FIND_PACKAGE( nlohmann_json REQUIRED )
+#	INCLUDE_DIRECTORIES(${INTERFACE_INCLUDE_DIRECTORIES})
+#ELSE()
+#	INCLUDE_DIRECTORIES(${NLOHMANN_JSON_INCL_DIR})
 
-ENDIF()
+#ENDIF()
 
 LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
 # if using PyTorch append the path to libtorch
 IF(USE_PYTORCH)
-	LIST(APPEND CMAKE_PREFIX_PATH ${PYTORCH_PATH}) #/home/alex/MySoftware/libtorch)
+	LIST(APPEND CMAKE_PREFIX_PATH ${PYTORCH_PATH})
 	FIND_PACKAGE(Torch REQUIRED CONFIG)
 	MESSAGE(STATUS "TORCH Include directory ${TORCH_INCLUDE_DIRS}")
 ENDIF()
@@ -180,6 +159,7 @@ configure_file(version.h.in ${PROJECT_SOURCE_DIR}/include/cubeai/base/cubeai_ver
 
 # include directories
 INCLUDE_DIRECTORIES(${BOOST_INCLUDEDIR})
+INCLUDE_DIRECTORIES(${RLENVS_CPP_INCLUDE_DIRS})
 
 IF(USE_PYTORCH)
 	INCLUDE_DIRECTORIES(${TORCH_INCLUDE_DIRS})
@@ -188,9 +168,18 @@ ENDIF()
 INCLUDE_DIRECTORIES(include/)
 
 # collect the source files for the library
-FILE(GLOB SRCS src/cubeai/base/*.cpp src/cubeai/ml/*.cpp src/cubeai/ml/*/*.cpp src/cubeai/rl/*.cpp src/cubeai/rl/*/*.cpp
-    src/cubeai/io/*.cpp src/cubeai/planning/*.cpp, src/cubeai/geom_primitives/*.cpp src/cubeai/utils/*.cpp src/cubeai/optimization/*.cpp
-    src/cubeai/datasets/*.cpp src/cubeai/pytorch_utils/*.cpp)
+FILE(GLOB SRCS src/cubeai/base/*.cpp
+               src/cubeai/ml/*.cpp
+			   src/cubeai/ml/*/*.cpp
+               src/cubeai/rl/*.cpp
+               src/cubeai/rl/*/*.cpp
+               src/cubeai/io/*.cpp
+               src/cubeai/planning/*.cpp
+               src/cubeai/geom_primitives/*.cpp
+               src/cubeai/utils/*.cpp
+               src/cubeai/optimization/*.cpp
+               src/cubeai/datasets/*.cpp
+               src/cubeai/pytorch_utils/*.cpp)
 
 
 ADD_LIBRARY(cubeailib SHARED ${SRCS})

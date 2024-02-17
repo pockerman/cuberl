@@ -111,7 +111,7 @@ DummyAlgorithm<EnvType>::on_training_episode(env_type& env, uint_t episode_idx){
     while(itr_counter_.continue_iterations()){
 
         // sample an action
-        auto action = env.sample();
+        auto action = env.sample_action();
 
         // step the environment
         auto time_step = env.step(action);
