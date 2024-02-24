@@ -16,7 +16,6 @@
 #include "cubeai/rl/agents/dummy_agent.h"
 #include "cubeai/utils/iteration_counter.h"
 #include "cubeai/utils/cubeai_concepts.h"
-//#include "cubeai/extern/matplotlibcpp.h"
 
 #include "rlenvs/rlenvs_types_v2.h"
 #include "rlenvs/envs/gymnasium/classic_control/mountain_car_env.h"

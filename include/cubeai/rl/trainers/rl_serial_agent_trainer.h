@@ -9,6 +9,7 @@
 #include <boost/noncopyable.hpp>
 #include <vector>
 #include <chrono>
+#include <iostream>
 
 namespace cubeai {
 namespace rl {

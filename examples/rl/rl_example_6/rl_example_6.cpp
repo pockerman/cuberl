@@ -1,24 +1,22 @@
 #include "cubeai/base/cubeai_config.h"
 
-#ifdef USE_GYMFCPP
+#ifdef USE_RLENVS_CPP
 
 #include "cubeai/base/cubeai_types.h"
 #include "cubeai/rl/algorithms/dp/iterative_policy_evaluation.h"
 #include "cubeai/rl/trainers/rl_serial_agent_trainer.h"
 #include "cubeai/rl/policies/uniform_discrete_policy.h"
 
-#include "gymfcpp/gymfcpp_types.h"
-#include "gymfcpp/frozen_lake_env.h"
-#include "gymfcpp/time_step.h"
-
-#include <boost/python.hpp>
+#include "rlenvs/rlenvs_types_v2.h"
+#include "rlenvs/envs/gymnasium/toy_text/frozen_lake_env.h"
+#include "rlenvs/time_step.h"
 
 #include <iostream>
 
-
-
 namespace rl_example_6
 {
+
+const std::string SERVER_URL = "http://0.0.0.0:8001/api";
 
 using cubeai::real_t;
 using cubeai::uint_t;
@@ -27,9 +25,8 @@ using cubeai::rl::algos::dp::IterativePolicyEval;
 using cubeai::rl::algos::dp::IterativePolicyEvalConfig;
 using cubeai::rl::RLSerialAgentTrainer;
 using cubeai::rl::RLSerialTrainerConfig;
-//typedef gymfcpp::TimeStep<uint_t> time_step_t;
-
-typedef rlenvs_cpp::gymfcpp::FrozenLake<4> env_type;
+using rlenvs_cpp::envs::gymnasium::FrozenLake;
+typedef FrozenLake<4> env_type;
 
 }
 
@@ -37,12 +34,16 @@ int main() {
 
     using namespace rl_example_6;
 
-    Py_Initialize();
-    auto gym_module = boost::python::import("__main__");
-    auto gym_namespace = gym_module.attr("__dict__");
 
-    env_type env("v0", gym_namespace);
-    env.make();
+    // create the environment
+    FrozenLake<4> env(SERVER_URL);
+
+    std::cout<<"Environment URL: "<<env.get_url()<<std::endl;
+
+    std::unordered_map<std::string, std::any> options;
+    env.make("v0", options);
+    env.reset();
+
 
     UniformDiscretePolicy policy(env.n_states(), env.n_actions());
     IterativePolicyEvalConfig config;
