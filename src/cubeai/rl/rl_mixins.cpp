@@ -61,7 +61,9 @@ max_action(const DynMat<real_t>& qtable, uint_t state, uint_t n_actions){
         values[a] = qtable(state, a);
     }
 
-    return blaze::argmax(values);
+    Eigen::Index minRow, minCol;
+    values.maxCoeff(&minRow, &minCol);
+    return minCol;
 }
 
 void
@@ -71,7 +73,7 @@ with_q_table_mixin::initialize(state_type n_states, action_type n_actions, real_
 
 
     for(uint_t s=0; s< n_states; ++s){
-        for(uint_t a=0; s< n_actions; ++a){
+        for(uint_t a=0; a< n_actions; ++a){
             q_table(s, a) = init_value;
         }
     }
@@ -86,7 +88,7 @@ with_double_q_table_mixin< DynMat<real_t> >::with_double_q_table_mixin::initiali
     q_table_2.resize(indices.size(), n_actions);
 
     for(uint_t s=0; s< indices.size(); ++s){
-        for(uint_t a=0; s < n_actions; ++a){
+        for(uint_t a=0; a < n_actions; ++a){
 
             q_table_1(s, a) = init_value;
             q_table_2(s, a) = init_value;

@@ -8,6 +8,7 @@
 #endif
 
 #include "blaze/Math.h"
+#include "Eigen/Core"
 #include <cstddef>
 #include <string>
 
@@ -32,7 +33,7 @@ namespace cubeai
     /// \brief General matrix type
     ///
     template<typename T>
-    using DynMat = blaze::DynamicMatrix<T, blaze::rowMajor>;
+    using DynMat = Eigen::MatrixX<T>; //::DynamicMatrix<T, blaze::rowMajor>;
 
     ///
     /// \brief General diagonal matrix
@@ -56,8 +57,11 @@ namespace cubeai
     /// \brief General vector type. By default this is
     /// a column vector
     ///
+    //template<typename T>
+    //using DynVec = blaze::DynamicVector<T, blaze::columnVector>;
+
     template<typename T>
-    using DynVec = blaze::DynamicVector<T, blaze::columnVector>;
+    using DynVec = Eigen::VectorX<T>;
 
     ///
     /// \brief Null type. Simple placeholder

@@ -60,6 +60,7 @@ SET(ENABLE_EXAMPLES_FLAG ON)
 SET(ENABLE_TESTS_FLAG OFF) # Testing
 SET(ENABLE_DOC_FLAG OFF) # Documentation
 SET(BLAZE_INCLUDE_DIRS "${PROJECT_SOURCE_DIR}/external/blaze/install/include") # explicitly specify where the blaze c++ headers are
+SET(EIGEN_INCLUDE_DIRS "${PROJECT_SOURCE_DIR}/external/eigen")
 
 IF(CMAKE_BUILD_TYPE STREQUAL "Debug")
 	SET(CMAKE_INSTALL_PREFIX  ${PROJECT_SOURCE_DIR}/install/dbg)
@@ -159,6 +160,7 @@ configure_file(version.h.in ${PROJECT_SOURCE_DIR}/include/cubeai/base/cubeai_ver
 
 # include directories
 INCLUDE_DIRECTORIES(${BOOST_INCLUDEDIR})
+INCLUDE_DIRECTORIES(${EIGEN_INCLUDE_DIRS})
 INCLUDE_DIRECTORIES(${RLENVS_CPP_INCLUDE_DIRS})
 
 IF(USE_PYTORCH)

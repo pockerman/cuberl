@@ -27,16 +27,11 @@ load_car_plant_dataset(uint_t label_idx, bool add_ones_column){
                             3.18, 3.46, 3.03,
                             3.26, 2.67, 2.53};
 
-    DynVec<real_t> labels;
 
-    if(label_idx == 1 ){
-        labels = col2;
-    }
-    else{
-        labels = col1;
-    }
 
-    DynMat<real_t> mat(sizeof (col1)/sizeof (real_t), ncols, add_ones_column?1.0:0.0);
+    DynMat<real_t> mat;
+    //(sizeof (col1)/sizeof (real_t), ncols,
+    //                   add_ones_column?1.0:0.0);
 
     if(add_ones_column){
 
@@ -50,7 +45,32 @@ load_car_plant_dataset(uint_t label_idx, bool add_ones_column){
         }
     }
 
-    return std::pair(mat, labels);
+    if(label_idx == 1){
+        uint_t counter = 0;
+        DynVec<real_t> labels(12);
+        std::for_each(labels.begin(),
+                    labels.end(),
+                    [&](auto& val){val = col1[counter++];});
+        return std::pair(mat, labels);
+    }
+    else{
+        uint_t counter = 0;
+        DynVec<real_t> labels(12);
+        std::for_each(labels.begin(),
+                    labels.end(),
+                    [&](auto& val){val = col2[counter++];});
+        return std::pair(mat, labels);
+    }
+
+    /*if(label_idx == 1 ){
+         DynVec<real_t> labels(col2);
+         return std::pair(mat, labels);
+    }
+    else{
+         DynVec<real_t> labels(col1);
+         return std::pair(mat, labels);
+    }*/
+
 }
 
 
@@ -78,19 +98,11 @@ load_car_plant_multi_dataset(uint_t labels_idx, bool add_ones_column){
                             3.18, 3.46, 3.03,
                             3.26, 2.67, 2.53};
 
-    DynVec<real_t> labels;
+    //DynVec<real_t> labels;
 
-    if(labels_idx == 0 ){
-        labels = col0;
-    }
-    else if(labels_idx == 1) {
-        labels = col1;
-    }
-    else{
-      labels = col2;
-    }
-
-    DynMat<real_t> mat(sizeof (col1)/sizeof (real_t), ncols, add_ones_column?1.0:0.0);
+    DynMat<real_t> mat;
+    //(sizeof (col1)/sizeof (real_t), ncols,
+    //                   add_ones_column?1.0:0.0);
 
     if(add_ones_column){
 
@@ -140,7 +152,48 @@ load_car_plant_multi_dataset(uint_t labels_idx, bool add_ones_column){
         }
     }
 
-    return std::pair(mat, labels);
+    if(labels_idx == 0){
+        uint_t counter = 0;
+        DynVec<real_t> labels(12);
+        std::for_each(labels.begin(),
+                    labels.end(),
+                    [&](auto& val){val = col0[counter++];});
+        return std::pair(mat, labels);
+    }
+    else if(labels_idx == 1){
+
+        uint_t counter = 0;
+        DynVec<real_t> labels(12);
+        std::for_each(labels.begin(),
+                    labels.end(),
+                    [&](auto& val){val = col1[counter++];});
+        return std::pair(mat, labels);
+
+    }
+    else{
+        uint_t counter = 0;
+        DynVec<real_t> labels(12);
+        std::for_each(labels.begin(),
+                    labels.end(),
+                    [&](auto& val){val = col2[counter++];});
+        return std::pair(mat, labels);
+    }
+
+    /*if(labels_idx == 0 ){
+         DynVec<real_t> labels(col0);
+         return std::pair(mat, labels);
+    }
+    else if(labels_idx == 1) {
+        DynVec<real_t> labels(col1);
+        return std::pair(mat, labels);
+    }
+    else{
+        DynVec<real_t> labels(col2);
+        return std::pair(mat, labels);
+    }
+    */
+
+
 
 }
 
@@ -169,7 +222,7 @@ void load_car_plant_multi_dataset(DynMat<real_t>& mat, DynVec<real_t>& labels,
                             3.18, 3.46, 3.03,
                             3.26, 2.67, 2.53};
 
-    if(labels_idx == 0 ){
+    /*if(labels_idx == 0 ){
         labels = col0;
     }
     else if(labels_idx == 1) {
@@ -227,7 +280,7 @@ void load_car_plant_multi_dataset(DynMat<real_t>& mat, DynVec<real_t>& labels,
                mat(r, 1) = col1[r];
            }
         }
-    }
+    }*/
 }
 
 std::pair<DynMat<real_t>, DynVec<uint_t>> 
@@ -240,7 +293,7 @@ load_reduced_iris_data_set(bool add_ones_column){
 
     uint_t cols = add_ones_column? 5 : 4;
     real_t val = add_ones_column ? 1.0 : 0.0;
-    DynMat<real_t> matrix(100, cols, val);
+    DynMat<real_t> matrix(100, cols);//, val);
     DynVec<uint_t> labels(100);
 
     // read the first line as this is the header
@@ -301,7 +354,7 @@ load_iris_data_set(bool add_ones_column){
 
     uint_t cols = add_ones_column? 5 : 4;
     real_t val = add_ones_column ? 1.0 : 0.0;
-    DynMat<real_t> matrix(150, cols, val);
+    DynMat<real_t> matrix(150, cols); //, val);
     DynVec<uint_t> labels(150);
 
     // read the first line as this is the header
@@ -354,7 +407,7 @@ load_x_y_sinuisoid_data_set(bool add_ones_column){
 
     uint_t cols = add_ones_column? 2 : 1;
     real_t val = add_ones_column ? 1.0 : 0.0;
-    DynMat<real_t> matrix(20, cols, val);
+    DynMat<real_t> matrix(20, cols);//, val);
     DynVec<real_t> labels(20);
 
     // read the first line as this is the header
@@ -421,7 +474,7 @@ std::pair<DynMat<real_t>,
     file += "/wine.data";
 
     CSVFileReader reader(file);
-    DynMat<real_t> matrix(nrows, ncols, 0.0);
+    DynMat<real_t> matrix(nrows, ncols); //, 0.0);
 
     if(add_ones_column){
         for(uint_t r=0; r<matrix.rows(); ++r){
@@ -445,7 +498,7 @@ std::pair<DynMat<real_t>,
         }
 
         uint_t clocal = 0;
-        for(uint c=col_start; c<matrix.columns(); ++c){
+        for(uint c=col_start; c<matrix.cols(); ++c){
            matrix(r, c) =  vals[clocal++];
         }
 
@@ -471,9 +524,8 @@ load_random_set_one(DynMat<real_t>& matrix){
 	while(!reader.eof()){
 		
 		auto line = reader.read_line();
-		
                 if(line[0] == cubeai::CubeAIConsts::eof_string()){
-			break;
+                break;
 		}
 		
 		
@@ -492,7 +544,7 @@ load_random_set_one(DynMat<real_t>& matrix){
         }
 		
 		
-        for(uint c=0; c<matrix.columns(); ++c){
+        for(uint c=0; c<matrix.cols(); ++c){
            matrix(row_counter, c) =  vals[c];
         }
 		

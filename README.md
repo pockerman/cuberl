@@ -41,6 +41,8 @@ The following is an indicative list of examples. More tutorials can be found at 
 
 ## Installation
 
+The cubeai library has a host of dependencies:
+
 Installation instructions and dependencies can be found <a href="https://pockerman-py-cubeai.readthedocs.io/en/latest/install.html">here</a>.
 
 

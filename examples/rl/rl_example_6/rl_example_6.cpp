@@ -45,7 +45,7 @@ int main() {
     env.reset();
 
 
-    UniformDiscretePolicy policy(env.n_states(), env.n_actions());
+    /*UniformDiscretePolicy policy(env.n_states(), env.n_actions());
     IterativePolicyEvalConfig config;
     config.tolerance = 1.0e-8;
 
@@ -60,7 +60,7 @@ int main() {
     std::cout<<info<<std::endl;
 
     // save the value function for plotting
-    algorithm.save("iterative_policy_evaluation_frozen_lake.csv");
+    algorithm.save("iterative_policy_evaluation_frozen_lake.csv");*/
 
    return 0;
 }
