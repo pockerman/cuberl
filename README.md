@@ -42,7 +42,6 @@ The following is an indicative list of examples. More tutorials can be found at 
 ## Installation
 
 The cubeai library has a host of dependencies:
-
 Installation instructions and dependencies can be found <a href="https://pockerman-py-cubeai.readthedocs.io/en/latest/install.html">here</a>.
 
 
@@ -50,9 +49,35 @@ Installation instructions and dependencies can be found <a href="https://pockerm
 
 There are extra dependencies if you want to generate the documentation. Namely,
 
-- Doxygen
-- Sphinx
-- sphinx_rtd_theme
-- breathe
-- m2r2
+- <a href="https://www.doxygen.nl/">Doxygen</a>
+- <a href="https://www.sphinx-doc.org/en/master/">Sphinx</a>
+- <a href="https://github.com/readthedocs/sphinx_rtd_theme">sphinx_rtd_theme</a>
+- <a href="https://github.com/breathe-doc/breathe">breathe</a>
+- <a href="https://github.com/crossnox/m2r2">m2r2</a>
+
+Note that if Doxygen is not found on your system CMake will skip this. On a Ubuntu/Debian based machine, you can install
+Doxygen using
+
+```
+sudo apt-get install doxygen
+```
+
+Similarly, install ```sphinx_rtd_theme``` using
+
+```
+pip install sphinx_rtd_theme
+```
+
+Install ```breathe``` using
+
+```
+pip install breathe
+```
+
+Install ```m2r2``` using
+
+```
+pip install m2r2
+```
+
 

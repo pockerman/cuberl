@@ -1,6 +1,8 @@
 find_package(Doxygen)
 
 IF (NOT DOXYGEN_FOUND)
+    MESSAGE(WARNING "Configuration with generating documentation but Doxygen was not found...")
+    MESSAGE(WARNING "Skipping documentation generation...")
 	return()
 ENDIF()
 

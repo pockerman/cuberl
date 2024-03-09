@@ -43,24 +43,27 @@ SET(USE_OPENCV OFF)
 SET(USE_RLENVS_CPP ON)
 SET(RLENVS_CPP_INCLUDE_DIRS "${PROJECT_SOURCE_DIR}/external/rlenvs_cpp/src")
 SET(RLENVS_CPP_LIB_PATH "${PROJECT_SOURCE_DIR}/external/rlenvs_cpp/install/dbg")
+SET(USE_RL ON)
+SET(DATA_SET_FOLDER ${PROJECT_SOURCE_DIR}/data)
+SET(ENABLE_EXAMPLES_FLAG ON)
+SET(ENABLE_TESTS_FLAG ON) # Testing
+SET(ENABLE_DOC_FLAG ON) # Documentation
+SET(EIGEN_INCLUDE_DIRS "${PROJECT_SOURCE_DIR}/external/eigen")
 
 # PyTorch
 SET(USE_PYTORCH OFF)
 SET(PYTORCH_PATH "/home/alex/MySoftware/libtorch")
-	
 SET(USE_CUDA OFF)
 
 # The CUDA compiler
 SET(CMAKE_CUDA_COMPILER "/usr/local/cuda/bin")
 
 # Which packages to use from the library
-SET(USE_RL ON)
-SET(DATA_SET_FOLDER ${PROJECT_SOURCE_DIR}/data)
-SET(ENABLE_EXAMPLES_FLAG ON)
-SET(ENABLE_TESTS_FLAG ON) # Testing
-SET(ENABLE_DOC_FLAG OFF) # Documentation
-SET(BLAZE_INCLUDE_DIRS "${PROJECT_SOURCE_DIR}/external/blaze/install/include") # explicitly specify where the blaze c++ headers are
-SET(EIGEN_INCLUDE_DIRS "${PROJECT_SOURCE_DIR}/external/eigen")
+
+
+
+#SET(BLAZE_INCLUDE_DIRS "${PROJECT_SOURCE_DIR}/external/blaze/install/include") # explicitly specify where the blaze c++ headers are
+
 
 IF(CMAKE_BUILD_TYPE STREQUAL "Debug")
 	SET(CMAKE_INSTALL_PREFIX  ${PROJECT_SOURCE_DIR}/install/dbg)
