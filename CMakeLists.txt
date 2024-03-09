@@ -57,7 +57,7 @@ SET(CMAKE_CUDA_COMPILER "/usr/local/cuda/bin")
 SET(USE_RL ON)
 SET(DATA_SET_FOLDER ${PROJECT_SOURCE_DIR}/data)
 SET(ENABLE_EXAMPLES_FLAG ON)
-SET(ENABLE_TESTS_FLAG OFF) # Testing
+SET(ENABLE_TESTS_FLAG ON) # Testing
 SET(ENABLE_DOC_FLAG OFF) # Documentation
 SET(BLAZE_INCLUDE_DIRS "${PROJECT_SOURCE_DIR}/external/blaze/install/include") # explicitly specify where the blaze c++ headers are
 SET(EIGEN_INCLUDE_DIRS "${PROJECT_SOURCE_DIR}/external/eigen")
@@ -85,18 +85,23 @@ IF(USE_RLENVS_CPP)
 	
 ENDIF()
 
-
+# if tests are enabled try to
+# find GTest
 IF(ENABLE_TESTS_FLAG)
-	# if not manually populated we do a 
-	# system scan in the CMakeLists of the tests directory
-	SET(GTEST_INCLUDE_DIRS "/home/alex/MySoftware/gtest/install/include")
-	SET(GTEST_BOTH_LIBRARIES "/home/alex/MySoftware/gtest/install/lib")
+	# find gtest
+	FIND_PACKAGE(GTest REQUIRED)
+
+	IF(GTest_FOUND)
+		INCLUDE_DIRECTORIES(${GTEST_INCLUDE_DIRS})
+		LINK_DIRECTORIES(${GTEST_BOTH_LIBRARIES})
+    ELSE()
+	    MESSAGE( FATAL_ERROR  "ENABLE_TESTS_FLAG is ON but could not find GTest library.")
+	ENDIF()
 ENDIF()
-
-
 
 # find Boost
 FIND_PACKAGE(Boost 1.74.0 REQUIRED)
+
 IF(Boost_FOUND)
 	MESSAGE( STATUS  "Found needed Boost C++ library.")
 	SET(Boost_USE_SHARED_LIBS ON)
@@ -113,31 +118,7 @@ ELSE()
 	MESSAGE( STATUS  "Found needed BLAS library.")
 ENDIF()
 
-# attempt to find blaze in the usr system
-IF(BLAZE_INCLUDE_DIRS MATCHES " ")
 
-	FIND_PACKAGE( blaze REQUIRED )
-	
-	IF(NOT blaze_FOUND)
-		MESSAGE( FATAL_ERROR  "Could not find Blaze C++ library.")
-	ELSE()
-		
-   		add_library( blaze_target INTERFACE )
-   		target_link_libraries( blaze_target INTERFACE blaze::blaze )
-		INCLUDE_DIRECTORIES(${BLAZE_INCLUDE_DIRS})
-	ENDIF()
-ELSE()
-	INCLUDE_DIRECTORIES(${BLAZE_INCLUDE_DIRS})
-ENDIF()
-
-#IF(NLOHMANN_JSON_INCL_DIR MATCHES " ")
-
-#	FIND_PACKAGE( nlohmann_json REQUIRED )
-#	INCLUDE_DIRECTORIES(${INTERFACE_INCLUDE_DIRECTORIES})
-#ELSE()
-#	INCLUDE_DIRECTORIES(${NLOHMANN_JSON_INCL_DIR})
-
-#ENDIF()
 
 LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 

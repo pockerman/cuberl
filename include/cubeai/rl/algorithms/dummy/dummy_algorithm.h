@@ -28,14 +28,14 @@ struct DummyAlgorithmConfig
 ///
 ///
 template<typename EnvType>
-class DummyAlgorithm: public RLAlgoBase<EnvType>
+class DummyAlgorithm: public RLSolverBase<EnvType>
 {
 public:
 
     ///
     /// \brief env_type
     ///
-    typedef typename RLAlgoBase<EnvType>::env_type env_type;
+    typedef typename RLSolverBase<EnvType>::env_type env_type;
     typedef std::vector<typename EnvType::action_type> policy_type;
 
     ///
@@ -49,7 +49,7 @@ public:
     /// \brief actions_before_training_begins. Execute any actions the
     /// algorithm needs before starting the iterations.
     ///
-    virtual void actions_before_training_begins(env_type&);
+    virtual void actions_before_training_begins(env_type&) override;
 
     ///
     /// \brief actions_after_training_ends. Actions to execute after
@@ -90,7 +90,7 @@ protected:
 template<typename EnvType>
 DummyAlgorithm<EnvType>::DummyAlgorithm(DummyAlgorithmConfig config)
     :
-    RLAlgoBase<EnvType>(),
+    RLSolverBase<EnvType>(),
     itr_counter_(config.n_itrs_per_episode)
 {}
 

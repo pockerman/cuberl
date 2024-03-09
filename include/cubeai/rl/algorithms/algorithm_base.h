@@ -12,6 +12,7 @@ namespace cubeai{
 namespace rl{
 namespace algos {
 
+    /*
 ///
 /// \brief The AlgorithmBase class. Base class for deriving
 /// RL algorithms
@@ -152,6 +153,7 @@ private:
     IterativeAlgorithmController itr_ctrl_;
 
 };
+*/
 
 }
 }

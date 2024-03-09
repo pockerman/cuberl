@@ -8,6 +8,10 @@ namespace cubeai{
 namespace rl {
 namespace policies{
 
+///
+/// \brief class DeterministicActionPolicy. a deterministic action apolicy
+/// always selects the action indicated
+///
 template<utils::concepts::float_or_integral_vector PolicyValuesType, typename StateType>
 requires(std::is_integral<StateType>::value)
 class DeterministicActionPolicy

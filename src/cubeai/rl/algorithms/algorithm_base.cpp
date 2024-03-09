@@ -7,6 +7,7 @@ namespace cubeai{
 namespace rl {
 namespace algos {
 
+/*
 AlgorithmBase::AlgorithmBase(uint_t n_episodes, real_t tolerance)
     :
     itr_ctrl_(n_episodes, tolerance)
@@ -50,6 +51,7 @@ void
 AlgorithmBase::reset(){
     itr_ctrl_.reset();
 }
+*/
 
 }
 

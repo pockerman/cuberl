@@ -15,7 +15,7 @@ namespace algos{
 /// \brief RLAlgoBase. Base class for RL algorithms
 ///
 template<typename EnvType>
-class RLAlgoBase: private boost::noncopyable{
+class RLSolverBase: private boost::noncopyable{
 
 public:
 
@@ -24,7 +24,7 @@ public:
     ///
     /// \brief Destructor
     ///
-    virtual ~RLAlgoBase()=default;
+    virtual ~RLSolverBase()=default;
 
     ///
     /// \brief actions_before_training_begins. Execute any actions the
@@ -58,7 +58,7 @@ protected:
     ///
     /// \brief Constructor
     ///
-    RLAlgoBase()=default;
+    RLSolverBase()=default;
 
 };
 

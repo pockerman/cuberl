@@ -316,7 +316,7 @@ with_double_q_table_max_action_mixin::max_action(const TableTp& q1_table, const 
    const auto& vals1 = get_table_values_(q1_table, state);
    const auto& vals2 = get_table_values_(q2_table, state);
    auto sum   = vals1 + vals2;
-   return blaze::argmax(sum);
+   return 1; //blaze::argmax(sum);
 
 }
 
@@ -325,7 +325,7 @@ uint_t
 with_double_q_table_max_action_mixin::max_action(const TableTp& q_table, const StateTp& state, uint_t /*n_actions*/){
 
    const auto& vals = get_table_values_(q_table, state);
-   return blaze::argmax(vals);
+   return 1; //blaze::argmax(vals);
 
 }
 

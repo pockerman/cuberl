@@ -22,7 +22,7 @@ struct IterativePolicyEvalConfig
 {
     real_t gamma{1.0};
     real_t tolerance{1.0e-6};
-    std::string save_path{""};
+    std::string save_path{CubeAIConsts::dummy_string()};
 };
 
 ///
@@ -126,14 +126,16 @@ IterativePolicyEval<EnvType, PolicyType>::IterativePolicyEval(IterativePolicyEva
 template<typename EnvType, typename PolicyType>
 void
 IterativePolicyEval<EnvType, PolicyType>::actions_before_training_begins(env_type& env){
-    v_ = blaze::generate(env.n_states(), []( size_t /*index*/ ){ return 0.0; } );
+
+    // generate the initial table
+    v_.resize(env.n_states(), 0.0);
 }
 
 template<typename EnvType, typename PolicyType>
 void
 IterativePolicyEval<EnvType, PolicyType>::actions_after_training_ends(env_type& /*env*/){
 
-    if(config_.save_path != ""){
+    if(config_.save_path != CubeAIConsts::dummy_string()){
         save(config_.save_path);
     }
 }
@@ -150,12 +152,9 @@ IterativePolicyEval<EnvType, PolicyType>::on_training_episode(env_type& env, uin
     cubeai::utils::IterationCounter itr_counter(env.n_states());
     uint_t s = 0;
     while(itr_counter.continue_iterations()){
-    //for(uint_t s=0; s < env.n_states(); ++s){
-
         // every time we query itr_counter we increase the
         // counter so we miss the zero state
         auto old_v = v_[s];
-
         auto new_v = 0.0;
 
         auto state_actions_probs = policy_(s);
@@ -165,7 +164,7 @@ IterativePolicyEval<EnvType, PolicyType>::on_training_episode(env_type& env, uin
             auto aidx = action_prob.first;
             auto action_p = action_prob.second;
 
-            // get transition dynamic from the environment
+            // get transition dynamics from the environment
             auto transition_dyn = env.p(s, aidx);
 
             for(auto& dyn: transition_dyn){
@@ -205,7 +204,7 @@ IterativePolicyEval<EnvType, PolicyType>::save(const std::string& filename)const
     CSVWriter file_writer(filename, ',', true);
     file_writer.write_column_names({"state_index", "value_function"});
 
-    for(uint_t s=0; s < v_.size(); ++s){
+    for(uint_t s=0; s < static_cast<uint_t>(v_.size()); ++s){
         auto row = std::make_tuple(s, v_[s]);
         file_writer.write_row(row);
     }

@@ -42,7 +42,7 @@ mean(const VectorType& vector, bool parallel=true){
 template<typename T>
 real_t
 mean(const DynVec<T>& vector){
-    return blaze::mean(vector);
+    return 0.0; //blaze::mean(vector);
 }
 
 ///

@@ -41,11 +41,13 @@ int main() {
     std::cout<<"Environment URL: "<<env.get_url()<<std::endl;
 
     std::unordered_map<std::string, std::any> options;
-    env.make("v0", options);
+
+    std::cout<<"Creating the environment..."<<std::endl;
+    env.make("v1", options);
     env.reset();
+    std::cout<<"Done..."<<std::endl;
 
-
-    /*UniformDiscretePolicy policy(env.n_states(), env.n_actions());
+    UniformDiscretePolicy policy(env.n_states(), env.n_actions());
     IterativePolicyEvalConfig config;
     config.tolerance = 1.0e-8;
 
@@ -53,14 +55,14 @@ int main() {
 
     RLSerialTrainerConfig trainer_config = {10, 10000, 1.0e-8};
 
-    RLSerialAgentTrainer<env_type, IterativePolicyEval<env_type,
-            UniformDiscretePolicy>> trainer(trainer_config, algorithm);
+    RLSerialAgentTrainer<env_type,
+                        IterativePolicyEval<env_type, UniformDiscretePolicy>> trainer(trainer_config, algorithm);
 
     auto info = trainer.train(env);
     std::cout<<info<<std::endl;
 
     // save the value function for plotting
-    algorithm.save("iterative_policy_evaluation_frozen_lake.csv");*/
+    //algorithm.save("iterative_policy_evaluation_frozen_lake.csv");
 
    return 0;
 }

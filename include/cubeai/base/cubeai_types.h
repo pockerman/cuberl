@@ -7,7 +7,7 @@
 #include <torch/torch.h>
 #endif
 
-#include "blaze/Math.h"
+//#include "blaze/Math.h"
 #include "Eigen/Core"
 #include <cstddef>
 #include <string>
@@ -38,7 +38,7 @@ namespace cubeai
     ///
     /// \brief General diagonal matrix
     ///
-    template<typename T>
+    /*template<typename T>
     using DiagMat = blaze::DiagonalMatrix<DynMat<T>>;
 
     ///
@@ -51,7 +51,7 @@ namespace cubeai
     /// \brief General Sparse matrix
     ///
     template<typename T>
-    using SparseMatrix = blaze::CompressedMatrix<T, blaze::rowMajor>;
+    using SparseMatrix = blaze::CompressedMatrix<T, blaze::rowMajor>;*/
 
     ///
     /// \brief General vector type. By default this is
@@ -61,7 +61,7 @@ namespace cubeai
     //using DynVec = blaze::DynamicVector<T, blaze::columnVector>;
 
     template<typename T>
-    using DynVec = Eigen::VectorX<T>;
+    using DynVec = Eigen::RowVectorX<T>;
 
     ///
     /// \brief Null type. Simple placeholder
