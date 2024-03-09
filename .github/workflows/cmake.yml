@@ -20,7 +20,7 @@ jobs:
     steps:
 
     - name: Install Boost
-      run: apt-get install libboost-dev-all
+      run: sudo apt-get install libboost-dev-all
 
     - name: Checkout repository
       uses: actions/checkout@v3
