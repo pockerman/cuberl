@@ -8,7 +8,7 @@ on:
 
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
-  BUILD_TYPE: Release
+  BUILD_TYPE: Debug
 
 jobs:
   build:
@@ -18,6 +18,24 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+
+    - name: Install Boost
+      uses: MarkusJx/install-boost@v2.4.5
+      with:
+      # REQUIRED: Specify the required boost version
+      # A list of supported versions can be found here:
+      # https://github.com/MarkusJx/prebuilt-boost/blob/main/versions-manifest.json
+      boost_version: 1.74.0
+      # OPTIONAL: Specify a platform version
+      platform_version: 18.04
+      # OPTIONAL: Specify a custom install location
+      boost_install_dir: /home/runner/some_directory
+      # OPTIONAL: Specify a toolset
+      toolset: gcc
+      # OPTIONAL: Specify an architecture
+      arch: x86
+
+    # checkout code
     - uses: actions/checkout@v3
 
     - name: Configure CMake
