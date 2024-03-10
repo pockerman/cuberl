@@ -127,7 +127,7 @@ EpsilonGreedyPolicy::EpsilonGreedyPolicy(real_t eps)
       eps_(eps),
       min_eps_(eps),
       max_eps_(eps),
-      epsilon_decay_(0.01),
+      epsilon_decay_(eps),
       decay_op_(EpsilonDecayOption::NONE),
       random_policy_(),
       max_policy_()
@@ -144,7 +144,6 @@ EpsilonGreedyPolicy::EpsilonGreedyPolicy(real_t eps, uint_t seed)
 template<typename VecType>
 uint_t
 EpsilonGreedyPolicy::operator()(const VecType& vec)const{
-
 
     // generate a number in [0, 1]
     std::uniform_real_distribution<> real_dist_(0.0, 1.0);
