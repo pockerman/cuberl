@@ -45,6 +45,18 @@ public:
     template<typename VecTp>
     uint_t operator()(const VecTp& vec)const;
 
+
+    /**
+     * @brief any actions the policy should perform
+     * on the given episode index
+     */
+    void on_episode(uint_t)noexcept{}
+
+    /**
+     * @brief Reset the policy
+     * */
+    void reset()noexcept{}
+
 private:
 
     /**

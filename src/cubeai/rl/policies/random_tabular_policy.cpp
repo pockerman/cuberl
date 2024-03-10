@@ -9,6 +9,8 @@
 #include <cassert>
 #endif
 
+#include <vector>
+
 namespace cubeai {
 namespace rl {
 namespace policies {
