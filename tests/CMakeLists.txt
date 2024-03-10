@@ -37,7 +37,8 @@ LINK_DIRECTORIES(${Boost_LIBRARY_DIRS})
 LINK_DIRECTORIES(${PYTHON_CONFIG_LIBS_PATH})
 
 # add the test dirs
-ADD_SUBDIRECTORY(test_policies)
+ADD_SUBDIRECTORY(test_policies/test_max_tabular_policy)
+ADD_SUBDIRECTORY(test_policies/test_random_tabular_policy)
 #ADD_SUBDIRECTORY(test_array_utils)
 #ADD_SUBDIRECTORY(test_mc_tree_search)
 #ADD_SUBDIRECTORY(test_kd_tree)

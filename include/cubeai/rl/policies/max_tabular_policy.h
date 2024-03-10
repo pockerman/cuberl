@@ -11,7 +11,7 @@ namespace rl {
 namespace policies {
 
 /**
- * @todo write docs
+ * @brief class MaxTabularPolicy
  */
 class MaxTabularPolicy
 {
@@ -25,8 +25,8 @@ public:
     /**
      * @brief operator(). Given a
      */
-    template<typename QMapTp>
-    uint_t operator()(const QMapTp& q_map, uint_t state_idx)const;
+    template<typename MatType>
+    uint_t operator()(const MatType& q_map, uint_t state_idx)const;
 
     /**
      * @brief operator(). Given a vector always returns the position
@@ -38,6 +38,18 @@ public:
 
 
 };
+
+
+template<typename VecTp>
+uint_t
+MaxTabularPolicy::operator()(const VecTp& vec)const{
+
+    return std::distance(vec.begin(),
+                         std::max_element(vec.begin(),
+                                          vec.end()));
+
+}
+
 
 }
 }

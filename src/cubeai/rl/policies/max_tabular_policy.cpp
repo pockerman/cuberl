@@ -18,15 +18,7 @@ namespace policies {
 
 
 
-template<>
-uint_t
-MaxTabularPolicy::operator()(const std::vector<real_t>& q_map)const{
 
-    return std::distance(q_map.begin(),
-                         std::max_element(q_map.begin(),
-                                          q_map.end()));
-
-}
 
 template<>
 uint_t
@@ -38,6 +30,19 @@ MaxTabularPolicy::operator()(const std::vector<std::vector<real_t>>& q_map,
 #endif
 
     return (*this)(q_map[state_idx]);
+}
+
+
+template<>
+uint_t
+MaxTabularPolicy::operator()(const DynMat<real_t>& mat,
+                             uint_t state_idx)const{
+
+#ifdef CUBEAI_DEBUG
+    assert(state_idx < mat.size() && "Invalid state index. Should be state_idx < q_map.size()");
+#endif
+
+    return (*this)(mat.row(state_idx));
 }
 
 
