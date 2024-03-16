@@ -10,8 +10,9 @@
   * */
 
 #include "cubeai/base/cubeai_types.h"
-
-
+#include "cubeai/maths/vector_math.h"
+#include "cubeai/rl/policies/softmax_policy.h"
+#include "cubeai/io/csv_file_writer.h"
 #include <cmath>
 #include <utility>
 #include <tuple>
@@ -27,7 +28,21 @@ using cubeai::real_t;
 using cubeai::uint_t;
 using cubeai::DynVec;
 
-real_t get_reward(real_t prob, uint_t n=10){
+
+// number of arms
+const uint_t N = 10;
+
+// how many experiments to run
+const auto N_EXPERIMENTS = 500;
+
+// temperature parameter for soft-max
+const auto TAU = 0.7;
+
+// seed for random number generator
+const uint SEED = 42;
+
+real_t
+get_reward(real_t prob, uint_t n=10){
 
     auto reward = 1;
 
@@ -42,17 +57,8 @@ real_t get_reward(real_t prob, uint_t n=10){
 }
 
 
-std::vector<real_t> soft_max(const DynVec<real_t>& values, real_t tau=1.12){
-
-
-   auto exp  = blaze::exp(values / tau);
-   auto sum  = blaze::sum(exp);
-
-   auto result = exp / sum;
-   return std::vector<real_t>(result.begin(), result.end());
-}
-
-void update_record(std::vector<std::vector<real_t>>& records, uint_t action, real_t r){
+void update_record(std::vector<std::vector<real_t>>& records,
+                   uint_t action, real_t r){
 
 
     auto new_r = (records[action][0] * records[action][1] + r) / (records[action][0] + 1);
@@ -60,7 +66,8 @@ void update_record(std::vector<std::vector<real_t>>& records, uint_t action, rea
     records[action][1] = new_r;
 }
 
-uint_t get_best_arm(const std::vector<std::vector<real_t>>& records){
+uint_t
+get_best_arm(const std::vector<std::vector<real_t>>& records){
 
     std::vector<real_t> values(records.size(), 0.0);
     for(uint_t i=0; i<records.size(); ++i){
@@ -71,7 +78,8 @@ uint_t get_best_arm(const std::vector<std::vector<real_t>>& records){
     return std::distance(values.begin(), iterator_result);
 }
 
-std::vector<real_t> get_probs(uint_t n){
+std::vector<real_t>
+get_probs(uint_t n){
 
     std::vector<real_t> probs(n);
 
@@ -82,11 +90,21 @@ std::vector<real_t> get_probs(uint_t n){
     return probs;
 }
 
-DynVec<real_t> extract_part(const std::vector<std::vector<real_t>>& values){
+DynVec<real_t>
+extract_part(const std::vector<std::vector<real_t>>& values){
 
-    std::vector<real_t> result(values.size());
-    std::for_each(values.begin(), values.end(), [&result](const auto& item){result.push_back(item[1]);});
-    return DynVec<real_t>(values.size(), result.data());
+    auto vec = DynVec<real_t>(values.size());
+
+    auto counter = 0;
+    for(auto item : values){
+        vec[counter++] = item[1];
+    }
+
+    // std::for_each(values.begin(),
+    //              values.end(),
+    //              [&vec, &counter](const auto& item){vec[counter] = item[1]; counter++;});
+
+    return vec; //DynVec<real_t>(values.size(), result.data());
 }
 
 }
@@ -95,27 +113,31 @@ int main() {
 
     using namespace exe;
 
-    // this should return something close
-    // to 7
-    const uint_t N = 10;
-
-    const auto N_EXPERIMENTS = 500;
     auto probs = get_probs(N);
     
     std::vector<std::vector<real_t>> records(N);
 
     for(uint_t i=0; i<N; ++i){
-        records.resize(2);
+        records[i].resize(2);
     }
 
+    // the rewards we accumulate
     std::vector<real_t> rewards;
+    rewards.reserve(N_EXPERIMENTS);
 
     //Will be used to obtain a seed for the random number engine
-    std::random_device rd;
-    std::mt19937 gen(rd());
+    std::mt19937 gen(SEED);
+
 
     for(uint_t i=0; i<N_EXPERIMENTS; ++i){
-        auto p = soft_max(extract_part(records), 0.7);
+
+        std::cout<<"Running experiment: "<<i + 1<<std::endl;
+
+        auto record = extract_part(records);
+
+        // soft-max the vector
+        auto p = cubeai::maths::softmax_vec(record.begin(),
+                                            record.end(), TAU);
 
         std::discrete_distribution<> distribution(p.begin(), p.end());
         auto choice = distribution(gen);
@@ -130,7 +152,13 @@ int main() {
         else{
         	rewards.push_back(r);
         }
+
+        std::cout<<"\tReward obtained: "<<rewards[i]<<std::endl;
     }
+
+    auto csv_writer = cubeai::CSVWriter("rewards.csv", ',', true);
+
+    csv_writer.write_column_vector(rewards);
 
    return 0;
 }

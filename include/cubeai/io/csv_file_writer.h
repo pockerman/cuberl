@@ -59,6 +59,13 @@ public:
     template<typename T>
     void write_row(const DynVec<T>& vals);
 
+    /**
+     *
+     * @brief Write the given vector as a column
+     */
+    template<typename T>
+    void write_column_vector(const std::vector<T>& vals);
+
     ///
     /// \brief Write the given tuple as a row
     ///
@@ -124,7 +131,19 @@ CSVWriter::write_row(const DynVec<T>& vals){
            file_<<",";
         }
     }
+}
 
+template<typename T>
+void
+CSVWriter::write_column_vector(const std::vector<T>& vals){
+
+    if(!is_open()){
+        throw std::logic_error("File "+this->file_name_+" is not open");
+    }
+
+     for(uint_t c=0; c<vals.size(); ++c){
+        file_<<vals[c]<<std::endl;
+    }
 }
 
 template<typename...T>

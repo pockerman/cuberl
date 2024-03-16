@@ -17,7 +17,7 @@
 #include "cubeai/utils/iteration_counter.h"
 #include "cubeai/utils/cubeai_concepts.h"
 #include "cubeai/utils/lambda_utils.h"
-#include "cubeai/maths/basic_array_statistics.h"
+#include "cubeai/maths/vector_math.h"
 
 #include <iostream>
 #include <unordered_map>
@@ -50,7 +50,7 @@ int main() {
         std::vector<real_t> q{0.0, 0.0, 0.0, 0.0};
         std::vector<real_t> walk{-1.0, 1.0, 5.0};
 
-        cubeai::maths::stats::randomize_vec(q, walk);
+        cubeai::maths::randomize_vec(q, walk);
 
         std::for_each(q.begin(),
                       q.end(),

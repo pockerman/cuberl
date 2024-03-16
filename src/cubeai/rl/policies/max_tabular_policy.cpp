@@ -16,10 +16,6 @@ namespace cubeai {
 namespace rl {
 namespace policies {
 
-
-
-
-
 template<>
 uint_t
 MaxTabularPolicy::operator()(const std::vector<std::vector<real_t>>& q_map,
@@ -44,10 +40,6 @@ MaxTabularPolicy::operator()(const DynMat<real_t>& mat,
 
     return (*this)(mat.row(state_idx));
 }
-
-
-
-
 
 }
 }

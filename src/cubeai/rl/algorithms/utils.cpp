@@ -1,5 +1,5 @@
 #include "cubeai/rl/algorithms/utils.h"
-#include "cubeai/utils/array_utils.h"
+#include "cubeai/maths/vector_math.h"
 #include <algorithm>
 
 namespace cubeai{
@@ -22,7 +22,6 @@ std::vector<real_t>
 calculate_discounted_returns(const std::vector<real_t>& rewards,
                              const std::vector<real_t>& discounts, uint_t n_workers){
 
-    // T
     auto total_time = rewards.size();
 
     // Return numbers spaced evenly on a log scale.
@@ -32,13 +31,11 @@ calculate_discounted_returns(const std::vector<real_t>& rewards,
     // final step T
 
     for(uint_t w = 0; w < n_workers; ++w ){
-
         for(uint_t t=0; t < total_time; ++t){
 
             // get the subarrays
             auto worker_rewards = rewards[t];
-
-            auto time_discounts = extract_subvector(discounts, total_time - t);
+            auto time_discounts = maths::extract_subvector(discounts, total_time - t);
         }
 
     }

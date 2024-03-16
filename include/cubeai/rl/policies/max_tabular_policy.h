@@ -18,6 +18,11 @@ class MaxTabularPolicy
 public:
 
     /**
+     * @brief The output type of operator()
+     */
+    typedef uint_t output_type;
+
+    /**
     *  @brief Constructor
     */
     MaxTabularPolicy()=default;
@@ -26,7 +31,7 @@ public:
      * @brief operator(). Given a
      */
     template<typename MatType>
-    uint_t operator()(const MatType& q_map, uint_t state_idx)const;
+    output_type operator()(const MatType& q_map, uint_t state_idx)const;
 
     /**
      * @brief operator(). Given a vector always returns the position
@@ -34,7 +39,7 @@ public:
      * CubeAIConsts::invalid_size_type
      */
     template<typename VecTp>
-    uint_t operator()(const VecTp& q_map)const;
+    output_type operator()(const VecTp& q_map)const;
 
     /**
      * @brief any actions the policy should perform

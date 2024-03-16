@@ -33,7 +33,7 @@ namespace cubeai
     /// \brief General matrix type
     ///
     template<typename T>
-    using DynMat = Eigen::MatrixX<T>; //::DynamicMatrix<T, blaze::rowMajor>;
+    using DynMat = Eigen::MatrixX<T>;
 
     ///
     /// \brief General diagonal matrix
