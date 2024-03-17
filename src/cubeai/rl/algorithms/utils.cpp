@@ -18,6 +18,7 @@ create_discounts_array(real_t base, uint_t npoints){
     return points;
 }
 
+/*
 std::vector<real_t>
 calculate_discounted_returns(const std::vector<real_t>& rewards,
                              const std::vector<real_t>& discounts, uint_t n_workers){
@@ -42,7 +43,7 @@ calculate_discounted_returns(const std::vector<real_t>& rewards,
 
     //returns = np.array([[np.sum(discounts[: total_time - t] * rewards[t:, w]) for t in range(total_time)] for w in range(n_workers)])
 }
-
+*/
 
 #ifdef USE_PYTORCH
 std::vector<real_t>

@@ -29,14 +29,14 @@ struct IterativePolicyEvalConfig
 /// \brief The IterativePolicyEval class
 ///
 template<typename EnvType, typename PolicyType>
-class IterativePolicyEval final: public DPAlgoBase<EnvType>
+class IterativePolicyEvalutationSolver final: public DPSolverBase<EnvType>
 {
 public:
 
     ///
     /// \brief env_type
     ///
-    typedef typename DPAlgoBase<EnvType>::env_type env_type;
+    typedef typename DPSolverBase<EnvType>::env_type env_type;
 
     ///
     /// \brief policy_type
@@ -46,7 +46,8 @@ public:
     ///
     /// \brief IterativePolicyEval
     ///
-    explicit IterativePolicyEval(IterativePolicyEvalConfig config, policy_type& policy);
+    explicit IterativePolicyEvalutationSolver(IterativePolicyEvalConfig config,
+                                              policy_type& policy);
 
     ///
     /// \brief actions_before_training_begins. Execute any actions the
@@ -115,9 +116,10 @@ protected:
 };
 
 template<typename EnvType, typename PolicyType>
-IterativePolicyEval<EnvType, PolicyType>::IterativePolicyEval(IterativePolicyEvalConfig config, policy_type& policy)
+IterativePolicyEvalutationSolver<EnvType, PolicyType>::IterativePolicyEvalutationSolver(IterativePolicyEvalConfig config,
+                                                                                        policy_type& policy)
     :
-      DPAlgoBase<EnvType>(),
+      DPSolverBase<EnvType>(),
       config_(config),
       v_(),
       policy_(policy)
@@ -125,15 +127,16 @@ IterativePolicyEval<EnvType, PolicyType>::IterativePolicyEval(IterativePolicyEva
 
 template<typename EnvType, typename PolicyType>
 void
-IterativePolicyEval<EnvType, PolicyType>::actions_before_training_begins(env_type& env){
+IterativePolicyEvalutationSolver<EnvType, PolicyType>::actions_before_training_begins(env_type& env){
 
-    // generate the initial table
-    v_.resize(env.n_states(), 0.0);
+    v_.resize(env.n_states());
+    std::for_each(v_.begin(), v_.end(),
+                  [](auto& item){item = 0.0;});
 }
 
 template<typename EnvType, typename PolicyType>
 void
-IterativePolicyEval<EnvType, PolicyType>::actions_after_training_ends(env_type& /*env*/){
+IterativePolicyEvalutationSolver<EnvType, PolicyType>::actions_after_training_ends(env_type& /*env*/){
 
     if(config_.save_path != CubeAIConsts::dummy_string()){
         save(config_.save_path);
@@ -142,7 +145,7 @@ IterativePolicyEval<EnvType, PolicyType>::actions_after_training_ends(env_type& 
 
 template<typename EnvType, typename PolicyType>
 EpisodeInfo
-IterativePolicyEval<EnvType, PolicyType>::on_training_episode(env_type& env, uint_t episode_idx){
+IterativePolicyEvalutationSolver<EnvType, PolicyType>::on_training_episode(env_type& env, uint_t episode_idx){
 
     auto start = std::chrono::steady_clock::now();
     auto episode_rewards = 0.0;
@@ -199,7 +202,7 @@ IterativePolicyEval<EnvType, PolicyType>::on_training_episode(env_type& env, uin
 
 template<typename EnvType, typename PolicyType>
 void
-IterativePolicyEval<EnvType, PolicyType>::save(const std::string& filename)const{
+IterativePolicyEvalutationSolver<EnvType, PolicyType>::save(const std::string& filename)const{
 
     CSVWriter file_writer(filename, ',', true);
     file_writer.write_column_names({"state_index", "value_function"});

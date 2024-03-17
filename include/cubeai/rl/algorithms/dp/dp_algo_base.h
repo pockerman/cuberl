@@ -16,10 +16,10 @@ namespace algos {
 namespace dp {
 
 ///
-/// \brief The DPAlgoBase class
+/// \brief The DPSolverBase class
 ///
 template<typename EnvType>
-class DPAlgoBase: public RLSolverBase<EnvType>
+class DPSolverBase: public RLSolverBase<EnvType>
 {
 public:
 
@@ -35,7 +35,7 @@ public:
     ///
     /// \brief Destructor
     ///
-    virtual ~DPAlgoBase() = default;
+    virtual ~DPSolverBase() = default;
 
 protected:
 
@@ -43,7 +43,7 @@ protected:
     /// \brief DPAlgoBase
     /// \param name
     ///
-    DPAlgoBase()=default;
+    DPSolverBase()=default;
 
 
 };
