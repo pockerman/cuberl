@@ -210,8 +210,8 @@ template<envs::discrete_world_concept EnvTp, typename ActionSelector>
 void
 Sarsa<EnvTp, ActionSelector>::save(std::string filename)const{
 
-    CSVWriter file_writer(filename, ',', true);
-    std::vector<std::string> col_names(1 + q_table_.columns());
+    /*CSVWriter file_writer(filename, ',', true);
+    std::vector<std::string> col_names(1 + q_table_.cols());
     col_names[0] = "state_index";
 
     for(uint_t i = 0; i< q_table_.columns(); ++i){
@@ -224,7 +224,7 @@ Sarsa<EnvTp, ActionSelector>::save(std::string filename)const{
         auto actions = maths::get_row(q_table_, s);
         auto row = std::make_tuple(s, actions);
         file_writer.write_row(row);
-    }
+    }*/
 
 }
 

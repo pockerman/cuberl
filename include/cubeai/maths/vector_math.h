@@ -18,6 +18,26 @@
 namespace cubeai{
 namespace maths{
 
+/**
+ * @brief mean Compute the mean value of the values in
+ * the provided iterator range
+ *
+ **/
+template<typename IteratorType>
+real_t
+mean(IteratorType begin, IteratorType end, bool parallel=true){
+
+    auto sum = 0.0;
+    if(parallel){
+      sum   = std::reduce(std::execution::par, begin, end, sum);
+    }
+    else{
+        sum = std::accumulate(begin, end, sum);
+    }
+
+    return sum / static_cast<real_t>(std::distance(begin, end));
+
+}
 
 /**
   * @brief mean Computes the mean value of the vector. If parallel=true
@@ -26,8 +46,9 @@ namespace maths{
 template<utils::concepts::float_or_integral_vector VectorType>
 real_t
 mean(const VectorType& vector, bool parallel=true){
+    return mean(vector.begin(), vector.end(), parallel);
 
-    auto sum = 0.0;
+   /*auto sum = 0.0;
     if(parallel){
       sum   = std::reduce(std::execution::par, vector.begin(), vector.end(), sum);
     }
@@ -35,7 +56,7 @@ mean(const VectorType& vector, bool parallel=true){
         sum = std::accumulate(vector.begin(), vector.end(), sum);
     }
 
-    return sum / static_cast<real_t>(vector.size());
+    return sum / static_cast<real_t>(vector.size());*/
 }
 
 ///
@@ -44,7 +65,8 @@ mean(const VectorType& vector, bool parallel=true){
 template<typename T>
 real_t
 mean(const DynVec<T>& vector, bool parallel=true){
-    auto sum = 0.0;
+    return mean(vector.begin(), vector.end(), parallel);
+    /*auto sum = 0.0;
 
     if(parallel){
       return std::reduce(std::execution::par,
@@ -52,7 +74,7 @@ mean(const DynVec<T>& vector, bool parallel=true){
     }
 
     sum = std::accumulate(vector.begin(), vector.end(), sum);
-    return sum / static_cast<real_t>(vector.size());
+    return sum / static_cast<real_t>(vector.size());*/
 }
 
 ///
@@ -132,7 +154,8 @@ exponentiate(const VectorType& vec){
  * and returns a vector with the result
  */
 template<typename T>
-std::vector<T> softmax_vec(const std::vector<T>& vec, real_t tau=1.0){
+std::vector<T>
+softmax_vec(const std::vector<T>& vec, real_t tau=1.0){
 
     std::vector<T> result(vec.size());
     auto exp_sum = 0.0;
@@ -156,7 +179,8 @@ std::vector<T> softmax_vec(const std::vector<T>& vec, real_t tau=1.0){
  * and returns a vector with the result
  */
 template<typename T>
-DynVec<T> softmax_vec(const DynVec<T>& vec, real_t tau=1.0){
+DynVec<T>
+softmax_vec(const DynVec<T>& vec, real_t tau=1.0){
 
     DynVec<T> result(vec.size());
     auto exp_sum = 0.0;
@@ -178,7 +202,8 @@ DynVec<T> softmax_vec(const DynVec<T>& vec, real_t tau=1.0){
  * and returns a vector with the result
  */
 template<typename IteratorType>
-DynVec<typename IteratorType::value_type> softmax_vec(IteratorType begin, IteratorType end,
+DynVec<typename IteratorType::value_type>
+softmax_vec(IteratorType begin, IteratorType end,
                                                       real_t tau=1.0){
     auto vec_size = std::distance(begin, end);
     DynVec<typename IteratorType::value_type> result(vec_size);
@@ -202,7 +227,8 @@ DynVec<typename IteratorType::value_type> softmax_vec(IteratorType begin, Iterat
 /// http://www.jclay.host/dev-journal/simple_cpp_argmax_argmin.html
 ///
 template <typename VectorType>
-uint_t arg_max(const VectorType& vec) {
+uint_t
+arg_max(const VectorType& vec) {
   return static_cast<uint_t>(std::distance(vec.begin(), max_element(vec.begin(), vec.end())));
 }
 
@@ -213,7 +239,8 @@ uint_t arg_max(const VectorType& vec) {
 /// http://www.jclay.host/dev-journal/simple_cpp_argmax_argmin.html
 ///
 template <typename VectorType>
-uint_t arg_min(const VectorType& vec) {
+uint_t
+arg_min(const VectorType& vec) {
   return static_cast<uint_t>(std::distance(vec.begin(), min_element(vec.begin(), vec.end())));
 }
 
@@ -243,7 +270,8 @@ max_indices(const DynVec<T>& vec){
 /// where the maximum value in vec occurs
 ///
 template<typename VecTp>
-std::vector<uint_t> max_indices(const VecTp& vec){
+std::vector<uint_t>
+max_indices(const VecTp& vec){
 
     // find max value
     auto max_val = std::max_element(vec.begin(), vec.end());
@@ -303,6 +331,24 @@ uint_t bin_index(const typename SequenceTp::value_type& x, const SequenceTp& seq
     }
 
     return CubeAIConsts::invalid_size_type();
+}
+
+/**
+ * @brief zero_center. Subtracts the mean value of the
+ * given vector from every value of the vector
+ *
+ */
+template<typename VectorType>
+VectorType
+zero_center(const VectorType& vec, bool parallel=true){
+
+    auto vec_mean = mean(vec.begin(), vec.end(), parallel);
+    VectorType v(vec.size());
+    std::transform(vec.begin(), vec.end(),
+                   v.begin(),
+                   [vec_mean](auto val){return val - vec_mean;});
+    return v;
+
 }
 
 }

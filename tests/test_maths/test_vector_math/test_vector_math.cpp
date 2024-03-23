@@ -18,9 +18,9 @@ TEST(TestSoftMaxVector, Test_1) {
 
     DynVec<real_t> vals(4);
     for(uint_t i=0; i< static_cast<uint_t>(vals.size()); ++i){
-
         vals[i] = 10.0;
     }
+
     auto softmax_vec = cubeai::maths::softmax_vec(vals);
 
     EXPECT_DOUBLE_EQ(0.25, softmax_vec[0]);
@@ -30,18 +30,24 @@ TEST(TestSoftMaxVector, Test_1) {
 
 }
 
-/*TEST(TestMaxTabularPolicy, Test_Operator_1) {
+TEST(TestZeroCenter, Test_2) {
 
-    RandomTabularPolicy policy(42);
+    DynVec<real_t> vals(4);
+    for(uint_t i=0; i< static_cast<uint_t>(vals.size()); ++i){
+        vals[i] = 10.0;
+    }
 
-    std::vector<real_t> vals{1.0, 2.0, 3.0};
-    auto max_idx = policy(vals);
+    auto mean = cubeai::maths::mean(vals);
+    auto zero_center_mean = cubeai::maths::zero_center(vals);
 
-    ASSERT_EQ(max_idx, max_idx);
+    EXPECT_DOUBLE_EQ(vals[0] - mean, zero_center_mean[0]);
+    EXPECT_DOUBLE_EQ(vals[1] - mean, zero_center_mean[1]);
+    EXPECT_DOUBLE_EQ(vals[2] - mean, zero_center_mean[2]);
+    EXPECT_DOUBLE_EQ(vals[3] - mean, zero_center_mean[3]);
 
 }
 
-
+/*
 TEST(TestMaxTabularPolicy, Test_Operator_2) {
 
     RandomTabularPolicy policy(42);
