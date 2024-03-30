@@ -48,6 +48,13 @@ public:
     ///
     bool is_inside(const GeomPoint<2>& point, real_t tol = CubeAIConsts::tolerance())const;
 
+    /**
+     * @brief Returns true if the given spatial point (x, y) lies within the
+     * circle.
+     *
+     */
+    bool is_inside(const real_t x, const real_t y, real_t tol = CubeAIConsts::tolerance())const;
+
 private:
 
     /// \brief The radius of the circle
@@ -93,6 +100,12 @@ Circle::is_inside(const GeomPoint<2>& point, real_t tol)const{
 
     return false;
 
+}
+
+inline
+bool
+Circle::is_inside(const real_t x, const real_t y, real_t tol)const{
+    return is_inside({x, y}, tol);
 }
 
 

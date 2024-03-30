@@ -9,6 +9,10 @@ The following is an indicative list of examples. More tutorials can be found at 
 
 ## Examples
 
+### Introductory
+
+- <a href="examples/intro/intro_example_1/intro_example_1.cpp">Estimate Pi with Monte Carlo</a>
+
 ### Reinforcement learning
 
 - <a href="https://pockerman-py-cubeai.readthedocs.io/en/latest/ExamplesCpp/rl/rl_example_0.html">Example 0: DummyAgent on  ```MountainCar-v0```</a>
