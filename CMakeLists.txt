@@ -58,13 +58,6 @@ SET(USE_CUDA OFF)
 # The CUDA compiler
 SET(CMAKE_CUDA_COMPILER "/usr/local/cuda/bin")
 
-# Which packages to use from the library
-
-
-
-#SET(BLAZE_INCLUDE_DIRS "${PROJECT_SOURCE_DIR}/external/blaze/install/include") # explicitly specify where the blaze c++ headers are
-
-
 IF(CMAKE_BUILD_TYPE STREQUAL "Debug")
 	SET(CMAKE_INSTALL_PREFIX  ${PROJECT_SOURCE_DIR}/install/dbg)
 	SET(CMAKE_CXX_FLAGS "-g ") # -Wall -Wextra")
@@ -165,6 +158,7 @@ FILE(GLOB SRCS src/cubeai/base/*.cpp
                src/cubeai/utils/*.cpp
                src/cubeai/optimization/*.cpp
                src/cubeai/datasets/*.cpp
+               src/cubeai/maths/*.cpp
                src/cubeai/pytorch_utils/*.cpp)
 
 
