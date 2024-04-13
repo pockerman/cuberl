@@ -47,16 +47,6 @@ template<utils::concepts::float_or_integral_vector VectorType>
 real_t
 mean(const VectorType& vector, bool parallel=true){
     return mean(vector.begin(), vector.end(), parallel);
-
-   /*auto sum = 0.0;
-    if(parallel){
-      sum   = std::reduce(std::execution::par, vector.begin(), vector.end(), sum);
-    }
-    else{
-        sum = std::accumulate(vector.begin(), vector.end(), sum);
-    }
-
-    return sum / static_cast<real_t>(vector.size());*/
 }
 
 ///
@@ -66,15 +56,6 @@ template<typename T>
 real_t
 mean(const DynVec<T>& vector, bool parallel=true){
     return mean(vector.begin(), vector.end(), parallel);
-    /*auto sum = 0.0;
-
-    if(parallel){
-      return std::reduce(std::execution::par,
-                         vector.begin(), vector.end(), sum) / static_cast<real_t>(vector.size());
-    }
-
-    sum = std::accumulate(vector.begin(), vector.end(), sum);
-    return sum / static_cast<real_t>(vector.size());*/
 }
 
 ///
@@ -350,6 +331,23 @@ zero_center(const VectorType& vec, bool parallel=true){
     return v;
 
 }
+
+/**
+ * Return numbers spaced evenly on a log scale.
+ * The implementation is inspired from numpy: https://numpy.org/doc/stable/reference/generated/numpy.logspace.html
+ * See also: https://quick-bench.com/q/Hs39BWQf5kr5Gjnv6zQkLXMrsDw
+ *
+ * The starting point of the scale is: std::pow(base, start)
+ * Similarly the endpoint is: std::pow(base, end)
+ * The intermediate points are aligned as  std::pow(base, point)
+ * where point = start + i*dx
+ * where
+ * dx = (end - start) / (num - 1)
+ *
+ *
+ * */
+std::vector<real_t>
+logspace(real_t start, real_t end, uint_t num, real_t base=10.0);
 
 }
 }
