@@ -57,8 +57,6 @@ public:
     typedef typename env_type::time_step_type time_step_type;
 
 
-
-
     /**
      * @brief Constructor
      *
@@ -96,9 +94,10 @@ public:
     ///
     EpisodeInfo on_training_episode(env_type& env, uint_t episode_idx);
 
-    ///
-    ///
-    ///
+    /**
+     * @brief save the results
+     *
+     * */
     void save(const std::string& filename)const;
 
 private:
@@ -135,6 +134,9 @@ private:
      *
      */
     DecayLRSchedule decay_lr_schedule_;
+
+
+    real_t calculate_total_discounted_reward(const std::vector<time_step_type>& trajectory, real_t gamma)const;
 
 };
 
