@@ -7,17 +7,19 @@
 #include "cubeai/rl/learning_rate_scheduler.h"
 #include "cubeai/rl/trainers/rl_serial_agent_trainer.h"
 #include "cubeai/rl/policies/epsilon_greedy_policy.h"
+#include "cubeai/maths/vector_math.h"
 
 #include "rlenvs/rlenvs_types_v2.h"
 #include "rlenvs/envs/gymnasium/toy_text/frozen_lake_env.h"
 #include "rlenvs/time_step.h"
+#include "rlenvs/envs/envs_utils.h"
 
 #include <iostream>
+#include <random>
+
 
 namespace rl_example_19
 {
-
-const std::string SERVER_URL = "http://0.0.0.0:8001/api";
 
 using cubeai::real_t;
 using cubeai::uint_t;
@@ -28,29 +30,85 @@ using cubeai::rl::algos::mc::FirstVisitMCSolverConfig;
 using cubeai::rl::RLSerialAgentTrainer;
 using cubeai::rl::RLSerialTrainerConfig;
 using rlenvs_cpp::envs::gymnasium::FrozenLake;
+using rlenvs_cpp::envs::gymnasium::FrozenLakeActionsEnum;
+
+const std::string SERVER_URL = "http://0.0.0.0:8001/api";
+const uint_t SEED = 42;
+
+
+struct RandomActionSelector
+{
+    template<typename StateType>
+    FrozenLake<4>::action_type operator()(const StateType state)const;
+};
+
+template<typename StateType>
+FrozenLake<4>::action_type
+RandomActionSelector::operator()(const StateType /*state*/)const{
+
+    // randomly select an action
+        std::mt19937 generator(SEED);
+        std::uniform_int_distribution<> real_dist(0, 4);
+        auto action = real_dist(generator);
+
+        switch(action){
+
+            case 0:
+                return FrozenLakeActionsEnum::LEFT;
+            case 1:
+                return FrozenLakeActionsEnum::DOWN;
+            case 2:
+                return FrozenLakeActionsEnum::RIGHT;
+            case 3:
+                return FrozenLakeActionsEnum::UP;
+
+            default:
+                return FrozenLakeActionsEnum::INVALID_ACTION;
+        }
+}
 
 struct TrajectoryGenerator
 {
-
-    template<typename PolicyType>
-    std::vector<FrozenLake<4>::time_step_type> operator()(FrozenLake<4>&, PolicyType&, uint_t)
-    {return std::vector<FrozenLake<4>::time_step_type>();}
-
+    std::vector<FrozenLake<4>::time_step_type>
+    operator()(FrozenLake<4>&, uint_t max_steps);
 };
 
 
+std::vector<FrozenLake<4>::time_step_type>
+TrajectoryGenerator::operator()(FrozenLake<4>& env, uint_t max_steps){
+
+    RandomActionSelector action_selector;
+    return rlenvs_cpp::envs::create_trajectory(env, action_selector, max_steps );
+}
+
+
+struct DiscountGenerator
+{
+
+    template<typename TrajectoryType>
+    std::vector<real_t>
+    operator()(const TrajectoryType&, uint_t max_steps);
+};
+
+template<typename TrajectoryType>
+std::vector<real_t>
+DiscountGenerator::operator()(const TrajectoryType&, uint_t max_steps)
+{
+    return cubeai::maths::logspace(0.0, static_cast<real_t>(max_steps), max_steps, 1.0);
+}
+
 
 typedef FrozenLake<4> env_type;
-typedef EpsilonGreedyPolicy policy_type;
 typedef TrajectoryGenerator trajectory_generator_type;
 typedef ConstantLRScheduler learning_rate_scheduler_type;
 typedef FirstVisitMCSolverConfig solver_config_type;
+typedef DiscountGenerator discount_generator_type;
 
 
 
 
-typedef FirstVisitMCSolver<env_type, policy_type, trajectory_generator_type,
-                           learning_rate_scheduler_type> solver_type;
+typedef FirstVisitMCSolver<env_type, trajectory_generator_type,
+                           learning_rate_scheduler_type, discount_generator_type> solver_type;
 
 
 
@@ -71,20 +129,19 @@ int main() {
     env.reset();
     std::cout<<"Done..."<<std::endl;
 
-    EpsilonGreedyPolicy policy(0.1);
-
     solver_config_type config;
+    config.max_steps = 200;
     learning_rate_scheduler_type lr_scheduler;
     trajectory_generator_type trajectory_generator;
-    solver_type solver(config, policy, trajectory_generator,lr_scheduler);
+    discount_generator_type discount_generator;
+    solver_type solver(config, trajectory_generator,lr_scheduler, discount_generator);
 
     RLSerialTrainerConfig trainer_config = {10, 10000, 1.0e-8};
-
-    RLSerialAgentTrainer<env_type,
-                        solver_type> trainer(trainer_config, solver);
+    RLSerialAgentTrainer<env_type, solver_type> trainer(trainer_config, solver);
 
     auto info = trainer.train(env);
-    std::cout<<info<<std::endl;
+    std::cout<<"Trainer info: "<<std::endl;
+    std::cout<<"\t"<<info<<std::endl;
 
     // save the value function for plotting
     //algorithm.save("iterative_policy_evaluation_frozen_lake.csv");
