@@ -19,6 +19,10 @@ jobs:
 
     steps:
 
+    - name: Add universe repository
+      run: sudo add-apt-repository universe
+    - name: Update universe
+      run: sudo apt-get update
     - name: Install Boost
       run: sudo apt-get install libboost-dev-all
 
