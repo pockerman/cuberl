@@ -15,4 +15,5 @@ TARGET_LINK_LIBRARIES(${EXECUTABLE} boost_system)
 TARGET_LINK_LIBRARIES(${EXECUTABLE} gtest)
 TARGET_LINK_LIBRARIES(${EXECUTABLE} gtest_main) # so that tests dont need to have a main
 TARGET_LINK_LIBRARIES(${EXECUTABLE} pthread)
+target_link_libraries(${EXECUTABLE} tbb)
 

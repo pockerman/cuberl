@@ -4,8 +4,10 @@ MESSAGE(STATUS "Using CMake ${CMAKE_VERSION}")
 
 SET(CUBEAILIB_VERSION_MAJOR 0)
 SET(CUBEAILIB_VERSION_MINOR 0)
-SET(CUBEAILIB_VERSION_PATCH 7)
+SET(CUBEAILIB_VERSION_PATCH 8)
 SET(CUBEAILIB_VERSION "${CUBEAILIB_VERSION_MAJOR}.${CUBEAILIB_VERSION_MINOR}.${CUBEAILIB_VERSION_PATCH}")
+
+
 PROJECT(cubeai VERSION ${CUBEAILIB_VERSION} LANGUAGES CXX C)
 MESSAGE(STATUS "CubeAI lib Version ${CUBEAILIB_VERSION}")
 
@@ -36,6 +38,7 @@ SET(CMAKE_C_STANDARD 20)
 SET(CMAKE_C_STANDARD_REQUIRED True)
 SET(CMAKE_LINKER_FLAGS "-pthread")
 
+
 SET(USE_OPENMP ON)
 SET(USE_LOG ON)
 SET(USE_PYTORCH OFF)
@@ -58,18 +61,12 @@ SET(USE_CUDA OFF)
 # The CUDA compiler
 SET(CMAKE_CUDA_COMPILER "/usr/local/cuda/bin")
 
-# Which packages to use from the library
-
-
-
-#SET(BLAZE_INCLUDE_DIRS "${PROJECT_SOURCE_DIR}/external/blaze/install/include") # explicitly specify where the blaze c++ headers are
-
-
 IF(CMAKE_BUILD_TYPE STREQUAL "Debug")
 	SET(CMAKE_INSTALL_PREFIX  ${PROJECT_SOURCE_DIR}/install/dbg)
 	SET(CMAKE_CXX_FLAGS "-g ") # -Wall -Wextra")
 	SET(CUBEAI_DEBUG ON)
 	SET(CUBEAI_PRINT_DBG_MSGS ON)
+	SET(BOOST_LOG_DYN_LINK ON)
 ELSEIF(CMAKE_BUILD_TYPE STREQUAL "Release")
 	SET(CMAKE_INSTALL_PREFIX  ${PROJECT_SOURCE_DIR}/install/opt)
 	SET(CMAKE_CXX_FLAGS "-O2")
@@ -79,13 +76,11 @@ ENDIF()
 
 
 IF(USE_RLENVS_CPP)
-
 	IF(CMAKE_BUILD_TYPE MATCHES "Debug")
 		SET(RLENVS_CPP_LIB_DIRS  ${RLENVS_CPP_LIB_PATH})
 	ELSE()
 		SET(RLENVS_CPP_LIB_DIRS  ${RLENVS_CPP_LIB_PATH})
 	ENDIF()
-	
 ENDIF()
 
 # if tests are enabled try to
@@ -102,18 +97,18 @@ IF(ENABLE_TESTS_FLAG)
 	ENDIF()
 ENDIF()
 
-# find Boost
+# find needed packages
+# find Boost, BLAS
 FIND_PACKAGE(Boost 1.74.0 REQUIRED)
+FIND_PACKAGE(BLAS REQUIRED)
 
 IF(Boost_FOUND)
 	MESSAGE( STATUS  "Found needed Boost C++ library.")
 	SET(Boost_USE_SHARED_LIBS ON)
+	SET(Boost_USE_STATIC_LIBS ON)
 ELSE()
 	MESSAGE( FATAL_ERROR  "Boost C++ library is required but not found.")
 ENDIF()
-
-# find BLAS library
-FIND_PACKAGE(BLAS REQUIRED)
 
 IF(NOT BLAS_FOUND)
 	MESSAGE( FATAL_ERROR  "Could not find OpenBLAS library.")
@@ -165,6 +160,7 @@ FILE(GLOB SRCS src/cubeai/base/*.cpp
                src/cubeai/utils/*.cpp
                src/cubeai/optimization/*.cpp
                src/cubeai/datasets/*.cpp
+               src/cubeai/maths/*.cpp
                src/cubeai/pytorch_utils/*.cpp)
 
 

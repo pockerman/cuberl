@@ -3,6 +3,7 @@
 
 #include <gtest/gtest.h>
 #include <vector>
+#include <iostream>
 
 namespace{
 
@@ -47,21 +48,22 @@ TEST(TestZeroCenter, Test_2) {
 
 }
 
-/*
-TEST(TestMaxTabularPolicy, Test_Operator_2) {
 
-    RandomTabularPolicy policy(42);
+TEST(TestLogSpace, Test_3) {
 
-    DynVec<real_t> vals(3);
-    vals[0] = 1.0;
-    vals[1] = 2.0;
-    vals[2] = 3.0;
-    auto max_idx = policy(vals);
+    // this is taken from NumPy:
+    // https://numpy.org/doc/stable/reference/generated/numpy.logspace.html
+    auto vals = cubeai::maths::logspace(2.0, 3.0, 4, 10.0);
 
-    ASSERT_EQ(max_idx, max_idx);
+    ASSERT_EQ(vals.size(), 4);
+    EXPECT_NEAR(vals[0], 100.0, 1.0e-2);
+    EXPECT_NEAR(vals[1], 215.44, 1.0e-2);
+    EXPECT_NEAR(vals[2], 464.15, 1.0e-2);
+    EXPECT_NEAR(vals[3], 1000.0, 1.0e-2);
 
 }
 
+/*
 TEST(TestMaxTabularPolicy, Test_Operator_3) {
 
     RandomTabularPolicy policy(42);

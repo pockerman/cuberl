@@ -18,32 +18,18 @@ create_discounts_array(real_t base, uint_t npoints){
     return points;
 }
 
-/*
-std::vector<real_t>
-calculate_discounted_returns(const std::vector<real_t>& rewards,
-                             const std::vector<real_t>& discounts, uint_t n_workers){
+real_t
+calculate_discounted_return(const std::vector<real_t>& rewards, real_t gamma){
 
-    auto total_time = rewards.size();
+    auto discounted_reward = 0.0;
+    auto gammas = maths::logspace(0.0, static_cast<real_t>(rewards.size()),
+                                                           rewards.size(), gamma);
 
-    // Return numbers spaced evenly on a log scale.
-    // In linear space, the sequence starts at base ** start
-    // (base to the power of start) and ends with base ** stop (see endpoint below).
-    // The return is the sum of discounted rewards from step until the
-    // final step T
-
-    for(uint_t w = 0; w < n_workers; ++w ){
-        for(uint_t t=0; t < total_time; ++t){
-
-            // get the subarrays
-            auto worker_rewards = rewards[t];
-            auto time_discounts = maths::extract_subvector(discounts, total_time - t);
-        }
-
+    for(uint_t t=0; t<rewards.size(); ++t){
+        discounted_reward += std::pow(gammas[t], t)*rewards[t];
     }
-
-    //returns = np.array([[np.sum(discounts[: total_time - t] * rewards[t:, w]) for t in range(total_time)] for w in range(n_workers)])
+    return discounted_reward;
 }
-*/
 
 #ifdef USE_PYTORCH
 std::vector<real_t>

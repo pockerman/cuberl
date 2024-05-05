@@ -2,8 +2,8 @@
 #define UTILS_H
 
 #include "cubeai/base/cubeai_types.h"
-
 #include "cubeai/base/cubeai_config.h"
+#include "cubeai/maths/vector_math.h"
 
 
 
@@ -61,8 +61,26 @@ std::vector<real_t> create_discounts_array(real_t base, uint_t npoints);
 /// \param n_workers
 /// \return
 ///
-std::vector<real_t> calculate_discounted_returns(const std::vector<real_t>& rewards,
-                                                 const std::vector<real_t>& discounts, uint_t n_workers);
+real_t
+calculate_discounted_return(const std::vector<real_t>& rewards, real_t gamma);
+
+/**
+ * Calculate the discounted return from the given trajectory
+ *
+ * */
+template<typename TimeStepType>
+real_t calculate_discounted_return(const std::vector<TimeStepType>& rewards, real_t gamma){
+
+    auto discounted_reward = 0.0;
+    auto gammas = maths::logspace(0.0, static_cast<real_t>(rewards.size()),
+                                                           rewards.size(), gamma);
+
+    for(uint_t t=0; t<rewards.size(); ++t){
+        discounted_reward += std::pow(gammas[t], t)*rewards[t].reward();
+    }
+    return discounted_reward;
+
+}
 
 #ifdef USE_PYTORCH
 ///

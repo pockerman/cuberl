@@ -47,16 +47,6 @@ template<utils::concepts::float_or_integral_vector VectorType>
 real_t
 mean(const VectorType& vector, bool parallel=true){
     return mean(vector.begin(), vector.end(), parallel);
-
-   /*auto sum = 0.0;
-    if(parallel){
-      sum   = std::reduce(std::execution::par, vector.begin(), vector.end(), sum);
-    }
-    else{
-        sum = std::accumulate(vector.begin(), vector.end(), sum);
-    }
-
-    return sum / static_cast<real_t>(vector.size());*/
 }
 
 ///
@@ -66,15 +56,6 @@ template<typename T>
 real_t
 mean(const DynVec<T>& vector, bool parallel=true){
     return mean(vector.begin(), vector.end(), parallel);
-    /*auto sum = 0.0;
-
-    if(parallel){
-      return std::reduce(std::execution::par,
-                         vector.begin(), vector.end(), sum) / static_cast<real_t>(vector.size());
-    }
-
-    sum = std::accumulate(vector.begin(), vector.end(), sum);
-    return sum / static_cast<real_t>(vector.size());*/
 }
 
 ///
@@ -292,15 +273,21 @@ max_indices(const VecTp& vec){
 
 
 template<typename T>
-std::vector<T> extract_subvector(const std::vector<T>& vec, uint_t end){
+std::vector<T>
+extract_subvector(const std::vector<T>& vec, uint_t end, bool up_to=true){
 
 #ifdef CUBEAI_DEBUG
     assert(end <= vec.size() && "Invalid end index");
 #endif
 
-    return std::vector<real_t>(vec.begin(), vec.begin() + end);
+    if(up_to){
+        return std::vector<real_t>(vec.begin(), vec.begin() + end);
+    }
 
+    return std::vector<real_t>(vec.begin() + end, vec.end());
 }
+
+
 
 ///
 /// \brief bin_index. Compute sequnce[i - 1] <= x sequnce[i] and returns the
@@ -351,7 +338,48 @@ zero_center(const VectorType& vec, bool parallel=true){
 
 }
 
+/**
+ * Return numbers spaced evenly on a log scale.
+ * The implementation is inspired from numpy: https://numpy.org/doc/stable/reference/generated/numpy.logspace.html
+ * See also: https://quick-bench.com/q/Hs39BWQf5kr5Gjnv6zQkLXMrsDw
+ *
+ * The starting point of the scale is: std::pow(base, start)
+ * Similarly the endpoint is: std::pow(base, end)
+ * The intermediate points are aligned as  std::pow(base, point)
+ * where point = start + i*dx
+ * where
+ * dx = (end - start) / (num - 1)
+ *
+ *
+ * */
+std::vector<real_t>
+logspace(real_t start, real_t end, uint_t num, real_t base=10.0);
+
 }
+
+
+template<typename VectorType>
+real_t
+dot_product(const VectorType& v1, const VectorType& v2, uint_t start_idx=0){
+
+#ifdef CUBEAI_DEBUG
+    assert(v1.size() == v2.size() && "Invalid vector sizes");
+    assert(start_idx < v1.size() && "Invalid start_idx");
+#endif
+
+    auto v1_begin = v1.begin();
+    std::advance(v1_begin, start_idx);
+
+    auto v2_begin = v2.begin();
+    std::advance(v2_begin, start_idx);
+    real_t dot_product = 0.0;
+
+    for(; v1_begin != v1.end(); ++v1_begin, ++v2_begin){
+        dot_product += (*v1_begin)*(*v2_begin);
+    }
+    return dot_product;
+}
+
 }
 
 
