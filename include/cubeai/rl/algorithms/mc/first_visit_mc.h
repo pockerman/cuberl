@@ -4,9 +4,16 @@
 #ifndef FIRST_VISIT_MC_H
 #define FIRST_VISIT_MC_H
 
+#include "cubeai/base/cubeai_config.h"
 #include "cubeai/base/cubeai_types.h"
 #include "cubeai/base/cubeai_consts.h"
 #include "cubeai/rl/episode_info.h"
+#include "cubeai/maths/vector_math.h"
+
+#ifdef CUBEAI_PRINT_DBG_MSGS
+    #include <boost/log/trivial.hpp>
+#endif
+
 
 #include <string>
 #include <algorithm>
@@ -32,7 +39,7 @@ struct FirstVisitMCSolverConfig
 /**
  * @todo write docs
  */
-template<typename EnvType, typename PolicyType, typename TrajectoryGenerator, typename DecayLRSchedule>
+template<typename EnvType, typename TrajectoryGenerator, typename DecayLRSchedule, typename DiscountGenerator>
 class FirstVisitMCSolver
 {
 public:
@@ -44,10 +51,19 @@ public:
     typedef EnvType env_type;
 
     /**
-      * @brief The policy type
-      *
-      */
-    typedef PolicyType policy_type;
+     * @brief
+     */
+    typedef TrajectoryGenerator trajectory_generator_type;
+
+    /**
+     * @brief
+     */
+    typedef DecayLRSchedule  decay_lr_schedule_type;
+
+    /**
+     * @brief
+     **/
+    typedef DiscountGenerator discount_generator_type;
 
 
     /**
@@ -62,10 +78,9 @@ public:
      *
      **/
     FirstVisitMCSolver(FirstVisitMCSolverConfig solver_config,
-                       PolicyType& policy,
                        TrajectoryGenerator& trajectory_gen,
-                       DecayLRSchedule& decay_lr_schedule);
-
+                       DecayLRSchedule& decay_lr_schedule,
+                       discount_generator_type& discount_generator);
 
     ///
     /// \brief actions_before_training_begins. Execute any actions the
@@ -77,7 +92,7 @@ public:
     /// \brief actions_after_training_ends. Actions to execute after
     /// the training iterations have finisehd
     ///
-    void actions_after_training_ends(env_type& env){}
+    void actions_after_training_ends(env_type& /*env*/){}
 
     ///
     /// \brief actions_before_training_episode
@@ -117,13 +132,6 @@ private:
 
 
     /**
-     * @brief The policy to use
-     *
-     */
-    policy_type policy_;
-
-
-    /**
      * @brief generate the trajector
      *
      */
@@ -135,70 +143,114 @@ private:
      */
     DecayLRSchedule decay_lr_schedule_;
 
-
-    real_t calculate_total_discounted_reward(const std::vector<time_step_type>& trajectory, real_t gamma)const;
+    /**
+     * @brief How to create the discounts sequence
+     *
+     */
+    discount_generator_type discount_generator_;
 
 };
 
-template<typename EnvType, typename PolicyType,
-         typename TrajectoryGenerator, typename DecayLRSchedule>
-FirstVisitMCSolver<EnvType, PolicyType,
-                   TrajectoryGenerator, DecayLRSchedule>::FirstVisitMCSolver(FirstVisitMCSolverConfig solver_config,
-                                                                             PolicyType& policy,
-                                                                             TrajectoryGenerator& trajectory_gen,
-                                                                             DecayLRSchedule& decay_lr_schedule)
+template<typename EnvType,
+         typename TrajectoryGenerator, typename DecayLRSchedule, typename DiscountGenerator>
+FirstVisitMCSolver<EnvType, TrajectoryGenerator,
+                   DecayLRSchedule, DiscountGenerator>::FirstVisitMCSolver(FirstVisitMCSolverConfig solver_config,
+                                                                           TrajectoryGenerator& trajectory_gen,
+                                                                             DecayLRSchedule& decay_lr_schedule,
+                                                                             discount_generator_type& discount_generator)
 :
 v_(),
-policy_(policy),
 config_(solver_config),
 trajectory_gen_(trajectory_gen),
-decay_lr_schedule_(decay_lr_schedule)
+decay_lr_schedule_(decay_lr_schedule),
+discount_generator_(discount_generator)
 {}
 
 
-template<typename EnvType, typename PolicyType, typename TrajectoryGenerator, typename DecayLRSchedule>
+template<typename EnvType,
+         typename TrajectoryGenerator, typename DecayLRSchedule, typename DiscountGenerator>
 void
-FirstVisitMCSolver<EnvType, PolicyType, TrajectoryGenerator, DecayLRSchedule>::actions_before_training_begins(env_type& env){
+FirstVisitMCSolver<EnvType,
+                   TrajectoryGenerator, DecayLRSchedule, DiscountGenerator>::actions_before_training_begins(env_type& env){
 
     v_.resize(env.n_states());
     std::for_each(v_.begin(), v_.end(),
                   [](auto& item){item = 0.0;});
 }
 
-template<typename EnvType, typename PolicyType, typename TrajectoryGenerator, typename DecayLRSchedule>
+template<typename EnvType,
+         typename TrajectoryGenerator, typename DecayLRSchedule, typename DiscountGenerator>
 EpisodeInfo
-FirstVisitMCSolver<EnvType, PolicyType,
-                   TrajectoryGenerator, DecayLRSchedule>::on_training_episode(env_type& env,
-                                                                              uint_t episode_idx){
+FirstVisitMCSolver<EnvType,
+                   TrajectoryGenerator, DecayLRSchedule, DiscountGenerator>::on_training_episode(env_type& env,
+                                                                                                 uint_t episode_idx){
 
+    // start timing the training on this episode
+    auto start = std::chrono::steady_clock::now();
 
     // generate the trajectory for the environment
-    auto trajectory = trajectory_gen_(env, policy_, config_.max_steps);
+    // for this episode
+    auto trajectory = trajectory_gen_(env, config_.max_steps);
+
+    const auto trajectory_size = std::distance(trajectory.begin(), trajectory.end());
+
+#ifdef CUBEAI_PRINT_DBG_MSGS
+    if(trajectory_size == 0){
+        BOOST_LOG_TRIVIAL(warning)<<"Trajectory size="<<trajectory_size<<std::endl;
+    }
+#endif
+
+     // accummulate the rewards in an array
+    // we need this in order to take the dot product
+    // with the discounts
+    std::vector<real_t> rewards;
+    rewards.reserve(trajectory_size);
+
+    auto time_step_itr = trajectory.begin();
+    for(; time_step_itr != trajectory.end(); ++time_step_itr){
+       auto time_step = *time_step_itr;
+       rewards.push_back(time_step.reward());
+    }
+
+    // compute the discounts for the generated trajectory
+    auto discounts = discount_generator_(trajectory, config_.max_steps);
 
     // calculate learning rate
     auto alpha = decay_lr_schedule_(config_.init_alpha, episode_idx);
 
-    auto time_step_itr = trajectory.begin();
+    std::vector<bool> visited(env.n_states(), false);
+    time_step_itr = trajectory.begin();
+    for(uint_t count=0; time_step_itr != trajectory.end(); ++time_step_itr, ++count){
 
-    for(; time_step_itr != trajectory.end(); ++time_step_itr){
-
-        // find the steps from the current time_step to the end
-        // of the trajector
-        auto n_steps = std::distance(time_step_itr, trajectory.end());
         auto time_step = *time_step_itr;
 
-        // calculate the return
-        auto G = 0.0;
+        if(visited[time_step.observation()])
+            continue;
 
+        visited[time_step.observation()]  = true;
+
+        // find the steps from the current time_step to the end
+        // of the trajectory
+        auto n_steps = std::distance(time_step_itr, trajectory.end());
+
+        // calculate the return. First extract up to n_steps
+        // from the discounts
+        auto trajectory_discounts = cubeai::maths::extract_subvector(discounts, n_steps);
+        auto trajectory_rewards = cubeai::maths::extract_subvector(rewards, count, false);
+        auto G = dot_product(trajectory_discounts, trajectory_rewards);
         auto mc_error = G -  v_[time_step.observation()];
 
         // update the state value
         v_[time_step.observation()] += alpha * mc_error;
     }
 
-
-
-
+    auto end = std::chrono::steady_clock::now();
+    std::chrono::duration<real_t> elapsed_seconds = end-start;
+    auto episode_info = EpisodeInfo();
+    episode_info.episode_index = episode_idx;
+    episode_info.total_time = elapsed_seconds;
+    episode_info.episode_iterations = std::distance(trajectory.begin(), trajectory.end());
+    return episode_info;
 
 }
 
