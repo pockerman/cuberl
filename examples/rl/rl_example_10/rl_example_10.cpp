@@ -3,15 +3,15 @@
 #include "cubeai/rl/policies/epsilon_greedy_policy.h"
 #include "cubeai/rl/trainers/rl_serial_agent_trainer.h"
 
-#include "gymfcpp/gymfcpp_types.h"
-#include "gymfcpp/cliff_world_env.h"
-#include "gymfcpp/time_step.h"
+#include "rlenvs/envs/gymnasium/toy_text/cliff_world_env.h"
 
 #include <deque>
 #include <iostream>
 
 
-namespace example{
+namespace rl_example_10{
+
+const std::string SERVER_URL = "http://0.0.0.0:8001/api";
 
 using cubeai::real_t;
 using cubeai::uint_t;
@@ -21,26 +21,32 @@ using cubeai::rl::algos::td::QLearningConfig;
 using cubeai::rl::policies::EpsilonDecayOption;
 using cubeai::rl::RLSerialAgentTrainer;
 using cubeai::rl::RLSerialTrainerConfig;
+using rlenvs_cpp::envs::gymnasium::CliffWorldActionsEnum;
+typedef  rlenvs_cpp::envs::gymnasium::CliffWorld env_type;
 
-typedef rlenvs_cpp::gymfcpp::CliffWorld env_type;
 }
 
 
 int main(){
 
-    using namespace example;
+    using namespace rl_example_10;
 
     try{
 
-        Py_Initialize();
-        auto gym_module = boost::python::import("__main__");
-        auto gym_namespace = gym_module.attr("__dict__");
+        // create the environment
+        env_type env(SERVER_URL);
 
-        env_type env("v0", gym_namespace);
-        env.make();
+        std::cout<<"Environment URL: "<<env.get_url()<<std::endl;
+        std::unordered_map<std::string, std::any> options;
+
+        std::cout<<"Creating the environment..."<<std::endl;
+        env.make("v1", options);
+        env.reset();
+        std::cout<<"Done..."<<std::endl;
 
         std::cout<<"Number of states="<<env.n_states()<<std::endl;
         std::cout<<"Number of actions="<<env.n_actions()<<std::endl;
+
 
         EpsilonGreedyPolicy policy(1.0, env.n_actions(), EpsilonDecayOption::INVERSE_STEP);
 

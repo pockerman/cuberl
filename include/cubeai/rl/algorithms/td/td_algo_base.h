@@ -28,7 +28,7 @@ namespace td {
 /// for deriving TD algorithms
 ///
 template<typename EnvType>
-class TDAlgoBase: public RLAlgoBase<EnvType>
+class TDAlgoBase: public RLSolverBase<EnvType>
 {
 public:
 

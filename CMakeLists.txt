@@ -29,7 +29,7 @@ ENDIF(COMMAND cmake_policy)
 
 # Set the build type options supported
 # Debug and Release
-SET(CMAKE_BUILD_TYPE "Debug")
+SET(CMAKE_BUILD_TYPE "Release")
 SET(CMAKE_CXX_COMPILER g++-11)
 SET(CMAKE_CXX_STANDARD 20)
 SET(CMAKE_CXX_STANDARD_REQUIRED True)
