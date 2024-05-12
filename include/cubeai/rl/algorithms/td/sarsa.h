@@ -140,7 +140,7 @@ SarsaSolver<EnvTp, ActionSelector>::SarsaSolver(SarsaConfig config, const Action
 template<envs::discrete_world_concept EnvTp, typename ActionSelector>
 void
 SarsaSolver<EnvTp, ActionSelector>::actions_before_training_begins(env_type& env){
-    q_table_ = DynMat<real_t>(env.n_states(), env.n_actions()); //, 0.0);
+    q_table_ = DynMat<real_t>(env.n_states(), env.n_actions());
 
     for(uint_t i=0; i < env.n_states(); ++i)
         for(uint_t j=0; j < env.n_actions(); ++j)
