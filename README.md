@@ -20,14 +20,13 @@ The following is an indicative list of examples. More tutorials can be found at 
 - <a href="examples/example_2/example_2.cpp">Example 2: Multi-armed bandit with epsilon-greedy policy</a>
 - <a href="examples/example_3/example_3.cpp">Example 3: Multi-armed bandit with soft-max policy</a>
 - <a href="examples/example_4/example_4.cpp">Example 4: Advertisement placement</a>
+- <a href="examples/rl/rl_example_6/rl_example_6.cpp">Example 6: Iterative policy evaluation on ```FrozenLake-v0```</a>
+- <a href="examples/rl/rl_example_7/rl_example_7.cpp">Example 7: Policy iteration on ```FrozenLake-v0```</a>
+- <a href="examples/rl/rl_example_8/rl_example_8.cpp">Example 8: Value iteration on ```FrozenLake-v0```</a>
+- <a href="examples/rl/rl_example_9/rl_example_9.cpp">Example 9: SARSA on ```CliffWalking-v0```</a>
+- <a href="examples/rl/rl_example_10/rl_example_10.cpp">Example 10: Q-learning on ```CliffWalking-v0```</a>
+- <a href="examples/rl/rl_example_14/rl_example_14.cpp">Example 14: Expected SARSA on ```CliffWalking-v0```</a>
 - <a href="examples/rl/rl_example_19/rl_example_19.cpp">Example 19: First visit Monte Carlo on ```FrozenLake-v0```</a>
-
-- <a href="https://pockerman-py-cubeai.readthedocs.io/en/latest/ExamplesCpp/rl/rl_example_6.html">Example 6: Iterative policy evaluation on ```FrozenLake-v0```</a>
-- <a href="https://pockerman-py-cubeai.readthedocs.io/en/latest/ExamplesCpp/rl/rl_example_7.html">Example 7: Policy iteration on ```FrozenLake-v0```</a>
-- <a href="https://pockerman-py-cubeai.readthedocs.io/en/latest/ExamplesCpp/rl/rl_example_8.html">Example 8: Value iteration on ```FrozenLake-v0```</a>
-- <a href="https://pockerman-py-cubeai.readthedocs.io/en/latest/ExamplesCpp/rl/rl_example_9.html">Example 9: SARSA on ```CliffWalking-v0```</a>
-- <a href="https://pockerman-py-cubeai.readthedocs.io/en/latest/ExamplesCpp/rl/rl_example_10.html">Example 10: Q-learning on ```CliffWalking-v0```</a>
-- <a href="examples/example_14/example_14.cpp">Example 14: Expected SARSA on ```CliffWalking-v0```</a>
 - <a href="examples/example_15/example_15.cpp">Example 15: Approximate Monte Carlo on ```MountainCar-v0```</a>
 - <a href="examples/example_16/example_16.cpp">Example 16: Monte Carlo tree search on ```Taxi-v3```</a>
 - <a href="examples/example_17/example_17.cpp">Example 17: A* search on a road network  from Open Street Map data</a> 

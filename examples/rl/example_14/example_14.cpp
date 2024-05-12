@@ -1,90 +1,52 @@
+#include "cubeai/base/cubeai_config.h"
+
+#ifdef USE_RLENVS_CPP
+
 #include "cubeai/base/cubeai_types.h"
 #include "cubeai/rl/algorithms/td/expected_sarsa.h"
 #include "cubeai/rl/worlds/discrete_world.h"
 #include "cubeai/rl/policies/epsilon_greedy_policy.h"
 
-#include "gymfcpp/gymfcpp_types.h"
-#include "gymfcpp/cliff_world_env.h"
-#include "gymfcpp/time_step.h"
+#include "rlenvs/envs/gymnasium/toy_text/cliff_world_env.h"
 
-#include <deque>
 #include <iostream>
+#include <unordered_map>
 
 
-namespace example{
+namespace rl_example_14{
+
+const std::string SERVER_URL = "http://0.0.0.0:8001/api";
 
 using cubeai::real_t;
 using cubeai::uint_t;
-using cubeai::rl::envs::DiscreteWorldBase;
 using cubeai::rl::policies::EpsilonGreedyPolicy;
 using cubeai::rl::algos::td::ExpectedSARSA;
+using cubeai::rl::algos::td::QLearningConfig;
 using cubeai::rl::policies::EpsilonDecayOption;
-
-typedef gymfcpp::TimeStep<uint_t> time_step_type;
-
-class CliffWalkingEnv: public DiscreteWorldBase<time_step_type>
-{
-public:
-
-    typedef  DiscreteWorldBase<time_step_type>::time_step_type time_step_type;
-    typedef  DiscreteWorldBase<time_step_type>::action_type action_type;
-
-    CliffWalkingEnv(gymfcpp::obj_t gym_namespace);
-    ~CliffWalkingEnv()=default;
-
-    virtual uint_t n_actions()const override final {return env_impl_.n_actions();}
-    virtual uint_t n_states()const override final {return env_impl_.n_states();}
-
-    virtual time_step_type step(const action_type&)override final;
-    virtual time_step_type reset() override final;
-    virtual  void build(bool reset) override final;
-
-private:
-
-    gymfcpp::CliffWorld env_impl_;
-
-};
-
-CliffWalkingEnv::CliffWalkingEnv(gymfcpp::obj_t gym_namespace)
-    :
-      DiscreteWorldBase<time_step_type>("Cliffwalking"),
-      env_impl_("v0", gym_namespace, false)
-{}
-
-void
-CliffWalkingEnv::build(bool reset_){
-    env_impl_.make();
-
-    if(reset_){
-        reset();
-    }
-}
-
-CliffWalkingEnv::time_step_type
-CliffWalkingEnv::step(const action_type& action){
-    return env_impl_.step(action);
-}
-
-CliffWalkingEnv::time_step_type
-CliffWalkingEnv::reset(){
-    return env_impl_.reset();
-}
+using cubeai::rl::RLSerialAgentTrainer;
+using cubeai::rl::RLSerialTrainerConfig;
+using rlenvs_cpp::envs::gymnasium::CliffWorldActionsEnum;
+typedef  rlenvs_cpp::envs::gymnasium::CliffWorld env_type;
 
 }
 
 
 int main(){
 
-    using namespace example;
+    using namespace rl_example_14;
 
     try{
 
-        Py_Initialize();
-        auto gym_module = boost::python::import("gym");
-        auto gym_namespace = gym_module.attr("__dict__");
+        // create the environment
+        env_type env(SERVER_URL);
 
-        CliffWalkingEnv env(gym_namespace);
-        env.build(true);
+        std::cout<<"Environment URL: "<<env.get_url()<<std::endl;
+        std::unordered_map<std::string, std::any> options;
+
+        std::cout<<"Creating the environment..."<<std::endl;
+        env.make("v1", options);
+        env.reset();
+        std::cout<<"Done..."<<std::endl;
 
         std::cout<<"Number of states="<<env.n_states()<<std::endl;
         std::cout<<"Number of actions="<<env.n_actions()<<std::endl;
@@ -103,6 +65,7 @@ int main(){
 
         std::cout<<"Saving value function..."<<std::endl;
         std::cout<<"Value function..."<<expected_sarsa.value_func()<<std::endl;
+
         expected_sarsa.save("expected_sarsa_value_func.csv");
         expected_sarsa.save_avg_scores("expected_sarsa_avg_scores.csv");
         expected_sarsa.save_state_action_function("expected_sarsa_state_action_function.csv");
@@ -117,3 +80,13 @@ int main(){
     }
     return 0;
 }
+#else
+#include <iostream>
+
+int main(){
+
+    std::cout<<"This example requires the flag USE_RLENVS_CPP to be true."<<std::endl;
+    std::cout<<"Reconfigures and rebuild the library by setting the flag USE_RLENVS_CPP  to ON."<<std::endl;
+    return 1;
+}
+#endif
