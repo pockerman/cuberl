@@ -14,7 +14,8 @@ namespace maths{
 /// \brief Exchange the rows of the matrix
 ///
 template<typename MatType>
-void exchange_rows(MatType& mat, uint_t r1, uint_t r2){
+void
+exchange_rows(MatType& mat, uint_t r1, uint_t r2){
 
     for(uint_t col=0; col<mat.columns(); ++col){
 
@@ -29,7 +30,8 @@ void exchange_rows(MatType& mat, uint_t r1, uint_t r2){
 /// Returns a set with the rows that have been shuffled
 ///
 template<typename MatType>
-std::set<uint_t> shuffle_matrix_rows(MatType& mat){
+std::set<uint_t>
+shuffle_matrix_rows(MatType& mat){
 
     uint_t min = 0;
     uint_t max = mat.rows();
@@ -65,6 +67,7 @@ std::set<uint_t> shuffle_matrix_rows(MatType& mat){
 ///
 /// \brief Extract the cidx-th column from the matrix
 ///
+/*
 template<typename T>
 DynVec<T>
 get_column(const DynMat<T>& matrix, uint_t cidx){
@@ -76,10 +79,12 @@ get_column(const DynMat<T>& matrix, uint_t cidx){
     }
     return column;
 }
+*/
 
 ///
 /// \brief get_column_means. Computes the means of the matrix columns
 ///
+/*
 template<typename T>
 DynVec<real_t>
 get_column_means(const DynMat<T>& matrix){
@@ -95,9 +100,12 @@ get_column_means(const DynMat<T>& matrix){
 
 }
 
+*/
+
 ///
 /// \brief get_column_variances. Computes the variances of the matrix columns
 ///
+/*
 template<typename T>
 DynVec<real_t>
 get_column_variances(const DynMat<T>& matrix){
@@ -112,6 +120,7 @@ get_column_variances(const DynMat<T>& matrix){
     return means;
 
 }
+*/
 
 ///
 /// \brief Extract the row_idx-th row from the matrix
@@ -119,19 +128,7 @@ get_column_variances(const DynMat<T>& matrix){
 template<typename T>
 DynVec<T>
 get_row(const DynMat<T>& matrix, uint_t row_idx){
-
-    DynVec<T> row(matrix.columns());
-
-    auto it = matrix.begin(row_idx);
-    auto it_end = matrix.end(row_idx);
-
-    uint_t col_counter = 0;
-    for(; it != it_end; ++it){
-        auto val = *it;
-        row[col_counter++] =  val;
-    }
-
-    return row;
+    return matrix.row(row_idx);
 }
 
 template<typename T>
@@ -139,7 +136,7 @@ T
 get_row_max(const DynMat<T>& matrix, uint_t row_idx){
 
     auto row = get_row(matrix, row_idx);
-    return blaze::max(row);
+    return row.maxCoeff();
 }
 
 template<typename T>
@@ -147,10 +144,10 @@ T
 get_row_min(const DynMat<T>& matrix, uint_t row_idx){
 
     auto row = get_row(matrix, row_idx);
-    return blaze::min(row);
+    return row.maxCoeff();
 }
 
-template<typename T>
+/*template<typename T>
 uint_t
 row_argmax(const DynMat<T>& matrix, uint_t row_idx){
     auto row = get_row(matrix, row_idx);
@@ -263,7 +260,7 @@ DynMat<T> create_diagonal_matrix(const std::initializer_list<T>& diagonal){
 
     std::vector<T> diag(diagonal.begin(), diagonal.end());
     return create_diagonal_matrix(diag);
-}
+}*/
 
 
 }

@@ -93,7 +93,8 @@ public:
     ///
     /// \brief actions_after_training_episode
     ///
-    virtual void actions_after_episode_ends(env_type&, uint_t episode_idx, const EpisodeInfo& /*einfo*/){action_selector_.adjust_on_episode(episode_idx);}
+    virtual void actions_after_episode_ends(env_type&, uint_t episode_idx,
+                                            const EpisodeInfo& /*einfo*/);
 
     ///
     /// \brief on_episode Do one on_episode of the algorithm
@@ -143,7 +144,12 @@ QLearning<EnvTp, ActionSelector>::QLearning(const QLearningConfig config, const 
 template<envs::discrete_world_concept EnvTp, typename ActionSelector>
 void
 QLearning<EnvTp, ActionSelector>::actions_before_training_begins(env_type& env){
-    q_table_ = DynMat<real_t>(env.n_states(), env.n_actions(), 0.0);
+    q_table_ = DynMat<real_t>(env.n_states(), env.n_actions());
+
+    for(uint_t i=0; i < env.n_states(); ++i)
+        for(uint_t j=0; j < env.n_actions(); ++j)
+            q_table_(i, j) = 0.0;
+
 }
 
 template<envs::discrete_world_concept EnvTp, typename ActionSelector>
@@ -211,9 +217,16 @@ QLearning<EnvTp, ActionSelector>::on_training_episode(env_type& env, uint_t epis
 
 template<envs::discrete_world_concept EnvTp, typename ActionSelector>
 void
+QLearning<EnvTp, ActionSelector>::actions_after_episode_ends(env_type&, uint_t episode_idx,
+                                                            const EpisodeInfo& /*einfo*/){
+    action_selector_.on_episode(episode_idx);
+}
+
+template<envs::discrete_world_concept EnvTp, typename ActionSelector>
+void
 QLearning<EnvTp, ActionSelector>::save(std::string filename)const{
 
-    CSVWriter file_writer(filename, ',', true);
+    /*CSVWriter file_writer(filename, ',', true);
     std::vector<std::string> col_names(1 + q_table_.columns());
     col_names[0] = "state_index";
 
@@ -227,7 +240,7 @@ QLearning<EnvTp, ActionSelector>::save(std::string filename)const{
         auto actions = maths::get_row(q_table_, s);
         auto row = std::make_tuple(s, actions);
         file_writer.write_row(row);
-    }
+    }*/
 
 }
 
@@ -237,7 +250,9 @@ QLearning<EnvTp, ActionSelector>::update_q_table_(const action_type& action, con
                                                        const state_type& next_state, const  action_type& /*next_action*/, real_t reward){
 
     auto q_current = q_table_(cstate, action);
-    auto q_next = next_state != CubeAIConsts::invalid_size_type() ? blaze::max(maths::get_row(q_table_, next_state)) : 0.0;
+    auto q_next = next_state != CubeAIConsts::invalid_size_type() ? cubeai::maths::get_row_max(q_table_, next_state) : 0.0;
+
+
     auto td_target = reward + config_.gamma * q_next;
     q_table_(cstate, action) = q_current + (config_.eta * (td_target - q_current));
 

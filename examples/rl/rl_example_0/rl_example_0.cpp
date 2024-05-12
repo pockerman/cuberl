@@ -158,7 +158,7 @@ int main() {
         std::cout<<info<<std::endl;
 
         // plot the rewarda
-        const auto& rewards = trainer.episodes_total_rewards();
+        trainer.episodes_total_rewards();
 
         typedef DummyPolicy<DummyAlgorithm<MountainCar>::policy_type, MountainCar::state_type> policy_type;
         policy_type policy(std::move(algorithm.get_policy()));
@@ -170,15 +170,6 @@ int main() {
         //env.reset(42);
         //agent.play(env, criteria);
 
-        /*
-        namespace plt = matplotlibcpp;
-        plt::plot(rewards, "r-");
-        plt::xlabel("Episode");
-        plt::ylabel("Reward");
-        plt::title("Dummy algorithm episode reward");
-        plt::show();
-        plt::save("dummy_agent_reward.png");
-        */
     }
     catch(std::exception& e){
         std::cout<<e.what()<<std::endl;

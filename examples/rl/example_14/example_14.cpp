@@ -3,24 +3,24 @@
 #ifdef USE_RLENVS_CPP
 
 #include "cubeai/base/cubeai_types.h"
-#include "cubeai/rl/algorithms/td/q_learning.h"
+#include "cubeai/rl/algorithms/td/expected_sarsa.h"
+#include "cubeai/rl/worlds/discrete_world.h"
 #include "cubeai/rl/policies/epsilon_greedy_policy.h"
-#include "cubeai/rl/trainers/rl_serial_agent_trainer.h"
 
 #include "rlenvs/envs/gymnasium/toy_text/cliff_world_env.h"
 
 #include <iostream>
-#include <iostream>
 #include <unordered_map>
 
-namespace rl_example_10{
+
+namespace rl_example_14{
 
 const std::string SERVER_URL = "http://0.0.0.0:8001/api";
 
 using cubeai::real_t;
 using cubeai::uint_t;
 using cubeai::rl::policies::EpsilonGreedyPolicy;
-using cubeai::rl::algos::td::QLearning;
+using cubeai::rl::algos::td::ExpectedSARSA;
 using cubeai::rl::algos::td::QLearningConfig;
 using cubeai::rl::policies::EpsilonDecayOption;
 using cubeai::rl::RLSerialAgentTrainer;
@@ -33,7 +33,7 @@ typedef  rlenvs_cpp::envs::gymnasium::CliffWorld env_type;
 
 int main(){
 
-    using namespace rl_example_10;
+    using namespace rl_example_14;
 
     try{
 
@@ -51,25 +51,24 @@ int main(){
         std::cout<<"Number of states="<<env.n_states()<<std::endl;
         std::cout<<"Number of actions="<<env.n_actions()<<std::endl;
 
+        EpsilonGreedyPolicy policy(0.005, env.n_actions(), EpsilonDecayOption::NONE);
+        ExpectedSARSA<CliffWalkingEnv, EpsilonGreedyPolicy> expected_sarsa(5000, 1.0e-8,
+                                                                             1.0, 0.01, 100, env, 1000, policy);
 
-        EpsilonGreedyPolicy policy(1.0, env.n_actions(), EpsilonDecayOption::INVERSE_STEP);
+        expected_sarsa.do_verbose_output();
 
-        QLearningConfig qlearn_config;
-        qlearn_config.gamma = 1.0;
-        qlearn_config.eta = 0.01;
-        qlearn_config.tolerance = 1.0e-8;
-        qlearn_config.max_num_iterations_per_episode = 1000;
-        qlearn_config.path = "qlearning_cliff_walking_v0.csv";
+        std::cout<<"Starting training..."<<std::endl;
+        auto train_result = expected_sarsa.train();
 
-        QLearning<env_type, EpsilonGreedyPolicy> algorithm(qlearn_config, policy);
+        std::cout<<train_result<<std::endl;
+        std::cout<<"Finished training..."<<std::endl;
 
-        RLSerialTrainerConfig trainer_config = {10, 10000, 1.0e-8};
+        std::cout<<"Saving value function..."<<std::endl;
+        std::cout<<"Value function..."<<expected_sarsa.value_func()<<std::endl;
 
-        RLSerialAgentTrainer<env_type,
-                QLearning<env_type, EpsilonGreedyPolicy>> trainer(trainer_config, algorithm);
-
-        auto info = trainer.train(env);
-        std::cout<<info<<std::endl;
+        expected_sarsa.save("expected_sarsa_value_func.csv");
+        expected_sarsa.save_avg_scores("expected_sarsa_avg_scores.csv");
+        expected_sarsa.save_state_action_function("expected_sarsa_state_action_function.csv");
 
     }
     catch(std::exception& e){
