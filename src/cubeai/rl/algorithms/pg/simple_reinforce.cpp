@@ -1,4 +1,9 @@
-#include "cubeai/rl/algorithms/pg/vanilla_reinforce.h"
+#include "cubeai/base/cubeai_config.h"
+
+#ifdef USE_PYTORCH
+
+
+#include "cubeai/rl/algorithms/pg/simple_reinforce.h"
 
 namespace cubeai {
 namespace rl {
@@ -23,4 +28,5 @@ ReinforceOpts::print(std::ostream& out)const{
 }
 }
 
+#endif
 

@@ -1,6 +1,14 @@
+/**
+ * This example illustrates how to use the REINFORCE algorithm
+ * on the CartPole environment from Gymnasium
+ *
+ *
+ *
+ *
+ * */
 #include "cubeai/base/cubeai_config.h"
 
-#if defined(USE_PYTORCH) && defined(USE_GYMFCPP)
+#if defined(USE_PYTORCH) && defined(USE_RLENVS_CPP)
 
 #include "cubeai/base/cubeai_types.h"
 #include "cubeai/rl/algorithms/pg/simple_reinforce.h"
@@ -9,19 +17,19 @@
 #include "cubeai/optimization/optimizer_type.h"
 #include "cubeai/optimization/pytorch_optimizer_factory.h"
 
-#include "gymfcpp/gymfcpp_types.h"
-#include "gymfcpp/cart_pole_env.h"
-#include "gymfcpp/time_step.h"
-
+#include "rlenvs/envs/gymnasium/classic_control/cart_pole_env.h"
 #include <torch/torch.h>
-#include <boost/python.hpp>
 
+#include <unordered_map>
 #include <iostream>
 #include <string>
 #include <any>
 
 
-namespace example{
+namespace rl_example_13{
+
+
+const std::string SERVER_URL = "http://0.0.0.0:8001/api";
 
 namespace F = torch::nn::functional;
 
@@ -33,7 +41,7 @@ using cubeai::rl::algos::pg::ReinforceConfig;
 using cubeai::rl::PyTorchRLTrainer;
 using cubeai::rl::PyTorchRLTrainerConfig;
 using cubeai::ml::stats::TorchCategorical;
-using rlenvs_cpp::gymfcpp::CartPole;
+using rlenvs_cpp::envs::gymnasium::CartPole;
 
 
 class PolicyImpl: public torch::nn::Module
@@ -119,22 +127,28 @@ TORCH_MODULE(Policy);
 
 int main(){
 
-    using namespace example;
+    using namespace rl_example_13;
 
     try{
 
-        Py_Initialize();
-        auto gym_module = boost::python::import("__main__");
-        auto gym_namespace = gym_module.attr("__dict__");
 
-        auto env = CartPole("v0", gym_namespace, false);
-        env.make();
+
+        auto env = CartPole(SERVER_URL);
+         std::cout<<"Environment URL: "<<env.get_url()<<std::endl;
+        std::unordered_map<std::string, std::any> options;
+
+        std::cout<<"Creating the environment..."<<std::endl;
+        env.make("v1", options);
+        env.reset();
+        std::cout<<"Done..."<<std::endl;
+
+        std::cout<<"Number of actions="<<env.n_actions()<<std::endl;
 
         Policy policy;
         auto optimizer_ptr = std::make_unique<torch::optim::Adam>(policy->parameters(), torch::optim::AdamOptions(1e-2));
 
         // reinforce options
-        ReinforceConfig opts = {1000, 100, 100, 100, 1.0e-2, 0.1, 195.0, true};
+        ReinforceConfig opts = {1000, 100, 100, 100, 1.0e-2, 0.1, 195.0};
         SimpleReinforce<CartPole, Policy> algorithm(opts, policy);
 
         PyTorchRLTrainerConfig trainer_config{1.0e-8, 1001, 50};
@@ -143,14 +157,10 @@ int main(){
         trainer.train(env);
 
     }
-    catch(const boost::python::error_already_set&){
-            PyErr_Print();
-    }
     catch(std::exception& e){
         std::cout<<e.what()<<std::endl;
     }
     catch(...){
-
         std::cout<<"Unknown exception occured"<<std::endl;
     }
     return 0;
@@ -159,7 +169,7 @@ int main(){
 #include <iostream>
 int main(){
 
-    std::cout<<"This example requires PyTorch and gymfcpp. Reconfigure cubeai with PyTorch and gymfcpp support."<<std::endl;
+    std::cout<<"This example requires PyTorch and gymfcpp. Reconfigure cuberl with USE_PYTORCH and USE_RLENVS_CPP flags turned ON."<<std::endl;
     return 0;
 }
 #endif

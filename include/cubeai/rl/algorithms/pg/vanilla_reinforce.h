@@ -1,3 +1,4 @@
+/*
 #ifndef VANILLA_REINFORCE_H
 #define VANILLA_REINFORCE_H
 
@@ -309,3 +310,6 @@ void Reinforce<WorldTp, PolicyTp, OptimizerTp>::on_episode(){
 }
 
 #endif // VANILLA_REINFORCE_H
+
+
+*/

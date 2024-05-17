@@ -1,12 +1,16 @@
 #ifndef SIMPLE_REINFORCE_H
 #define SIMPLE_REINFORCE_H
 
+#include "cubeai/base/cubeai_config.h"
+
+#ifdef USE_PYTORCH
+
 #include "cubeai/base/cubeai_types.h"
 #include "cubeai/rl/algorithms/rl_algorithm_base.h"
 #include "cubeai/rl/episode_info.h"
-#include "cubeai/maths/basic_array_statistics.h"
-#include "cubeai/utils/array_utils.h"
-#include "gymfcpp/render_mode_enum.h"
+#include "cubeai/maths/vector_math.h"
+//#include "cubeai/utils/array_utils.h"
+
 
 #include <vector>
 #include <deque>
@@ -33,7 +37,6 @@ struct ReinforceConfig
     real_t gamma;
     real_t tolerance;
     real_t exit_score_level;
-    bool render_environment;
 
     ///
     /// \brief print
@@ -52,7 +55,7 @@ std::ostream& operator<<(std::ostream& out, ReinforceConfig opts){
 /// \brief The Reinfoce class. Vanilla Reinforce algorithm
 ///
 template<typename EnvType, typename PolicyTp>
-class SimpleReinforce final: public RLAlgoBase<EnvType>
+class SimpleReinforce final: public RLSolverBase<EnvType>
 {
 public:
 
@@ -158,7 +161,7 @@ private:
 template<typename EnvType, typename PolicyTp>
 SimpleReinforce<EnvType, PolicyTp>::SimpleReinforce(ReinforceConfig config, policy_t& policy)
     :
-     RLAlgoBase<EnvType>(),
+     RLSolverBase<EnvType>(),
      config_(config),
      policy_ptr_(policy)
 
@@ -221,10 +224,6 @@ SimpleReinforce<WorldTp, PolicyTp>::do_step_(env_type& env){
 
             auto [action, log_prob] = policy_ptr_ -> act(state);
 
-            /*if(render_environment_){
-                world_ptr_->render(gymfcpp::RenderModeType::human);
-            }*/
-
             saved_log_probs_.push_back(log_prob);
             auto time_step = env.step(action);
             state = time_step.observation();
@@ -252,13 +251,7 @@ SimpleReinforce<WorldTp, PolicyTp>::on_training_episode(env_type& env, uint_t ep
     reset_internal_structs_();
 
     auto itrs = do_step_(env);
-
     auto rewards_sum = std::accumulate(rewards_.begin(), rewards_.end(), 0.0);
-
-    // remove oldest element if needed
-    /*if(scores_deque_.size() >= scores_queue_max_size_){
-        scores_deque_.pop_front();
-    }*/
 
     scores_deque_.push_back(rewards_sum);
     scores_.push_back(rewards_sum);
@@ -267,8 +260,7 @@ SimpleReinforce<WorldTp, PolicyTp>::on_training_episode(env_type& env, uint_t ep
     discounts.reserve(rewards_.size() + 1);
 
     //discounts = [self.gamma ** i for i in range(len(self.rewards) + 1)]
-    //compute_discounts_(discounts);
-    exponentiate(discounts);
+    cubeai::maths::exponentiate(discounts);
 
     // R = sum([a * b for a, b in zip(discounts, self.rewards)])
     auto R = compute_total_reward_(discounts);
@@ -324,5 +316,5 @@ SimpleReinforce<WorldTp, PolicyTp>::actions_after_episode_ends(env_type&, uint_t
 }
 }
 }
-
+#endif
 #endif // VANILLA_REINFORCE_H
