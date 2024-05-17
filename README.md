@@ -26,7 +26,7 @@ The following is an indicative list of examples. More tutorials can be found at 
 - <a href="examples/rl/rl_example_9/rl_example_9.cpp">Example 9: SARSA on ```CliffWalking-v0```</a>
 - <a href="examples/rl/rl_example_10/rl_example_10.cpp">Example 10: Q-learning on ```CliffWalking-v0```</a>
 - <a href="examples/rl/rl_example_12/example_12.cpp">Example 12: DQN on ```CartPole-v0```</a>
-- <a href="examples/rl/rl_example_13.cpp">Example 13: Reinforce algorithm on ```CartPole-v0```</a>
+- <a href="examples/rl/rl_example_13/rl_example_13.cpp">Example 13: Reinforce algorithm on ```CartPole-v0```</a>
 - <a href="examples/rl/rl_example_14/rl_example_14.cpp">Example 14: Expected SARSA on ```CliffWalking-v0```</a>
 - <a href="examples/rl/rl_example_19/rl_example_19.cpp">Example 19: First visit Monte Carlo on ```FrozenLake-v0```</a>
 - <a href="examples/example_15/example_15.cpp">Example 15: Approximate Monte Carlo on ```MountainCar-v0```</a>
