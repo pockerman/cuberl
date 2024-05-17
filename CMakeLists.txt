@@ -4,7 +4,7 @@ MESSAGE(STATUS "Using CMake ${CMAKE_VERSION}")
 
 SET(CUBEAILIB_VERSION_MAJOR 0)
 SET(CUBEAILIB_VERSION_MINOR 0)
-SET(CUBEAILIB_VERSION_PATCH 8)
+SET(CUBEAILIB_VERSION_PATCH 9)
 SET(CUBEAILIB_VERSION "${CUBEAILIB_VERSION_MAJOR}.${CUBEAILIB_VERSION_MINOR}.${CUBEAILIB_VERSION_PATCH}")
 
 # if PyTorch has been compiled with CUDA support
@@ -34,9 +34,8 @@ IF(COMMAND cmake_policy)
 ENDIF(COMMAND cmake_policy)
 
 # configure the project accordingly
-
 # Set the build type options supported
-# Debug and Release
+# Debug and Release are the types supported
 SET(CMAKE_BUILD_TYPE "Release")
 SET(CMAKE_CXX_COMPILER g++-11)
 SET(CMAKE_CXX_STANDARD 20)
@@ -66,7 +65,6 @@ SET(EIGEN_INCLUDE_DIRS "${PROJECT_SOURCE_DIR}/external/eigen")
 IF(USE_CUDA)
 	# The CUDA compiler. You may need to set this manually
 	SET(CMAKE_CUDA_COMPILER "/usr/bin/nvcc")
-	#ENABLE_LANGUAGE(CUDA)
 ENDIF()
 
 # if we use PyTorch set up the path for libtorch
