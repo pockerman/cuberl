@@ -31,9 +31,10 @@ struct PyTorchRLTrainerConfig
 };
 
 
-///
-///
-///
+/**
+ * @brief Trainer class to use with PyTorch
+ *
+ */
 template<typename EnvType, typename AgentType>
 class PyTorchRLTrainer final: public IterativeRLTrainerBase<EnvType, AgentType>
 {
@@ -42,10 +43,12 @@ public:
     typedef EnvType env_type;
     typedef AgentType agent_type;
 
-    ///
-    ///
-    ///
-    PyTorchRLTrainer(const PyTorchRLTrainerConfig config, agent_type& agent, std::unique_ptr<torch::optim::Optimizer> optimizer);
+    /**
+     * @brief Constructor
+     *
+     */
+    PyTorchRLTrainer(const PyTorchRLTrainerConfig config, agent_type& agent,
+                     std::unique_ptr<torch::optim::Optimizer> optimizer);
 
 
     ///
@@ -57,7 +60,9 @@ public:
 
 protected:
 
-
+    /**
+     * @brief Pointer to the optimization to use for training the agent
+     */
     std::unique_ptr<torch::optim::Optimizer> optimizer_;
 
 
@@ -76,10 +81,8 @@ void
 PyTorchRLTrainer<EnvType, AgentType>::actions_after_episode_ends(env_type& env, uint_t episode_idx,
                                                                  const EpisodeInfo& einfo){
 
-    //this->IterativeRLTrainerBase<EnvType, AgentType>::actions_after_episode_ends(env, episode_idx);
 
     optimizer_->zero_grad();
-
     this->agent_.actions_after_episode_ends(env, episode_idx, einfo);
 
     // compute the loss

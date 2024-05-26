@@ -355,7 +355,6 @@ zero_center(const VectorType& vec, bool parallel=true){
 std::vector<real_t>
 logspace(real_t start, real_t end, uint_t num, real_t base=10.0);
 
-}
 
 
 template<typename VectorType>
@@ -379,7 +378,7 @@ dot_product(const VectorType& v1, const VectorType& v2, uint_t start_idx=0){
     }
     return dot_product;
 }
-
+}
 }
 
 

@@ -50,20 +50,34 @@ public:
     /// \brief actions_before_episode_begins. Execute any actions the algorithm needs before
     /// starting the episode
     ///
-    virtual void actions_before_episode_begins(env_type& env, uint_t episode_idx){agent_.actions_before_episode_begins(env, episode_idx);}
+    virtual void actions_before_episode_begins(env_type& env, uint_t episode_idx){
+        agent_.actions_before_episode_begins(env, episode_idx);}
 
     ///
     /// \brief  actions_after_episode_ends. Execute any actions the algorithm needs after
     /// ending the episode
     ///
     virtual void actions_after_episode_ends(env_type& env,
-                                            uint_t episode_idx, const EpisodeInfo& einfo){agent_.actions_after_episode_ends(env, episode_idx, einfo);}
+                                            uint_t episode_idx, const EpisodeInfo& einfo)
+    {agent_.actions_after_episode_ends(env, episode_idx, einfo);}
 
     ///
     /// \brief actions_after_training_ends. Execute any actions the algorithm needs after
     /// the iterations are finished
     ///
     virtual void actions_after_training_ends(env_type& env){agent_.actions_after_training_ends(env);}
+
+    ///
+    /// \brief episodes_total_rewards
+    /// \return
+    ///
+    const std::vector<real_t>& episodes_total_rewards()const noexcept{return total_reward_per_episode_;}
+
+    ///
+    /// \brief n_itrs_per_episode
+    /// \return
+    ///
+    const std::vector<uint_t>& n_itrs_per_episode()const{return n_itrs_per_episode_;}
 
 protected:
 

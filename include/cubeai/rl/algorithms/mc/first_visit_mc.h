@@ -237,7 +237,7 @@ FirstVisitMCSolver<EnvType,
         // from the discounts
         auto trajectory_discounts = cubeai::maths::extract_subvector(discounts, n_steps);
         auto trajectory_rewards = cubeai::maths::extract_subvector(rewards, count, false);
-        auto G = dot_product(trajectory_discounts, trajectory_rewards);
+        auto G = cubeai::maths::dot_product(trajectory_discounts, trajectory_rewards);
         auto mc_error = G -  v_[time_step.observation()];
 
         // update the state value

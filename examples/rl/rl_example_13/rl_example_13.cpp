@@ -11,6 +11,7 @@
 #if defined(USE_PYTORCH) && defined(USE_RLENVS_CPP)
 
 #include "cubeai/base/cubeai_types.h"
+#include "cubeai/io/csv_file_writer.h"
 #include "cubeai/rl/algorithms/pg/simple_reinforce.h"
 #include "cubeai/rl/trainers/pytorch_rl_agent_trainer.h"
 #include "cubeai/ml/distributions/torch_categorical.h"
@@ -24,26 +25,28 @@
 #include <iostream>
 #include <string>
 #include <any>
+#include <filesystem>
 
 
 namespace rl_example_13{
 
 
 const std::string SERVER_URL = "http://0.0.0.0:8001/api";
+const std::string EXPERIMENT_ID = "1";
 
 namespace F = torch::nn::functional;
 
 using cubeai::real_t;
 using cubeai::uint_t;
 using cubeai::torch_tensor_t;
-using cubeai::rl::algos::pg::SimpleReinforce;
+using cubeai::rl::algos::pg::ReinforceSolver;
 using cubeai::rl::algos::pg::ReinforceConfig;
 using cubeai::rl::PyTorchRLTrainer;
 using cubeai::rl::PyTorchRLTrainerConfig;
 using cubeai::ml::stats::TorchCategorical;
 using rlenvs_cpp::envs::gymnasium::CartPole;
 
-
+// The class that models the Policy network to train
 class PolicyImpl: public torch::nn::Module
 {
 public:
@@ -131,13 +134,23 @@ int main(){
 
     try{
 
+         // let's create a directory where we want to
+         //store all the results from running a simualtion
+
+        std::filesystem::create_directories("experiments/" + EXPERIMENT_ID);
+        /*if(!std::filesystem::create_directory("experiments/" + EXPERIMENT_ID)){
+         auto err_message = std::string("Directory ");
+         err_message += std::string("experiments/" + EXPERIMENT_ID + " already exists");
+         throw std::runtime_error(err_message);
+        }*/
 
 
         auto env = CartPole(SERVER_URL);
-         std::cout<<"Environment URL: "<<env.get_url()<<std::endl;
-        std::unordered_map<std::string, std::any> options;
+        std::cout<<"Environment URL: "<<env.get_url()<<std::endl;
+
 
         std::cout<<"Creating the environment..."<<std::endl;
+        std::unordered_map<std::string, std::any> options;
         env.make("v1", options);
         env.reset();
         std::cout<<"Done..."<<std::endl;
@@ -145,16 +158,32 @@ int main(){
         std::cout<<"Number of actions="<<env.n_actions()<<std::endl;
 
         Policy policy;
-        auto optimizer_ptr = std::make_unique<torch::optim::Adam>(policy->parameters(), torch::optim::AdamOptions(1e-2));
+        auto optimizer_ptr = std::make_unique<torch::optim::Adam>(policy->parameters(),
+                                                                  torch::optim::AdamOptions(1e-2));
 
         // reinforce options
         ReinforceConfig opts = {1000, 100, 100, 100, 1.0e-2, 0.1, 195.0};
-        SimpleReinforce<CartPole, Policy> algorithm(opts, policy);
+        ReinforceSolver<CartPole, Policy> algorithm(opts, policy);
 
         PyTorchRLTrainerConfig trainer_config{1.0e-8, 1001, 50};
-        PyTorchRLTrainer<CartPole, SimpleReinforce<CartPole, Policy>> trainer(trainer_config, algorithm, std::move(optimizer_ptr));
+        PyTorchRLTrainer<CartPole, ReinforceSolver<CartPole, Policy>> trainer(trainer_config, algorithm, std::move(optimizer_ptr));
 
-        trainer.train(env);
+        auto info = trainer.train(env);
+
+        std::cout<<"Trainer info: "<<info<<std::endl;
+
+        // save the rewards per episode for visualization
+        // purposes
+        auto filename = std::string("experiments/") + EXPERIMENT_ID;
+        filename += "/reinforce_rewards.csv";
+        cubeai::CSVWriter csv_writer(filename, cubeai::CSVWriter::default_delimiter(), true);
+        csv_writer.write_column_vector(trainer.episodes_total_rewards());
+
+
+        // save the policy also so that we can load it and check
+        // use it
+        auto policy_model_filename = std::string("experiments/") + EXPERIMENT_ID + std::string("/reinforce_cartpole_policy.pth");
+        torch::save(policy, policy_model_filename);
 
     }
     catch(std::exception& e){

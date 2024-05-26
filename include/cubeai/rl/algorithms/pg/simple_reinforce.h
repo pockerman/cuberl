@@ -51,21 +51,24 @@ std::ostream& operator<<(std::ostream& out, ReinforceConfig opts){
     return opts.print(out);
 }
 
-///
-/// \brief The Reinfoce class. Vanilla Reinforce algorithm
-///
-template<typename EnvType, typename PolicyTp>
-class SimpleReinforce final: public RLSolverBase<EnvType>
+/**
+  * @brief The ReinforceSolver class. The ReinforceSolver
+  * trains a policy represented by the PolicyTp template parameter
+  * on the environment represented by the EnvType parameter
+  *
+  */
+template<typename EnvType, typename PolicyType>
+class ReinforceSolver final: public RLSolverBase<EnvType>
 {
 public:
 
     typedef EnvType env_type;
-    typedef PolicyTp policy_t;
+    typedef PolicyType policy_type;
 
     ///
     /// \brief Reinforce
     ///
-    SimpleReinforce(ReinforceConfig opts, policy_t& policy);
+    ReinforceSolver(ReinforceConfig opts, policy_type& policy);
 
     ///
     /// \brief actions_before_training_begins. Execute any actions the
@@ -119,17 +122,13 @@ private:
     ///
     /// \brief policy_ptr_
     ///
-    policy_t policy_ptr_;
+    policy_type policy_ptr_;
 
     ///
     /// \brief exit_score_level_
     ///
     real_t exit_score_level_;
 
-    ///
-    /// \brief render_environment_
-    ///
-    bool render_environment_;
 
     std::vector<real_t> scores_;
     std::deque<real_t> scores_deque_;
@@ -158,8 +157,8 @@ private:
 
 };
 
-template<typename EnvType, typename PolicyTp>
-SimpleReinforce<EnvType, PolicyTp>::SimpleReinforce(ReinforceConfig config, policy_t& policy)
+template<typename EnvType, typename PolicyType>
+ReinforceSolver<EnvType, PolicyType>::ReinforceSolver(ReinforceConfig config, policy_type& policy)
     :
      RLSolverBase<EnvType>(),
      config_(config),
@@ -167,18 +166,18 @@ SimpleReinforce<EnvType, PolicyTp>::SimpleReinforce(ReinforceConfig config, poli
 
 {}
 
-template<typename WorldTp, typename PolicyTp>
+template<typename EnvType, typename PolicyType>
 void
-SimpleReinforce<WorldTp, PolicyTp>::actions_before_training_begins(env_type& /*env*/){
+ReinforceSolver<EnvType, PolicyType>::actions_before_training_begins(env_type& /*env*/){
 
     scores_.clear();
     reset_internal_structs_();
 
 }
 
-template<typename WorldTp, typename PolicyTp>
+template<typename EnvType, typename PolicyType>
 void
-SimpleReinforce<WorldTp, PolicyTp>::reset_internal_structs_()noexcept{
+ReinforceSolver<EnvType, PolicyType>::reset_internal_structs_()noexcept{
 
     std::vector<real_t> empty;
     std::swap(saved_log_probs_, empty);
@@ -199,9 +198,9 @@ Reinforce<WorldTp, PolicyTp, OptimizerTp>::compute_discounts_(std::vector<real_t
     }
 }*/
 
-template<typename WorldTp, typename PolicyTp>
+template<typename EnvType, typename PolicyType>
 real_t
-SimpleReinforce<WorldTp, PolicyTp>::compute_total_reward_(const std::vector<real_t>& discounts)const{
+ReinforceSolver<EnvType, PolicyType>::compute_total_reward_(const std::vector<real_t>& discounts)const{
 
     real_t reward = 0.0;
 
@@ -212,9 +211,9 @@ SimpleReinforce<WorldTp, PolicyTp>::compute_total_reward_(const std::vector<real
     return reward;
 }
 
-template<typename WorldTp, typename PolicyTp>
+template<typename EnvType, typename PolicyType>
 uint_t
-SimpleReinforce<WorldTp, PolicyTp>::do_step_(env_type& env){
+ReinforceSolver<EnvType, PolicyType>::do_step_(env_type& env){
 
     //  for every episode reset the environment
     auto state = env.reset().observation();
@@ -222,10 +221,16 @@ SimpleReinforce<WorldTp, PolicyTp>::do_step_(env_type& env){
     uint_t itr = 0;
     for(; itr < config_.max_itrs_per_episode; ++itr){
 
+            // from the policy get the action to do based
+            // on the seen state
             auto [action, log_prob] = policy_ptr_ -> act(state);
 
             saved_log_probs_.push_back(log_prob);
+
+            // execute the selected action on the environment
             auto time_step = env.step(action);
+
+            // update state
             state = time_step.observation();
 
             rewards_.push_back(time_step.reward());
@@ -239,9 +244,9 @@ SimpleReinforce<WorldTp, PolicyTp>::do_step_(env_type& env){
 
 }
 
-template<typename WorldTp, typename PolicyTp>
+template<typename EnvType, typename PolicyType>
 EpisodeInfo
-SimpleReinforce<WorldTp, PolicyTp>::on_training_episode(env_type& env, uint_t episode_idx){
+ReinforceSolver<EnvType, PolicyType>::on_training_episode(env_type& env, uint_t episode_idx){
 
 
     auto start = std::chrono::steady_clock::now();
@@ -292,6 +297,7 @@ SimpleReinforce<WorldTp, PolicyTp>::on_training_episode(env_type& env, uint_t ep
     auto end = std::chrono::steady_clock::now();
     std::chrono::duration<real_t> elapsed_seconds = end - start;
 
+    // the info class to return for the episode
     EpisodeInfo info;
     info.episode_index = episode_idx;
     info.episode_reward = R;
@@ -300,9 +306,9 @@ SimpleReinforce<WorldTp, PolicyTp>::on_training_episode(env_type& env, uint_t ep
     return info;
 }
 
-template<typename WorldTp, typename PolicyTp>
+template<typename EnvType, typename PolicyType>
 void
-SimpleReinforce<WorldTp, PolicyTp>::actions_after_episode_ends(env_type&, uint_t /*episode_idx*/,
+ReinforceSolver<EnvType, PolicyType>::actions_after_episode_ends(env_type&, uint_t /*episode_idx*/,
                                                                const EpisodeInfo& /*einfo*/){
 
     // compute the loss
