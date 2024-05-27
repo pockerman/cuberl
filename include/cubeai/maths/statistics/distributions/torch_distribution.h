@@ -11,7 +11,7 @@
 #include <vector>
 
 namespace cubeai {
-namespace ml {
+namespace maths {
 namespace stats {
 
 ///

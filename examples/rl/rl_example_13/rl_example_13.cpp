@@ -14,7 +14,7 @@
 #include "cubeai/io/csv_file_writer.h"
 #include "cubeai/rl/algorithms/pg/simple_reinforce.h"
 #include "cubeai/rl/trainers/pytorch_rl_agent_trainer.h"
-#include "cubeai/ml/distributions/torch_categorical.h"
+#include "cubeai/maths/statistics/distributions/torch_categorical.h"
 #include "cubeai/optimization/optimizer_type.h"
 #include "cubeai/optimization/pytorch_optimizer_factory.h"
 
@@ -43,7 +43,7 @@ using cubeai::rl::algos::pg::ReinforceSolver;
 using cubeai::rl::algos::pg::ReinforceConfig;
 using cubeai::rl::PyTorchRLTrainer;
 using cubeai::rl::PyTorchRLTrainerConfig;
-using cubeai::ml::stats::TorchCategorical;
+using cubeai::maths::stats::TorchCategorical;
 using rlenvs_cpp::envs::gymnasium::CartPole;
 
 // The class that models the Policy network to train
@@ -144,6 +144,7 @@ int main(){
          throw std::runtime_error(err_message);
         }*/
 
+        torch::manual_seed(42);
 
         auto env = CartPole(SERVER_URL);
         std::cout<<"Environment URL: "<<env.get_url()<<std::endl;
@@ -151,10 +152,12 @@ int main(){
 
         std::cout<<"Creating the environment..."<<std::endl;
         std::unordered_map<std::string, std::any> options;
+
+        // with Gymnasium v0 is not working
         env.make("v1", options);
         env.reset();
-        std::cout<<"Done..."<<std::endl;
 
+        std::cout<<"Done..."<<std::endl;
         std::cout<<"Number of actions="<<env.n_actions()<<std::endl;
 
         Policy policy;

@@ -1,9 +1,9 @@
-#include "cubeai/ml/distributions/torch_distribution.h"
+#include "cubeai/maths/statistics//distributions/torch_distribution.h"
 
 #ifdef USE_PYTORCH
 
 namespace cubeai {
-namespace ml {
+namespace maths {
 namespace stats {
 
 std::vector<int64_t>
