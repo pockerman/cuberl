@@ -1,10 +1,3 @@
-/**
-  * This example illustrates a simple example of Monte Carlo
-  * iteration using the IterationCounter class
-  *
-  * */
-
-
 #include "cubeai/base/cubeai_config.h"
 
 #if defined(USE_PYTORCH) && defined(USE_RLENVS_CPP)
