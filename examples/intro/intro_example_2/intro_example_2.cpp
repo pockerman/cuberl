@@ -4,8 +4,6 @@
 
 #include "cubeai/base/cubeai_types.h"
 #include "cubeai/utils/iteration_counter.h"
-#include "cubeai/utils/cubeai_concepts.h"
-#include "cubeai/geom_primitives/shapes/circle.h"
 #include "cubeai/extern/nlohmann/json/json.hpp"
 
 #include <torch/torch.h>
@@ -24,13 +22,13 @@ namespace intro_example_2
 
 using cubeai::real_t;
 using cubeai::uint_t;
-using cubeai::DynMat;
-using cubeai::DynVec;
+//using cubeai::DynMat;
+//using cubeai::DynVec;
+using cubeai::utils::IterationCounter;
 
 namespace fs = std::filesystem;
 using json = nlohmann::json;
 
-//const fs::path EXPERIMENTS_DIR_PATH = "experiments";
 const std::string CONFIG = "config.json";
 
 
@@ -107,9 +105,12 @@ int main() {
       // Set floating point output precision
       BOOST_LOG_TRIVIAL(info)<<"Start training...";
 
-      // Train the model
-      for (uint_t epoch = 0; epoch != num_epochs; ++epoch) {
-          // Forward pass
+
+      IterationCounter iteration_ctrl(num_epochs);
+
+      while(iteration_ctrl.continue_iterations()){
+
+        // Forward pass
           auto output = model->forward(x_train);
           auto loss = torch::nn::functional::mse_loss(output, y_train);
 
@@ -118,8 +119,9 @@ int main() {
           loss.backward();
           optimizer.step();
 
-          if ((epoch + 1) % 5 == 0) {
-            BOOST_LOG_TRIVIAL(info)<< "Epoch [" << (epoch + 1) << "/" << num_epochs <<"], Loss: " << loss.item<double>(); //<< "\n";
+          auto current_iteration = iteration_ctrl.current_iteration_index();
+          if ((current_iteration + 1) % 5 == 0) {
+            BOOST_LOG_TRIVIAL(info)<< "Epoch [" << (current_iteration + 1) << "/" << num_epochs <<"], Loss: " << loss.item<double>(); //<< "\n";
           }
       }
 

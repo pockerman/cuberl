@@ -10,6 +10,14 @@ consult for further info:
 - <a href="https://github.com/prabhuomkar/pytorch-cpp/tree/master">pytorch-cpp</a>
 
 In this tutorial we will reproduce the code in <a href="https://github.com/prabhuomkar/pytorch-cpp/blob/master/tutorials/basics/linear_regression/main.cpp">linear regression with PyTorch</a>.
+We will also show how to read a json file with cuberl, how to use the ```IterativeAlgorithmController``` class. Finally, we will see how to use the logging utilities from the boost C++ library.
+Note that this tutorial requires cuberl to be configured with PyTorch support.
+
+
+## The driver code
+
+The driver code for this tutorial is shown below. 
+
 
 ```cpp
 #include "cubeai/base/cubeai_config.h"
@@ -18,8 +26,6 @@ In this tutorial we will reproduce the code in <a href="https://github.com/prabh
 
 #include "cubeai/base/cubeai_types.h"
 #include "cubeai/utils/iteration_counter.h"
-#include "cubeai/utils/cubeai_concepts.h"
-#include "cubeai/geom_primitives/shapes/circle.h"
 #include "cubeai/extern/nlohmann/json/json.hpp"
 
 #include <torch/torch.h>
@@ -163,9 +169,6 @@ int main(){
 }
 #endif
 ```
-
-
-
 
 Running the code above produces the following output
 
