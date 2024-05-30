@@ -11,7 +11,7 @@ The following is an indicative list of examples. More tutorials can be found at 
 
 ### Introductory
 
-- <a href="examples/intro/intro_example_1/intro_example_1.cpp">Estimate $\pi$ with Monte Carlo</a>
+- <a href="examples/intro/intro_example_1/intro_example_1.md">_CubeRl_ Basics</a>
 - <a href="examples/intro/intro_example_2/intro_example_2.md">Using PyTorch C++ API</a>
 
 ### Reinforcement learning
