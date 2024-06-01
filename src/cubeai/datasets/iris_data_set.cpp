@@ -27,8 +27,8 @@ void
 IrisDataSet::load(bool append_ones){
     std::string file = CubeAIDataPaths::iris_data_path();
 
-    CSVFileReader reader(file);
-
+    io::CSVFileReader reader(file);
+    reader.open();
 
     meta_.has_ones = append_ones;
     meta_.path = file;

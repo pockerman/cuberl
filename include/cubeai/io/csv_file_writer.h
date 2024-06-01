@@ -9,6 +9,7 @@
 #include <initializer_list>
 
 namespace cubeai{
+namespace io{
 
 ///
 /// \brief The CSVWriter class. Handles writing into CSV file format
@@ -26,8 +27,7 @@ public:
     ///
     /// \brief Constructor
     ///
-    CSVWriter(const std::string& filename, char delim=CSVWriter::default_delimiter(),
-              bool open_file=false, const std::ios_base::openmode mode=std::ios_base::out);
+    CSVWriter(const std::string& filename, char delim=CSVWriter::default_delimiter()); //, const std::ios_base::openmode mode=std::ios_base::out);
 
     ///
     /// \brief Write the column names
@@ -95,19 +95,20 @@ template<typename T>
 void
 CSVWriter::write_row(const std::vector<T>& vals){
 
-    if(!is_open()){
+    if(!this->is_open()){
         throw std::logic_error("File "+this->file_name_+" is not open");
     }
 
+    auto& f =  this-> get_file_stream();
     for(uint_t c=0; c<vals.size(); ++c){
 
-        file_<<vals[c];
+        f<<vals[c];
 
         if(c == vals.size()-1){
-            file_<<std::endl;
+            f<<std::endl;
         }
         else{
-           file_<<",";
+           f<<",";
         }
     }
 }
@@ -116,19 +117,20 @@ template<typename T>
 void
 CSVWriter::write_row(const DynVec<T>& vals){
 
-    if(!is_open()){
+    if(!this->is_open()){
         throw std::logic_error("File "+this->file_name_+" is not open");
     }
 
+    auto& f =  this-> get_file_stream();
     for(uint_t c=0; c<vals.size(); ++c){
 
-        file_<<vals[c];
+        f<<vals[c];
 
         if(c == vals.size()-1){
-            file_<<std::endl;
+            f<<std::endl;
         }
         else{
-           file_<<",";
+           f<<",";
         }
     }
 }
@@ -137,12 +139,13 @@ template<typename T>
 void
 CSVWriter::write_column_vector(const std::vector<T>& vals){
 
-    if(!is_open()){
+    if(!this->is_open()){
         throw std::logic_error("File "+this->file_name_+" is not open");
     }
 
-     for(uint_t c=0; c<vals.size(); ++c){
-        file_<<vals[c]<<std::endl;
+    auto& f =  this-> get_file_stream();
+    for(uint_t c=0; c<vals.size(); ++c){
+        f<<vals[c]<<std::endl;
     }
 }
 
@@ -150,12 +153,13 @@ template<typename...T>
 void
 CSVWriter::write_row(const std::tuple<T...>& row){
 
-    std::apply([&](auto&&...args ){((file_<<args<<","), ...);}, row);
-    file_<<std::endl;
+    auto& f =  this-> get_file_stream();
+    std::apply([&](auto&&...args ){((f<<args<<","), ...);}, row);
+    f<<std::endl;
 }
 
 }
-
+}
 
 
 #endif // CSV_FILE_WRITER_H

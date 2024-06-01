@@ -351,6 +351,7 @@ load_iris_data_set(bool add_ones_column){
     meta.class_map.insert({2, "Iris-virginica"});
 
     CSVFileReader reader(file);
+    reader.open();
 
     uint_t cols = add_ones_column? 5 : 4;
     real_t val = add_ones_column ? 1.0 : 0.0;
@@ -404,6 +405,7 @@ load_x_y_sinuisoid_data_set(bool add_ones_column){
     file += "/X_Y_Sinusoid_Data.csv";
 
     CSVFileReader reader(file);
+    reader.open();
 
     uint_t cols = add_ones_column? 2 : 1;
     real_t val = add_ones_column ? 1.0 : 0.0;
@@ -474,6 +476,7 @@ std::pair<DynMat<real_t>,
     file += "/wine.data";
 
     CSVFileReader reader(file);
+    reader.open();
     DynMat<real_t> matrix(nrows, ncols); //, 0.0);
 
     if(add_ones_column){
@@ -518,7 +521,8 @@ load_random_set_one(DynMat<real_t>& matrix){
 	// resize the matrix 
 	matrix.resize(100, 2);
 	
-	CSVFileReader reader(file, true, " ");
+	CSVFileReader reader(file, " ");
+    reader.open();
 	
 	auto row_counter = 0;
 	while(!reader.eof()){

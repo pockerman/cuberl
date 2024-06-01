@@ -1,4 +1,4 @@
-#include "cubeai/ml/distributions/torch_categorical.h"
+#include "cubeai/maths/statistics/distributions/torch_categorical.h"
 
 #ifdef USE_PYTORCH
 
@@ -6,7 +6,7 @@
 #include <cmath>
 
 namespace cubeai {
-namespace ml {
+namespace maths {
 namespace stats {
 
 

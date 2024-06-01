@@ -81,7 +81,8 @@ public:
     ///
     /// \brief actions_after_training_episode
     ///
-    virtual void actions_after_episode_ends(env_type&, uint_t /*episode_idx*/, const EpisodeInfo& /*einfo*/)override{}
+    virtual void actions_after_episode_ends(env_type&, uint_t /*episode_idx*/,
+                                            const EpisodeInfo& /*einfo*/)override{}
 
     ///
     /// \brief on_episode Do one on_episode of the algorithm
@@ -180,7 +181,9 @@ template<typename EnvType, typename PolicyType, typename PolicyAdaptorType>
 void
 ValueIteration<EnvType, PolicyType, PolicyAdaptorType>::save(const std::string& filename)const{
 
-    CSVWriter file_writer(filename, ',', true);
+    cubeai::io::CSVWriter file_writer(filename, ',');
+    file_writer.open();
+
     file_writer.write_column_names({"state_index", "value_function"});
 
     for(uint_t s=0; s < static_cast<uint_t>(v_.size()); ++s){

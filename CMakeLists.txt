@@ -83,6 +83,7 @@ ELSEIF(CMAKE_BUILD_TYPE STREQUAL "Release")
 	SET(CMAKE_INSTALL_PREFIX  ${PROJECT_SOURCE_DIR}/install/opt)
 	SET(CMAKE_CXX_FLAGS "-O2")
     SET(CUBEAI_DEBUG OFF)
+    SET(BOOST_LOG_DYN_LINK ON)
 ENDIF()
 
 
@@ -161,17 +162,19 @@ INCLUDE_DIRECTORIES(include/)
 
 # collect the source files for the library
 FILE(GLOB SRCS src/cubeai/base/*.cpp
+               src/cubeai/datasets/*.cpp
                src/cubeai/ml/*.cpp
 			   src/cubeai/ml/*/*.cpp
                src/cubeai/rl/*.cpp
                src/cubeai/rl/*/*.cpp
                src/cubeai/io/*.cpp
-               src/cubeai/planning/*.cpp
                src/cubeai/geom_primitives/*.cpp
                src/cubeai/utils/*.cpp
                src/cubeai/optimization/*.cpp
-               src/cubeai/datasets/*.cpp
                src/cubeai/maths/*.cpp
+               src/cubeai/maths/statistics/*.cpp
+               src/cubeai/maths/statistics/distributions/*.cpp
+               src/cubeai/planning/*.cpp
                src/cubeai/pytorch_utils/*.cpp)
 
 

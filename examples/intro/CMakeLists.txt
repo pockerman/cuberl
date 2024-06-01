@@ -1,1 +1,3 @@
 ADD_SUBDIRECTORY(intro_example_1)
+ADD_SUBDIRECTORY(intro_example_2)
+ADD_SUBDIRECTORY(intro_example_3)

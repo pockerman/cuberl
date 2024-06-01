@@ -1,6 +1,7 @@
 #include "cubeai/base/cubeai_consts.h"
 #include "cubeai/base/cubeai_config.h"
 #include "cubeai/io/csv_file_reader.h"
+#include "cubeai/io/file_formats.h"
 
 #include <boost/algorithm/string.hpp>
 
@@ -8,28 +9,22 @@
 #include <cassert>
 #endif
 
-namespace cubeai
-{
+namespace cubeai{
+namespace io{
 
-CSVFileReader::CSVFileReader(const std::string& file_name, bool do_open,
-                             const std::string delimeter)
+CSVFileReader::CSVFileReader(const std::string& file_name, const std::string delimeter)
     :
-      file_name_(file_name),
-      delimeter_(delimeter),
-      file_reader_(),
-      current_row_idx_(0)
-{
-
-    if(do_open){
-       open();
-    }
-}
+    FileReaderBase(file_name, FileFormats::Type::CSV),
+    delimeter_(delimeter),
+    current_row_idx_(0)
+{}
 
 CSVFileReader::~CSVFileReader()
 {
     close();
 }
 
+/*
 void
 CSVFileReader::open(){
 
@@ -59,26 +54,29 @@ CSVFileReader::open(){
 
         }
     }
-}
+}*/
 
-void
+/*void
 CSVFileReader::close(){
 
     if(file_reader_.is_open()){
         file_reader_.close();
     }
-}
+}*/
 
 std::vector<std::string>
 CSVFileReader::read_line(){
 
-    if(!file_reader_.is_open()){
-        return std::vector<std::string>(1, "FILE_NOT_OPEN");
+
+    if(! this -> is_open()){
+        throw std::logic_error("Attempt to read from a file that is not open");
     }
+
+    auto& f = this->get_file_stream();
 
 #ifdef CUBEAI_DEBUG
 
-            if(!file_reader_.good()){
+            if(!f.good()){
                 std::string msg("Failed to open file: ");
                 msg += file_name_;
                 assert(false && msg.c_str());
@@ -86,14 +84,13 @@ CSVFileReader::read_line(){
 #endif
 	
     std::vector<std::string> result;
-    if(file_reader_.eof()){
-		
+    if(f.eof()){
         result.push_back(CubeAIConsts::eof_string());
         return result;
     }
 
     std::string line = "";
-    std::getline(file_reader_, line);
+    std::getline(f, line);
     
     boost::algorithm::split(result, line, boost::is_any_of(delimeter_));
     current_row_idx_++;
@@ -113,8 +110,6 @@ CSVFileReader::read_line_as_uint(){
     return line_int;
 }
 
-bool
-CSVFileReader::eof()const{
-    return file_reader_.eof();
+
 }
 }

@@ -6,13 +6,13 @@
 #ifdef USE_PYTORCH
 
 #include "cubeai/base/cubeai_types.h"
-#include "cubeai/ml/distributions/torch_distribution.h"
+#include "cubeai/maths/statistics/distributions/torch_distribution.h"
 
 #include <torch/torch.h>
 
 
 namespace cubeai {
-namespace ml {
+namespace maths {
 namespace stats {
 
 class TorchCategorical final : public TorchDistribution

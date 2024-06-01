@@ -1,14 +1,26 @@
+# Example 1: _CubeRl_ Basics
+
+In this first example we explore some of the basic elements of _cuberl_. In particular,
+we will see how to read a json file, how to use boost logging, various types exposed by the library.
+We will do so by using a simple Monte Carlo integration example.
+
+
+## The driver code
+
+The driver code for this tutorial is shown below. 
+
+
+```cpp
 /**
   * This example illustrates a simple example of Monte Carlo
   * iteration using the IterationCounter class
   *
   * */
 
-#include "cubeai/base/cubeai_config.h"
 #include "cubeai/base/cubeai_types.h"
-#include "cubeai/io/json_file_reader.h"
 #include "cubeai/utils/iteration_counter.h"
 #include "cubeai/geom_primitives/shapes/circle.h"
+#include "cubeai/extern/nlohmann/json/json.hpp"
 
 #include <boost/log/trivial.hpp>
 #include <iostream>
@@ -22,9 +34,20 @@ using cubeai::real_t;
 using cubeai::uint_t;
 using cubeai::utils::IterationCounter;
 using cubeai::geom_primitives::Circle;
-using cubeai::io::JSONFileReader;
+
+using json = nlohmann::json;
 
 const std::string CONFIG = "config.json";
+
+// read the JSON file
+json
+load_config(const std::string& filename){
+
+  std::ifstream f(filename);
+  json data = json::parse(f);
+  return data;
+}
+
 
 }
 
@@ -36,14 +59,15 @@ int main() {
 
         BOOST_LOG_TRIVIAL(info)<<"Reading configuration file...";
 
-        JSONFileReader json_reader(CONFIG);
-        json_reader.open();
+        // load the json configuration
+        auto data = load_config(CONFIG);
 
-        const auto R = json_reader.template get_value<real_t>("R");
-        const auto N_POINTS =  json_reader.template get_value<uint_t>("N_POINTS");
-        const auto SEED = json_reader.template get_value<uint_t>("SEED");
-        const auto X = json_reader.template get_value<real_t>("X");
-        const auto Y = json_reader.template get_value<real_t>("Y");
+        // read properties from the configuration
+        const auto R = data["R"].template get<real_t>();
+        const auto N_POINTS = data["N_POINTS"].template get<uint_t>();
+        const auto SEED = data["SEED"].template get<uint_t>();
+        const auto X = data["X"].template get<real_t>();
+        const auto Y = data["Y"].template get<real_t>();
 
         // create a circle
         Circle c(R, {X, Y});
@@ -82,5 +106,15 @@ int main() {
 
    return 0;
 }
+```
 
+Running the code above produces the following output
+
+```
+[2024-05-30 17:51:47.253901] [0x00007fe2bbb7b540] [info]    Reading configuration file...
+[2024-05-30 17:51:47.254017] [0x00007fe2bbb7b540] [info]    Starting computation...
+[2024-05-30 17:51:47.258199] [0x00007fe2bbb7b540] [info]    Finished computation...
+[2024-05-30 17:51:47.258222] [0x00007fe2bbb7b540] [info]    Circle area calculated with:100000 is: 3.14716
+[2024-05-30 17:51:47.258226] [0x00007fe2bbb7b540] [info]    Circle area: 3.14159
+```
 

@@ -14,7 +14,7 @@
 #include "cubeai/io/csv_file_writer.h"
 #include "cubeai/rl/algorithms/pg/simple_reinforce.h"
 #include "cubeai/rl/trainers/pytorch_rl_agent_trainer.h"
-#include "cubeai/ml/distributions/torch_categorical.h"
+#include "cubeai/maths/statistics/distributions/torch_categorical.h"
 #include "cubeai/optimization/optimizer_type.h"
 #include "cubeai/optimization/pytorch_optimizer_factory.h"
 
@@ -32,7 +32,7 @@ namespace rl_example_13{
 
 
 const std::string SERVER_URL = "http://0.0.0.0:8001/api";
-const std::string EXPERIMENT_ID = "1";
+const std::string EXPERIMENT_ID = "2";
 
 namespace F = torch::nn::functional;
 
@@ -43,16 +43,16 @@ using cubeai::rl::algos::pg::ReinforceSolver;
 using cubeai::rl::algos::pg::ReinforceConfig;
 using cubeai::rl::PyTorchRLTrainer;
 using cubeai::rl::PyTorchRLTrainerConfig;
-using cubeai::ml::stats::TorchCategorical;
+using cubeai::maths::stats::TorchCategorical;
 using rlenvs_cpp::envs::gymnasium::CartPole;
 
 // The class that models the Policy network to train
-class PolicyImpl: public torch::nn::Module
+class PolicyNetImpl: public torch::nn::Module
 {
 public:
 
 
-    PolicyImpl();
+    PolicyNetImpl();
 
     torch_tensor_t forward(torch_tensor_t);
 
@@ -77,7 +77,7 @@ private:
 };
 
 
-PolicyImpl::PolicyImpl()
+PolicyNetImpl::PolicyNetImpl()
     :
       fc1_(torch::nn::Linear(4, 16)),
       fc2_(torch::nn::Linear(16, 2))
@@ -88,7 +88,7 @@ PolicyImpl::PolicyImpl()
 
 template<typename LossValuesTp>
 void
-PolicyImpl::update_policy_loss(const LossValuesTp& vals){
+PolicyNetImpl::update_policy_loss(const LossValuesTp& vals){
 
      torch_tensor_t torch_vals = torch::tensor(vals);
 
@@ -97,12 +97,12 @@ PolicyImpl::update_policy_loss(const LossValuesTp& vals){
 }
 
 void
-PolicyImpl::step_backward_policy_loss(){
+PolicyNetImpl::step_backward_policy_loss(){
     loss_.backward();
 }
 
 torch_tensor_t
-PolicyImpl::forward(torch_tensor_t x){
+PolicyNetImpl::forward(torch_tensor_t x){
 
     x = F::relu(fc1_->forward(x));
     x = fc2_->forward(x);
@@ -112,7 +112,7 @@ PolicyImpl::forward(torch_tensor_t x){
 
 template<typename StateTp>
 std::tuple<uint_t, real_t>
-PolicyImpl::act(const StateTp& state){
+PolicyNetImpl::act(const StateTp& state){
 
     auto torch_state = torch::tensor(state);
 
@@ -123,7 +123,7 @@ PolicyImpl::act(const StateTp& state){
 
 }
 
-TORCH_MODULE(Policy);
+TORCH_MODULE(PolicyNet);
 
 }
 
@@ -144,6 +144,7 @@ int main(){
          throw std::runtime_error(err_message);
         }*/
 
+        torch::manual_seed(42);
 
         auto env = CartPole(SERVER_URL);
         std::cout<<"Environment URL: "<<env.get_url()<<std::endl;
@@ -151,22 +152,24 @@ int main(){
 
         std::cout<<"Creating the environment..."<<std::endl;
         std::unordered_map<std::string, std::any> options;
+
+        // with Gymnasium v0 is not working
         env.make("v1", options);
         env.reset();
-        std::cout<<"Done..."<<std::endl;
 
+        std::cout<<"Done..."<<std::endl;
         std::cout<<"Number of actions="<<env.n_actions()<<std::endl;
 
-        Policy policy;
+        PolicyNet policy;
         auto optimizer_ptr = std::make_unique<torch::optim::Adam>(policy->parameters(),
                                                                   torch::optim::AdamOptions(1e-2));
 
         // reinforce options
         ReinforceConfig opts = {1000, 100, 100, 100, 1.0e-2, 0.1, 195.0};
-        ReinforceSolver<CartPole, Policy> algorithm(opts, policy);
+        ReinforceSolver<CartPole, PolicyNet> algorithm(opts, policy);
 
         PyTorchRLTrainerConfig trainer_config{1.0e-8, 1001, 50};
-        PyTorchRLTrainer<CartPole, ReinforceSolver<CartPole, Policy>> trainer(trainer_config, algorithm, std::move(optimizer_ptr));
+        PyTorchRLTrainer<CartPole, ReinforceSolver<CartPole, PolicyNet>> trainer(trainer_config, algorithm, std::move(optimizer_ptr));
 
         auto info = trainer.train(env);
 
@@ -176,14 +179,21 @@ int main(){
         // purposes
         auto filename = std::string("experiments/") + EXPERIMENT_ID;
         filename += "/reinforce_rewards.csv";
-        cubeai::CSVWriter csv_writer(filename, cubeai::CSVWriter::default_delimiter(), true);
+        cubeai::io::CSVWriter csv_writer(filename, cubeai::io::CSVWriter::default_delimiter());
+        csv_writer.open();
+
         csv_writer.write_column_vector(trainer.episodes_total_rewards());
 
 
         // save the policy also so that we can load it and check
         // use it
         auto policy_model_filename = std::string("experiments/") + EXPERIMENT_ID + std::string("/reinforce_cartpole_policy.pth");
-        torch::save(policy, policy_model_filename);
+        //torch::save(policy,policy_model_filename);
+        //auto model_scripted = torch::jit::scr //script(policy);
+        //model_scripted.save(policy_model_filename);
+        torch::serialize::OutputArchive archive;
+        policy->save(archive);
+        archive.save_to(policy_model_filename);
 
     }
     catch(std::exception& e){
