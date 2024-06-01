@@ -16,6 +16,7 @@ data_()
 void
 JSONFileReader::open(){
 
+    this -> FileReaderBase::open();
     auto& f = this->get_file_stream();
     data_ = json::parse(f);
 }
