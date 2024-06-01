@@ -9,12 +9,16 @@ a PyTorch model such that we can then load in Python.
 
 
 Specifically, we will implement a simple logistic regression model. We will use the
-MNIST dataset. Make sure that you have downloaded and the arrangement is as follows:
+MNIST dataset. Make sure that you have downloaded the dataset and the arrangement has the
+following directory structure. It may also be useful to have a look at the source
+code for the PyTorch MNIST class here: https://github.com/pytorch/pytorch/blob/main/torch/csrc/api/src/data/datasets/mnist.cpp
 
 - train images: train-images-idx3-ubyte
 - train labels: train-labels-idx1-ubyte
 - test images: t10k-images-idx3-ubyte
 - test labels: t10k-labels-idx1-ubyte
+
+You can download the data from either here: http://yann.lecun.com/exdb/mnist/ or here: https://www.kaggle.com/datasets/hojjatk/mnist-dataset
 
 ## The driver code
 
@@ -157,8 +161,8 @@ LogisticRegressionModelImpl::train_model(const std::string& train_set_path,
 
   BOOST_LOG_TRIVIAL(info)<<"Training starts..."<<std::endl;
 
-  auto train_dataset = torch::data::datasets::MNIST(train_set_path,
-                                                    torch::data::datasets::MNIST::Mode::kTrain)
+  auto train_dataset = torch::data::datasets::MNIST(train_set_path)
+                                                    //torch::data::datasets::MNIST::Mode::kTrain)
              .map(torch::data::transforms::Normalize<>(0.1307, 0.3081))
              .map(torch::data::transforms::Stack<>());
 
@@ -256,7 +260,7 @@ int main() {
 
       model -> to(device);
       model -> train_model(train_set_data_path, batch_size, num_epochs, lr,device);
-      model -> test_model(test_set_data_path, batch_size, device);
+      //model -> test_model(test_set_data_path, batch_size, device);
 
     }
     catch(std::exception& e){

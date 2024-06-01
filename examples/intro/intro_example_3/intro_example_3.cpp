@@ -22,6 +22,7 @@
 #include <iostream>
 #include <random>
 #include <string>
+#include <fstream>
 
 namespace intro_example_3
 {
@@ -133,6 +134,7 @@ LogisticRegressionModelImpl::train_model(const std::string& train_set_path,
                                          real_t lr, torch::Device device){
 
   BOOST_LOG_TRIVIAL(info)<<"Training starts..."<<std::endl;
+  BOOST_LOG_TRIVIAL(info)<<"Training set data path: "<<train_set_path;
 
   auto train_dataset = torch::data::datasets::MNIST(train_set_path,
                                                     torch::data::datasets::MNIST::Mode::kTrain)
@@ -213,6 +215,7 @@ int main() {
       // figure out the device we are using
       auto cuda_available = torch::cuda::is_available();
       torch::Device device(cuda_available ? torch::kCUDA : torch::kCPU);
+      //torch::Device device(torch::kCPU);
       if(cuda_available){
         BOOST_LOG_TRIVIAL(info)<<"CUDA available. Training on GPU "<<std::endl;
       }
