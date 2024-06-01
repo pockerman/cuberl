@@ -88,6 +88,8 @@ private:
 
 
 LogisticRegressionModelImpl::LogisticRegressionModelImpl(uint_t input_size, uint_t output_size)
+:
+linear_(nullptr)
 {
     linear_ = register_module("linear_", torch::nn::Linear(input_size, output_size));
     bias_ = register_parameter("bias_", torch::randn(output_size));
