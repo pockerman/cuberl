@@ -156,7 +156,7 @@ int main() {
         std::cout<<"\tReward obtained: "<<rewards[i]<<std::endl;
     }
 
-    auto csv_writer = cubeai::CSVWriter("rewards.csv", ',', true);
+    auto csv_writer = cubeai::io::CSVWriter("rewards.csv", ',');
 
     csv_writer.write_column_vector(rewards);
 

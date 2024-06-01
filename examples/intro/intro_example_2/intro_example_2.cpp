@@ -4,42 +4,25 @@
 
 #include "cubeai/base/cubeai_types.h"
 #include "cubeai/utils/iteration_counter.h"
-#include "cubeai/extern/nlohmann/json/json.hpp"
+#include "cubeai/io/json_file_reader.h"
 
 #include <torch/torch.h>
 #include <boost/log/trivial.hpp>
 
-#include <iostream>
 #include <random>
 #include <filesystem>
 #include <string>
-#include <unordered_map>
-#include <any>
-#include <fstream>
 
 namespace intro_example_2
 {
 
 using cubeai::real_t;
 using cubeai::uint_t;
-//using cubeai::DynMat;
-//using cubeai::DynVec;
+using cubeai::io::JSONFileReader;
 using cubeai::utils::IterationCounter;
 
 namespace fs = std::filesystem;
-using json = nlohmann::json;
-
 const std::string CONFIG = "config.json";
-
-
-json
-load_config(const std::string& filename){
-
-  std::ifstream f(filename);
-  json data = json::parse(f);
-  return data;
-}
-
 
 }
 
@@ -50,10 +33,11 @@ int main() {
     try{
 
       // load the json configuration
-      auto data = load_config(CONFIG);
+      JSONFileReader json_reader(CONFIG);
+      json_reader.open();
 
-      auto experiment_dict = std::string(data["experiment_dict"]);
-      auto experiment_id = std::string(data["experiment_id"]);
+      auto experiment_dict = json_reader.template get_value<std::string>("experiment_dict");
+      auto experiment_id = json_reader.template get_value<std::string>("experiment_id");
 
       BOOST_LOG_TRIVIAL(info)<<"Experiment directory: "<<experiment_dict;
       BOOST_LOG_TRIVIAL(info)<<"Experiment id: "<<experiment_id<<std::endl;
@@ -64,10 +48,10 @@ int main() {
       // is to create a directory where all data will reside
       std::filesystem::create_directories(experiment_dict + experiment_id);
 
-      const auto input_size = data["input_size"].template get<uint_t>();
-      const auto output_size = data["output_size"].template get<uint_t>();
-      const auto num_epochs = data["num_epochs"].template get<uint_t>();
-      const auto learning_rate = data["lr"].template get<real_t>();
+      const auto input_size = json_reader.template get_value<uint_t>("input_size");
+      const auto output_size = json_reader.template get_value<uint_t>("output_size");
+      const auto num_epochs = json_reader.template get_value<uint_t>("num_epochs");
+      const auto learning_rate = json_reader.template get_value<real_t>("lr");
 
       // log the hyperparameters
       BOOST_LOG_TRIVIAL(info)<<"Input size: "<<input_size;
@@ -87,6 +71,7 @@ int main() {
       }
 
       torch::manual_seed(42);
+
       // Sample dataset
       auto x_train = torch::randint(0, 10, {15, 1},
                                     torch::TensorOptions(torch::kFloat).device(device));
@@ -107,7 +92,6 @@ int main() {
 
 
       IterationCounter iteration_ctrl(num_epochs);
-
       while(iteration_ctrl.continue_iterations()){
 
         // Forward pass

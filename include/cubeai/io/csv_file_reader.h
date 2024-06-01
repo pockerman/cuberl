@@ -2,19 +2,19 @@
 #define CSV_FILE_READER_H
 
 #include "cubeai/base/cubeai_types.h"
-
+#include "cubeai/io/file_reader_base.h"
 #include <boost/noncopyable.hpp>
 #include <string>
 #include <vector>
 #include <fstream>
 
-namespace cubeai
-{
+namespace cubeai{
+namespace io{
 
 ///
 /// \brief The CSVFileReader class
 ///
-class CSVFileReader: private boost::noncopyable
+class CSVFileReader: public FileReaderBase
 {
 public:
 
@@ -26,7 +26,7 @@ public:
     ///
     /// \brief Constructor
     ///
-    CSVFileReader(const std::string& file_path, bool open=true,
+    CSVFileReader(const std::string& file_path,
                   const std::string delimeter=CSVFileReader::default_delimeter());
 				  
     ///
@@ -46,38 +46,15 @@ public:
     ///
     std::vector<uint_t> read_line_as_uint();
 
-    ///
-    /// \brief Attempts to open the file for reading
-    ///
-    void open();
-
-    ///
-    /// \brief Close the file
-    ///
-    void close();
-
-    ///
-    /// \brief Returns true if the underlying stream
-    /// handler has reached the EOF
-    ///
-    bool eof()const;
 
 private:
 
-    ///
-    /// \brief The filename to read
-    ///
-    const std::string file_name_;
 
     ///
     /// \brief The delimiter
     ///
     const std::string delimeter_;
 
-    ///
-    /// \brief The file reader
-    ///
-    std::ifstream file_reader_;
 
     ///
     /// \brief The current row index
@@ -85,5 +62,5 @@ private:
     uint_t current_row_idx_;
 };
 }
-
+}
 #endif // CSV_FILE_READER_H

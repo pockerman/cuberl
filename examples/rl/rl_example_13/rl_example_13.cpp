@@ -179,7 +179,9 @@ int main(){
         // purposes
         auto filename = std::string("experiments/") + EXPERIMENT_ID;
         filename += "/reinforce_rewards.csv";
-        cubeai::CSVWriter csv_writer(filename, cubeai::CSVWriter::default_delimiter(), true);
+        cubeai::io::CSVWriter csv_writer(filename, cubeai::io::CSVWriter::default_delimiter());
+        csv_writer.open();
+
         csv_writer.write_column_vector(trainer.episodes_total_rewards());
 
 

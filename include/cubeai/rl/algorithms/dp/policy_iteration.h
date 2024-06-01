@@ -190,7 +190,9 @@ template<typename EnvType, typename PolicyType, typename PolicyAdaptorType>
 void
 PolicyIterationSolver<EnvType, PolicyType, PolicyAdaptorType>::save(const std::string& filename)const{
 
-    CSVWriter file_writer(filename, ',', true);
+    cubeai::io::CSVWriter file_writer(filename, ',');
+    file_writer.open();
+
     file_writer.write_column_names({"state_index", "value_function"});
 
     auto vec_size = static_cast<uint_t>(v_.size());

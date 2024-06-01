@@ -204,7 +204,8 @@ template<typename EnvType, typename PolicyType>
 void
 IterativePolicyEvalutationSolver<EnvType, PolicyType>::save(const std::string& filename)const{
 
-    CSVWriter file_writer(filename, ',', true);
+    cubeai::io::CSVWriter file_writer(filename, ',');
+    file_writer.open();
     file_writer.write_column_names({"state_index", "value_function"});
 
     for(uint_t s=0; s < static_cast<uint_t>(v_.size()); ++s){
