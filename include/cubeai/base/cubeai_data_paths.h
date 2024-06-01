@@ -6,8 +6,7 @@
 #include <string>
 
 
-namespace cubeai
-{
+namespace cubeai{
 
 ///
 /// \brief The CubeAIDataPaths class
