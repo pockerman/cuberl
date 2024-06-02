@@ -1,6 +1,6 @@
 #include "cubeai/base/cubeai_config.h"
 
-#if defined(USE_PYTORCH) && defined(USE_RLENVS_CPP)
+#if defined(USE_PYTORCH)
 
 #include "cubeai/base/cubeai_types.h"
 #include "cubeai/utils/iteration_counter.h"
@@ -130,7 +130,7 @@ int main() {
 #include <iostream>
 int main(){
 
-    std::cout<<"This example requires PyTorch and gymfcpp. Reconfigure cuberl with USE_PYTORCH and USE_RLENVS_CPP flags turned ON."<<std::endl;
+    std::cout<<"This example requires PyTorch and gymfcpp. Reconfigure cuberl with USE_PYTORCH flags turned ON."<<std::endl;
     return 0;
 }
 #endif

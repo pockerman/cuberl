@@ -7,7 +7,7 @@ namespace maths {
 namespace stats {
 
 std::vector<int64_t>
-TorchDistribution::extended_shape(c10::ArrayRef<int64_t> sample_shape)
+TorchDistributionBase::extended_shape(c10::ArrayRef<int64_t> sample_shape)
 {
     std::vector<int64_t> output_shape;
     output_shape.insert(output_shape.end(),

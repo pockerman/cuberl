@@ -18,7 +18,7 @@ namespace stats {
 /// \brief The TorchDistribution class. Base class to derive
 /// distributions for PyTorch.
 ///
-class TorchDistribution
+class TorchDistributionBase
 {
 
 public:
@@ -26,7 +26,7 @@ public:
     ///
     /// \brief Destructor
     ///
-    virtual ~TorchDistribution() = default;
+    virtual ~TorchDistributionBase() = default;
 
     ///
     /// \brief entropy
@@ -46,6 +46,11 @@ public:
     virtual torch_tensor_t sample(c10::ArrayRef<int64_t> sample_shape) = 0;
 
 protected:
+
+    /**
+     * @brief Constructor
+     */
+    TorchDistributionBase() = default;
 
     ///
     /// \brief batch_shape_

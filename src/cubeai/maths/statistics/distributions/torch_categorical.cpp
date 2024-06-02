@@ -10,7 +10,24 @@ namespace maths {
 namespace stats {
 
 
-TorchCategorical::TorchCategorical(const torch_tensor_t *probs,
+
+TorchCategorical::TorchCategorical(torch_tensor_t probs, bool do_build_from_logits)
+:
+TorchDistributionBase(),
+probs_(),
+logits_(),
+param_(),
+num_events_()
+{
+    if(do_build_from_logits){
+      build_from_logits(probs);
+    }
+    else{
+      build_from_probabilities(probs);
+    }
+}
+
+/*TorchCategorical::TorchCategorical(const torch_tensor_t *probs,
                                    const torch_tensor_t *logits)
                                    :
                                    TorchDistribution()
@@ -52,10 +69,8 @@ TorchCategorical::TorchCategorical(const torch_tensor_t *probs,
         batch_shape_ = param_.sizes().vec();
         batch_shape_.resize(batch_shape_.size() - 1);
     }
-}
+}*/
 
-TorchCategorical::~TorchCategorical()
-{}
 
 torch_tensor_t
 TorchCategorical::entropy(){
@@ -92,6 +107,48 @@ TorchCategorical::sample(c10::ArrayRef<int64_t> sample_shape){
     return sample_2d.contiguous().view(ext_sample_shape);
 }
 
+
+void
+TorchCategorical::build_from_logits(torch_tensor_t logits){
+
+    if (logits.dim() < 1){
+        throw std::runtime_error("Logits tensor must have at least one dimension");
+    }
+
+    logits_ = logits - logits.logsumexp(-1, true);
+    probs_ = torch::softmax(logits_, -1);
+
+    param_ = logits;
+    num_events_ = param_.size(-1);
+
+    if (param_.dim() > 1){
+        batch_shape_ = param_.sizes().vec();
+        batch_shape_.resize(batch_shape_.size() - 1);
+    }
+}
+
+void
+TorchCategorical::build_from_probabilities(torch_tensor_t probs){
+
+    if (probs.dim() < 1){
+        throw std::runtime_error("Probabilities tensor must have at least one dimension");
+    }
+
+    probs_ = probs / probs.sum(-1, true);
+
+    // 1.21e-7 is used as the epsilon to
+    // match PyTorch's Python results as close as possible
+    probs_ = probs_.clamp(1.21e-7, 1. - 1.21e-7);
+    logits_ = torch::log(probs_);
+
+    param_ = probs_;
+    num_events_ = param_.size(-1);
+
+    if (param_.dim() > 1){
+        batch_shape_ = param_.sizes().vec();
+        batch_shape_.resize(batch_shape_.size() - 1);
+    }
+}
 
 }
 }
