@@ -41,11 +41,19 @@ public:
     torch_tensor_t forward(torch_tensor_t state);
 
 
+    torch_tensor_t log_probabilities(torch_tensor_t actions);
+
+    torch_tensor_t sample();
+
+
 private:
 
     torch::nn::Linear linear1_;
     torch::nn::Linear linear2_;
     torch::nn::Linear linear3_;
+
+    // the underlying distribution used to sample actions
+    TorchCategorical distribution_;
 };
 
 ActorNetImpl::ActorNetImpl(uint_t state_size, uint_t action_size)
@@ -68,8 +76,18 @@ ActorNetImpl::forward(torch_tensor_t state){
     output = torch::nn::functional::relu(linear2_(output));
     output = linear3_(output);
     const torch_tensor_t probs = torch::nn::functional::softmax(output,-1);
-    auto distribution = TorchCategorical(probs);
-    return distribution.sample();
+    distribution_.build_from_probabilities(probs);
+    return probs;
+}
+
+torch_tensor_t
+ActorNetImpl::sample(){
+    return distribution_.sample();
+}
+
+torch_tensor_t
+ActorNetImpl::log_probabilities(torch_tensor_t actions){
+    return distribution_.log_prob(actions);
 }
 
 

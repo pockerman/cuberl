@@ -42,15 +42,6 @@ public:
     TorchCategorical(torch_tensor_t probs, bool do_build_from_logits=false);
 
     ///
-    /// \brief TorchCategorical
-    /// \param probs
-    /// \param logits
-    ///
-    // TorchCategorical(const torch_tensor_t *probs,
-    //                 const torch_tensor_t *logits);
-    
-    
-    ///
     /// \brief ~TorchCategorical. Destructor
     ///
     virtual ~TorchCategorical() = default;

@@ -5,11 +5,6 @@ use on the CartPole environment. In particular, we will develop an actor-critic 
 knonw as A2C.
 
 
-In this first example we explore some of the basic elements of _cuberl_. In particular,
-we will see how to read a json file, how to use boost logging, various types exposed by the library.
-We will do so by using a simple Monte Carlo integration example.
-
-
 For this example to work, you will need to have both PyTorch and ```rlenvs_cpp``` enabled.
 
 

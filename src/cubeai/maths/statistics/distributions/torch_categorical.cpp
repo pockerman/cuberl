@@ -27,50 +27,6 @@ num_events_()
     }
 }
 
-/*TorchCategorical::TorchCategorical(const torch_tensor_t *probs,
-                                   const torch_tensor_t *logits)
-                                   :
-                                   TorchDistribution()
-{
-    if ((probs == nullptr) == (logits == nullptr))
-    {
-        throw std::runtime_error("Either probs or logits is required, but not both");
-    }
-
-    if (probs != nullptr)
-    {
-        if (probs->dim() < 1)
-        {
-            throw std::runtime_error("Probabilities tensor must have at least one dimension");
-        }
-
-        probs_ = *probs / probs->sum(-1, true);
-        // 1.21e-7 is used as the epsilon to
-        // match PyTorch's Python results as close as possible
-        probs_ = probs_.clamp(1.21e-7, 1. - 1.21e-7);
-        logits_ = torch::log(probs_);
-    }
-    else
-    {
-        if (logits->dim() < 1)
-        {
-            throw std::runtime_error("Logits tensor must have at least one dimension");
-        }
-
-        logits_ = *logits - logits->logsumexp(-1, true);
-        probs_ = torch::softmax(logits_, -1);
-    }
-
-    param_ = probs != nullptr ? *probs : *logits;
-    num_events_ = param_.size(-1);
-
-    if (param_.dim() > 1)
-    {
-        batch_shape_ = param_.sizes().vec();
-        batch_shape_.resize(batch_shape_.size() - 1);
-    }
-}*/
-
 
 torch_tensor_t
 TorchCategorical::entropy(){

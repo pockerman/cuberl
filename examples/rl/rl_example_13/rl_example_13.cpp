@@ -117,7 +117,7 @@ PolicyNetImpl::act(const StateTp& state){
     auto torch_state = torch::tensor(state);
 
     auto probs = forward(torch_state);
-    auto m = TorchCategorical(&probs, nullptr);
+    auto m = TorchCategorical(probs, false);
     auto action = m.sample();
     return std::make_tuple(action.item().toLong(), m.log_prob(action).item().to<real_t>());
 
