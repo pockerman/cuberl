@@ -5,6 +5,7 @@
 #include <string>
 
 namespace cubeai {
+namespace maths{
 namespace optim{
 
 ///
@@ -28,5 +29,5 @@ constexpr bool compare(OptimzerType tp1, OptimzerType tp2){
 }
 
 }
-
+}
 #endif // OPTIMIZER_TYPE_H

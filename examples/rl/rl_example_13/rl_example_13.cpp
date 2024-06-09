@@ -15,8 +15,6 @@
 #include "cubeai/rl/algorithms/pg/simple_reinforce.h"
 #include "cubeai/rl/trainers/pytorch_rl_agent_trainer.h"
 #include "cubeai/maths/statistics/distributions/torch_categorical.h"
-#include "cubeai/optimization/optimizer_type.h"
-#include "cubeai/optimization/pytorch_optimizer_factory.h"
 
 #include "rlenvs/envs/gymnasium/classic_control/cart_pole_env.h"
 #include <torch/torch.h>
@@ -138,12 +136,6 @@ int main(){
          //store all the results from running a simualtion
 
         std::filesystem::create_directories("experiments/" + EXPERIMENT_ID);
-        /*if(!std::filesystem::create_directory("experiments/" + EXPERIMENT_ID)){
-         auto err_message = std::string("Directory ");
-         err_message += std::string("experiments/" + EXPERIMENT_ID + " already exists");
-         throw std::runtime_error(err_message);
-        }*/
-
         torch::manual_seed(42);
 
         auto env = CartPole(SERVER_URL);

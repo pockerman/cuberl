@@ -6,7 +6,8 @@
 #include "cubeai/maths/statistics/distributions/torch_categorical.h"
 #include "cubeai/rl/trainers/rl_serial_agent_trainer.h"
 #include "cubeai/rl/algorithms/actor_critic/a2c.h"
-
+#include "cubeai/maths/optimization/optimizer_type.h"
+#include "cubeai/maths/optimization/pytorch_optimizer_factory.h"
 #include "rlenvs/envs/gymnasium/classic_control/cart_pole_env.h"
 
 #include <iostream>
@@ -159,7 +160,23 @@ int main(){
         A2CConfig a2c_config;
         ActorNet policy(4, env.n_actions());
         CriticNet critic(4);
-        A2CSolver<env_type, ActorNet, CriticNet> solver(a2c_config, policy, critic);
+
+
+        std::map<std::string, std::any> opt_options;
+        opt_options.insert(std::make_pair("lr", 0.001));
+
+        auto pytorch_ops = cubeai::maths::optim::pytorch::build_pytorch_optimizer_options(cubeai::maths::optim::OptimzerType::ADAM,
+                                                                                          opt_options);
+
+        auto policy_optimizer = cubeai::maths::optim::pytorch::build_pytorch_optimizer(cubeai::maths::optim::OptimzerType::ADAM,
+                                                                                       *policy, pytorch_ops);
+
+        auto critic_optimizer = cubeai::maths::optim::pytorch::build_pytorch_optimizer(cubeai::maths::optim::OptimzerType::ADAM,
+                                                                                       *critic, pytorch_ops);
+        A2CSolver<env_type, ActorNet, CriticNet> solver(a2c_config,
+                                                        policy, critic,
+                                                        policy_optimizer,
+                                                        critic_optimizer);
 
 
 

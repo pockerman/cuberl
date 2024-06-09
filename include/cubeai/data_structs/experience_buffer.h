@@ -1,6 +1,7 @@
 #ifndef EXPERIENCE_BUFFER_H
 #define EXPERIENCE_BUFFER_H
 
+#include "cubeai/base/cubeai_config.h"
 #include "cubeai/base/cubeai_types.h"
 
 #include "boost/noncopyable.hpp"
@@ -25,10 +26,11 @@ struct Transition
 
 };
 
-///
-/// \brief The ExperienceBuffer class. A buffer based on
-/// std::deque to accumulate items of type ExperienceTp.
-///
+/**
+  * @brief The ExperienceBuffer class. A buffer based on
+  * boost::circular_buffer to accumulate items of type ExperienceType.
+  * see for example the A2C algorithm in A2C.h
+  */
 template<typename ExperienceType>
 class ExperienceBuffer: private boost::noncopyable{
 
@@ -137,7 +139,6 @@ void
 ExperienceBuffer<ExperienceTp>::sample(uint_t batch_size, BatchTp& batch, uint_t seed)const{
     throw std::logic_error("This function is not implemented!!!");
 }
-
 
 }
 }
