@@ -9,14 +9,15 @@
 #include "cubeai/rl/algorithms/rl_algorithm_base.h"
 #include "cubeai/rl/episode_info.h"
 #include "cubeai/maths/vector_math.h"
-//#include "cubeai/utils/array_utils.h"
 
+#include <torch/torch.h>
 
 #include <vector>
 #include <deque>
 #include <numeric>
 #include <iostream>
 #include <chrono>
+#include <memory>
 
 namespace cubeai {
 namespace rl {
@@ -68,7 +69,8 @@ public:
     ///
     /// \brief Reinforce
     ///
-    ReinforceSolver(ReinforceConfig opts, policy_type& policy);
+    ReinforceSolver(ReinforceConfig opts, policy_type& policy,
+                    std::unique_ptr<torch::optim::Optimizer>& policy_optimizer);
 
     ///
     /// \brief actions_before_training_begins. Execute any actions the
@@ -124,6 +126,11 @@ private:
     ///
     policy_type policy_ptr_;
 
+    /**
+     * @brief The policy_ optimzer
+     */
+    std::unique_ptr<torch::optim::Optimizer> policy_optimizer_;
+
     ///
     /// \brief exit_score_level_
     ///
@@ -158,11 +165,13 @@ private:
 };
 
 template<typename EnvType, typename PolicyType>
-ReinforceSolver<EnvType, PolicyType>::ReinforceSolver(ReinforceConfig config, policy_type& policy)
+ReinforceSolver<EnvType, PolicyType>::ReinforceSolver(ReinforceConfig config,
+                                                      policy_type& policy,  std::unique_ptr<torch::optim::Optimizer>& policy_optimizer)
     :
      RLSolverBase<EnvType>(),
      config_(config),
-     policy_ptr_(policy)
+     policy_ptr_(policy),
+     policy_optimizer_(std::move(policy_optimizer))
 
 {}
 
@@ -172,6 +181,7 @@ ReinforceSolver<EnvType, PolicyType>::actions_before_training_begins(env_type& /
 
     scores_.clear();
     reset_internal_structs_();
+    policy_ptr_ -> train();
 
 }
 
@@ -312,8 +322,12 @@ ReinforceSolver<EnvType, PolicyType>::actions_after_episode_ends(env_type&, uint
                                                                const EpisodeInfo& /*einfo*/){
 
     // compute the loss
-    auto loss = compute_loss();
-    loss.backward();
+    // auto loss = compute_loss();
+    // loss.backward();
+     policy_optimizer_ -> zero_grad();
+     auto loss = policy_ptr_->compute_loss();
+     loss.backward();
+     policy_optimizer_ -> step();
 
 
 }

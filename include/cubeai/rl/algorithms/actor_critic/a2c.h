@@ -317,8 +317,6 @@ A2CSolver<EnvType, PolicyType, CriticType>::on_training_episode(env_type& env, u
     auto end = std::chrono::steady_clock::now();
     std::chrono::duration<real_t> elapsed_seconds = end - start;
 
-
-
     EpisodeInfo info;
     info.episode_index = episode_idx;
     info.episode_reward = R;
@@ -378,8 +376,6 @@ A2CSolver<EnvType, PolicyType, CriticType>::do_train_on_episode_(env_type& env, 
                                       reward,
                                       next_time_step,
                                       info));
-
-
 
         state = next_state;
 
