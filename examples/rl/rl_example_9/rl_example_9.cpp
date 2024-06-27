@@ -1,3 +1,7 @@
+#include "cubeai/base/cubeai_config.h"
+
+#ifdef USE_RLENVS_CPP
+
 #include "cubeai/base/cubeai_types.h"
 #include "cubeai/rl/algorithms/td/sarsa.h"
 #include "cubeai/rl/policies/epsilon_greedy_policy.h"
@@ -122,3 +126,14 @@ int main(){
 
     return 0;
 }
+
+#else
+#include <iostream>
+
+int main(){
+
+    std::cout<<"This example requires the flag USE_RLENVS_CPP to be true."<<std::endl;
+    std::cout<<"Reconfigures and rebuild the library by setting the flag USE_RLENVS_CPP  to ON."<<std::endl;
+    return 1;
+}
+#endif

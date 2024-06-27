@@ -13,14 +13,13 @@
 #ifdef USE_PYTORCH
 
 #include "cubeai/base/cubeai_types.h"
+#include "cubeai/utils/torch_adaptor.h"
 #include "cubeai/rl/algorithms/rl_algorithm_base.h"
 #include "cubeai/rl/algorithms/utils.h"
 #include "cubeai/rl/episode_info.h"
 #include "cubeai/utils/cubeai_concepts.h"
 #include "cubeai/utils/torch_adaptor.h"
 #include "cubeai/data_structs/experience_buffer.h"
-
-#include "gymfcpp/time_step_type.h"
 
 #ifdef CUBEAI_DEBUG
 #include <cassert>
@@ -30,6 +29,9 @@
 #include <chrono>
 #include <map>
 #include <any>
+#include <memory>
+#include <tuple>
+#include <string>
 
 namespace cubeai{
 namespace rl{
@@ -39,32 +41,23 @@ namespace ac {
 namespace  {
 
 template<typename ExperienceType>
-torch_tensor_t stack_values(const cubeai::containers::ExperienceBuffer<ExperienceType>& buffer ){
+torch_tensor_t
+stack_values(const cubeai::containers::ExperienceBuffer<ExperienceType>& buffer,
+             const std::string& prop_name ){
+
+    std::vector<torch_tensor_t> vals;
+    vals.reserve(buffer.size());
 
     for(const auto& item: buffer){
+        auto& info = std::get<4>(item);
 
-
+        auto value_itr = info.find(prop_name);
+        auto values = std::any_cast<torch_tensor_t>(value_itr -> second);
+        vals.push_back(values);
     }
+
+    return torch::cat(vals);
 }
-
-template<typename ExperienceType>
-torch_tensor_t stack_log_probs(const cubeai::containers::ExperienceBuffer<ExperienceType>& buffer ){
-
-    for(const auto& item: buffer){
-
-
-    }
-}
-
-template<typename ExperienceType>
-torch_tensor_t stack_rewards(const cubeai::containers::ExperienceBuffer<ExperienceType>& buffer ){
-
-    for(const auto& item: buffer){
-
-
-    }
-}
-
 
 }
 
@@ -113,12 +106,12 @@ struct A2CConfig
     ///
     ///
     ///
-    uint_t buffere_size{100};
+    uint_t buffer_size{100};
 
     ///
     ///
     ///
-    uint_t n_workers{1};
+    //uint_t n_workers{1};
 
     ///
     ///
@@ -141,23 +134,41 @@ struct A2CConfig
     std::string save_model_path{""};
 };
 
-///
-///
-///
-template<typename EnvType, utils::concepts::pytorch_module PolicyType>
-class A2C final: public RLAlgoBase<EnvType>
+/**
+ * @brief A2C solver assuming separate networks for the actor and
+ * the critic. In additio the implementation assumes that the
+ * given environment handles any multiplicity of the environments
+ *
+ */
+template<typename EnvType, typename PolicyType, typename CriticType>
+class A2CSolver final: public RLSolverBase<EnvType>
 {
 public:
 
+    /**
+     * @brief The environment type
+     */
     typedef EnvType env_type;
+
+    /**
+     * @brief The  policy or action type
+     */
     typedef PolicyType policy_type;
+
+    /**
+     * @brief The critic type
+     */
+    typedef CriticType critic_type;
 
     ///
     /// \brief A2C
     /// \param config
     /// \param policy
     ///
-    A2C(const A2CConfig config,  policy_type& policy);
+    A2CSolver(const A2CConfig config,
+              policy_type& policy, critic_type& critic,
+              std::unique_ptr<torch::optim::Optimizer>& policy_optimizer,
+              std::unique_ptr<torch::optim::Optimizer>& critic_optimizer);
 
     ///
     /// \brief actions_before_training_begins. Execute any actions the
@@ -187,23 +198,18 @@ public:
     virtual EpisodeInfo on_training_episode(env_type&, uint_t /*episode_idx*/);
 
     ///
-    /// \brief set_train_mode
+    /// \brief set_train_mode for both the Actor and the Critic
     ///
-    void set_train_mode()noexcept{policy_.train();}
+    void set_train_mode()noexcept;
 
     ///
-    /// \brief set_evaluation_mode
+    /// \brief set_evaluation_mode for both the Actor and the Critic
     ///
-    void set_evaluation_mode()noexcept{policy_.eval();}
-
-    ///
-    ///
-    ///
-    std::vector<torch_tensor_t> parameters(bool recurse = true) const{return policy_.parameters(recurse);}
-
+    void set_evaluation_mode()noexcept;
 
 private:
 
+    // helper class
     struct action_result
     {
         torch_tensor_t log_probs;
@@ -223,16 +229,32 @@ private:
     ///
     policy_type& policy_;
 
+    /**
+     * @brief The action network
+     */
+    critic_type& critic_;
+
+    /**
+     * @brief The policy_ optimzer
+     */
+    std::unique_ptr<torch::optim::Optimizer> policy_optimizer_;
+
+    /**
+     * @brief The optimizer for the critic network
+     */
+    std::unique_ptr<torch::optim::Optimizer> critic_optimizer_;
+
     ///
     ///
     ///
     EpisodeInfo do_train_on_episode_(env_type&, uint_t /*episode_idx*/);
 
     ///
-    /// \brief act_on_iteration_
+    /// \brief act_on_episode_iteration_ For every episode iteration
+    /// this function computes the result for the critic and actor networks
     /// \param state
     ///
-    action_result act_on_iteration_(torch_tensor_t& state);
+    action_result act_on_episode_iteration_(torch_tensor_t& state);
 
     ///
     /// \brief optimize_model_
@@ -241,132 +263,153 @@ private:
     /// \param values
     /// \param rewards
     ///
-    torch_tensor_t compute_loss_(torch_tensor_t logprobs, torch_tensor_t entropies,
-                                 torch_tensor_t values, torch_tensor_t rewards);
-
-    ///
-    /// \brief compute_advantages_
-    /// \param rewards
-    /// \param values
-    /// \return
-    ///
-    std::vector<real_t> compute_advantages_(const std::vector<real_t>& rewards,
-                                            const std::vector<real_t>& values);
+    //torch_tensor_t compute_loss_(torch_tensor_t logprobs, torch_tensor_t entropies,
+    //                             torch_tensor_t values, torch_tensor_t rewards);
 
 };
 
-template<typename EnvType, utils::concepts::pytorch_module PolicyType>
-A2C<EnvType, PolicyType>::A2C(const A2CConfig config,  policy_type& policy)
+template<typename EnvType, typename PolicyType, typename CriticType>
+A2CSolver<EnvType, PolicyType, CriticType>::A2CSolver(const A2CConfig config,
+                                                      policy_type& policy, critic_type& critic,
+                                                      std::unique_ptr<torch::optim::Optimizer>& policy_optimizer,
+                                                      std::unique_ptr<torch::optim::Optimizer>& critic_optimizer)
     :
       config_(config),
-      policy_(policy)
+      policy_(policy),
+      critic_(critic),
+      policy_optimizer_(std::move(policy_optimizer)),
+      critic_optimizer_(std::move(critic_optimizer))
 {}
 
-template<typename EnvType, utils::concepts::pytorch_module PolicyType>
+template<typename EnvType, typename PolicyType, typename CriticType>
 void
-A2C<EnvType, PolicyType>::actions_before_training_begins(env_type& env){
-
-#ifdef CUBEAI_DEBUG
-    assert(env.n_copies() == config_.n_workers && "Invalid number of workers");
-#endif
-
-    set_train_mode();
+A2CSolver<EnvType, PolicyType, CriticType>::set_train_mode()noexcept{
+    policy_ -> train();
+    critic_ -> train();
 
 }
 
-template<typename EnvType, utils::concepts::pytorch_module PolicyType>
+template<typename EnvType, typename PolicyType, typename CriticType>
+void
+A2CSolver<EnvType, PolicyType, CriticType>::set_evaluation_mode()noexcept{
+    policy_ -> eval();
+    critic_ -> eval();
+
+}
+
+template<typename EnvType, typename PolicyType, typename CriticType>
+void
+A2CSolver<EnvType, PolicyType, CriticType>::actions_before_training_begins(env_type& env){
+    set_train_mode();
+}
+
+template<typename EnvType, typename PolicyType, typename CriticType>
 EpisodeInfo
-A2C<EnvType, PolicyType>::on_training_episode(env_type& env, uint_t episode_idx){
+A2CSolver<EnvType, PolicyType, CriticType>::on_training_episode(env_type& env, uint_t episode_idx){
 
     auto start = std::chrono::steady_clock::now();
 
     uint_t itrs = 0;
     auto R = 0.0;
 
+    auto eps_info = do_train_on_episode_(env, episode_idx);
+
     auto end = std::chrono::steady_clock::now();
     std::chrono::duration<real_t> elapsed_seconds = end - start;
-
-    do_train_on_episode_(env, episode_idx);
 
     EpisodeInfo info;
     info.episode_index = episode_idx;
     info.episode_reward = R;
-    info.episode_iterations = itrs;
+    info.episode_iterations = eps_info.episode_iterations;
     info.total_time = elapsed_seconds;
     return info;
 }
 
-template<typename EnvType, utils::concepts::pytorch_module PolicyType>
+template<typename EnvType, typename PolicyType, typename CriticType>
 EpisodeInfo
-A2C<EnvType, PolicyType>::do_train_on_episode_(env_type& env, uint_t episode_idx){
+A2CSolver<EnvType, PolicyType, CriticType>::do_train_on_episode_(env_type& env, uint_t episode_idx){
 
     auto episode_score = 0.0;
 
     typedef torch_utils::TorchAdaptor::state_type state_type;
     typedef torch_utils::TorchAdaptor::value_type value_type;
+    typedef typename EnvType::time_step_type time_step_type;
 
     typedef std::tuple<state_type,
                        state_type,
-                       value_type,
-                       std::vector<rlenvs_cpp::TimeStepTp>,
+                       real_t,
+                       time_step_type,
                        std::map<std::string, std::any>> experience_type;
 
     // create a buffer for experience accummulation
-    cubeai::containers::ExperienceBuffer<experience_type> buffer(config_.buffere_size);
-
-    // this is in parallel all
-    // participating workers reset their
-    // environment and return their TimeStep
+    cubeai::containers::ExperienceBuffer<experience_type> buffer(config_.buffer_size);
     auto time_step = env.reset();
-    auto state = time_step.template stack_states<torch_utils::TorchAdaptor>();
+    auto state = time_step.observation();
+
+    // helper class to convert from std::vector to torch_tensor_t
+    // and vice versa
+    torch_utils::TorchAdaptor torch_adaptor;
 
     // loop over the iterations
     uint_t itrs = 0;
     for(; itrs < config_.n_iterations_per_episode; ++ itrs){
 
-        auto action_result = act_on_iteration_(state);
-        auto next_time_step = env.step(torch_utils::TorchAdaptor::to_vector<uint_t>(action_result.actions));
+        auto torch_state = torch_adaptor(state);
+        auto action_result = act_on_episode_iteration_(torch_state);
 
-        auto next_state = next_time_step.template stack_states<torch_utils::TorchAdaptor>();
-        auto reward = next_time_step.template stack_rewards<torch_utils::TorchAdaptor>();
+        auto action = torch_utils::TorchAdaptor::to_vector<uint_t>(action_result.actions)[0];
+        auto next_time_step = env.step(action);
+
+        auto next_state = next_time_step.observation();
+        auto reward = next_time_step.reward();
 
         std::map<std::string, std::any> info;
         info["log_probs"] = action_result.log_probs;
         info["values"] = action_result.values;
 
-        buffer.append(std::make_tuple(state, next_state, reward,
-                                      next_time_step.stack_time_step_types(),
+        // how do we handle the fact that the environment exited?
+        // do not append anything in the buffer exit the loop
+
+        auto torch_next_state = torch_adaptor(next_state);
+        buffer.append(std::make_tuple(torch_state,
+                                      torch_next_state,
+                                      reward,
+                                      next_time_step,
                                       info));
 
-        /*if(buffer.size() < config_.buffere_size){
+        state = next_state;
+
+        if(buffer.size() < config_.buffer_size){
             continue;
-        }*/
+        }
     }
 
-    // optimize the model
+    // optimize the model check the actions_after_episode_ends
+    // function for this
 
     EpisodeInfo info;
     info.episode_index = episode_idx;
     info.episode_reward = episode_score;
     info.episode_iterations = itrs;
-    info.info["log_probs"] = stack_log_probs(buffer);
-    info.info["values"] = stack_values(buffer);
-    info.info["rewards"] = stack_rewards(buffer);
+    info.info["log_probs"] = stack_values(buffer, "log_probs"); //stack_log_probs(buffer);
+    info.info["values"] = stack_values(buffer, "values");
+    info.info["rewards"] = stack_values(buffer, "rewards"); //stack_rewards(buffer);
     return info;
 }
 
-template<typename EnvType, utils::concepts::pytorch_module PolicyType>
-typename A2C<EnvType, PolicyType>::action_result
-A2C<EnvType, PolicyType>::act_on_iteration_(torch_tensor_t& state){
+template<typename EnvType, typename PolicyType, typename CriticType>
+typename A2CSolver<EnvType, PolicyType, CriticType>::action_result
+A2CSolver<EnvType, PolicyType, CriticType>::act_on_episode_iteration_(torch_tensor_t& state){
 
-    // get the logits and the values
-    auto[logits, values] = policy_.forward(state);
+    // get the probabilities and the values
+    auto probs = policy_ -> forward(state);
+    auto values = critic_ -> forward(state);
 
     // sample the actions
-    auto actions = policy_.sample(logits);
-    auto logprobs = policy_.log_probabilities(actions);
+    auto actions = policy_ -> sample();
+    auto logprobs = policy_ -> log_probabilities(actions);
 
-    typedef typename A2C<EnvType, PolicyType>::action_result action_result;
+    typedef typename A2CSolver<EnvType, PolicyType, CriticType>::action_result action_result;
 
     action_result result;
     result.actions = actions;
@@ -375,36 +418,53 @@ A2C<EnvType, PolicyType>::act_on_iteration_(torch_tensor_t& state){
     return result;
 }
 
-template<typename EnvType, utils::concepts::pytorch_module PolicyType>
+template<typename EnvType,typename PolicyType, typename CriticType>
 void
-A2C<EnvType, PolicyType>::actions_after_episode_ends(env_type&, uint_t /*episode_idx*/,
-                                                     const EpisodeInfo& info){
+A2CSolver<EnvType, PolicyType, CriticType>::actions_after_episode_ends(env_type&, uint_t /*episode_idx*/,
+                                                                       const EpisodeInfo& info){
 
-        auto logprobs = info.info.find("log_probs");
-        auto values = info.info.find("values");
-        auto rewards = info.info.find("rewards");
+        auto logprobs_itr = info.info.find("log_probs");
+        auto values_itr = info.info.find("values");
+        auto rewards_itr = info.info.find("rewards");
 
-        // compute the loss
-        auto loss = compute_loss_(std::any_cast<torch_tensor_t>(logprobs->second), torch_tensor_t(),
-                                  std::any_cast<torch_tensor_t>(values->second),
-                                  std::any_cast<torch_tensor_t>(rewards->second));
+        if(logprobs_itr == info.info.end() || values_itr == info.info.end() ||
+            rewards_itr == info.info.end()){
+            throw std::logic_error("Couldn't find needed item");
+        }
 
-        loss.backward();
+        auto logprobs = std::any_cast<torch_tensor_t>(logprobs_itr -> second);
+        auto values = std::any_cast<torch_tensor_t>(values_itr -> second);
+        auto rewards = std::any_cast<torch_tensor_t>(rewards_itr -> second);
+
+        auto advantage = rewards - values;
+
+        auto policy_loss = -(logprobs * advantage.detach()).mean();
+        auto critic_loss = advantage.pow(2).mean();
+
+        // compute the loss we have two networks so two losses
+        // auto loss = compute_loss_(std::any_cast<torch_tensor_t>(logprobs->second), torch_tensor_t(),
+        //                          std::any_cast<torch_tensor_t>(values->second),
+        //                          std::any_cast<torch_tensor_t>(rewards->second));
+
+        // Backward pass and optimize
+        policy_optimizer_->zero_grad();
+        critic_optimizer_ -> zero_grad();
+
+        policy_loss.backward();
+        critic_loss.backward();
+
+        policy_optimizer_ -> step();
+        critic_optimizer_ -> step();
+
 
 }
 
-template<typename EnvType, utils::concepts::pytorch_module PolicyType>
-std::vector<real_t>
-A2C<EnvType, PolicyType>::compute_advantages_(const std::vector<real_t>& rewards,
-                                              const std::vector<real_t>& values){
 
-
-}
-
-template<typename EnvType, utils::concepts::pytorch_module PolicyType>
+/*
+template<typename EnvType, typename PolicyType, typename CriticType>
 torch_tensor_t
-A2C<EnvType, PolicyType>::compute_loss_(torch_tensor_t /*logprobs*/, torch_tensor_t /*entropies*/,
-            torch_tensor_t values, torch_tensor_t rewards){
+A2CSolver<EnvType, PolicyType, CriticType>::compute_loss_(torch_tensor_t logprobs, torch_tensor_t entropies,
+                                                          torch_tensor_t values, torch_tensor_t rewards){
 
 
         // create the discounts
@@ -424,7 +484,7 @@ A2C<EnvType, PolicyType>::compute_loss_(torch_tensor_t /*logprobs*/, torch_tenso
         // clip the grad if needed
         torch::nn::utils::clip_grad_norm_(parameters(), config_.max_grad_norm);
 
-        /*# get the discounted returns
+        # get the discounted returns
         discounted_returns: np.array = calculate_discounted_returns(rewards.numpy(),
                                                                     discounts,
                                                                     n_workers=self.config.n_workers)
@@ -443,16 +503,15 @@ A2C<EnvType, PolicyType>::compute_loss_(torch_tensor_t /*logprobs*/, torch_tenso
         # clip the grad if needed
         torch.nn.utils.clip_grad_norm_(self.parameters(),
                                        self.config.max_grad_norm)
-                                     */
-
-}
-
 
 
 }
 
+*/
+
 }
 
+}
 }
 }
 #endif

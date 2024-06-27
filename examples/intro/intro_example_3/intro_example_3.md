@@ -1,4 +1,4 @@
-# Example 3: Monitoring Experiments with TensorBoard and Hydra
+# Example 3:  Using PyTorch C++ API Part 2
 
 Example 2 showed you how to create a simple PyTorch model for linear regression.
 However, we did so by utilzing _torch::nn::Linear_. In this example,

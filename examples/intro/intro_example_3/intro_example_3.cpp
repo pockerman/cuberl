@@ -7,13 +7,7 @@
 #include "cubeai/utils/cubeai_concepts.h"
 #include "cubeai/geom_primitives/shapes/circle.h"
 #include "cubeai/io/json_file_reader.h"
-
-
 #include "cubeai/base/cubeai_data_paths.h"
-#include "cubeai/optimization/optimizer_type.h"
-#include "cubeai/ml/loss_type.h"
-#include "cubeai/ml/pytorch_supervised_trainer.h"
-#include "cubeai/ml/pytorch_loss_wrapper.h"
 
 #include <torch/torch.h>
 #include <boost/log/trivial.hpp>
@@ -148,7 +142,8 @@ LogisticRegressionModelImpl::train_model(const std::string& train_set_path,
   auto train_loader = torch::data::make_data_loader<torch::data::samplers::RandomSampler>(std::move(train_dataset),
                                                                                           batch_size);
 
-  auto optimizer = std::make_unique<torch::optim::SGD>(this->parameters(), torch::optim::SGDOptions{lr});
+  auto optimizer = std::make_unique<torch::optim::SGD>(this->parameters(),
+                                                       torch::optim::SGDOptions{lr});
 
 
   // Train the model

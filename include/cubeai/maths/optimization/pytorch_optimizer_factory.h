@@ -6,7 +6,7 @@
 #ifdef USE_PYTORCH
 
 
-#include "cubeai/optimization/optimizer_type.h"
+#include "cubeai/maths/optimization/optimizer_type.h"
 #include <torch/torch.h>
 #include <memory>
 #include <map>
@@ -18,6 +18,7 @@
 #endif
 
 namespace cubeai {
+namespace maths{
 namespace optim {
 namespace pytorch {
 
@@ -46,6 +47,7 @@ build_pytorch_optimizer(OptimzerType type, torch::nn::Module& model, std::unique
     return build_pytorch_optimizer(type, model, *options.get());
 }
 
+}
 }
 }
 }

@@ -1,9 +1,13 @@
-#ifndef TORCH_CATEGORICAL_H
-#define TORCH_CATEGORICAL_H
+// SPDX-FileCopyrightText: 2024 <copyright holder> <email>
+// SPDX-License-Identifier: Apache-2.0
+
 /**
  * Major implementation is taken from  https://github.com/Omegastick/pytorch-cpp-rl/tree/master
  *
  */
+
+#ifndef TORCH_BERNOULLI_DIST_H
+#define TORCH_BERNOULLI_DIST_H
 
 #include "cubeai/base/cubeai_config.h"
 
@@ -14,23 +18,22 @@
 
 #include <torch/torch.h>
 
-
 namespace cubeai {
 namespace maths {
 namespace stats {
 
-class TorchCategorical final : public TorchDistributionBase
+/**
+ * @brief class  TorchBernoulliDist
+ */
+class TorchBernoulliDist final : public TorchDistributionBase
 {
-
-
 public:
 
-
-    /**
+     /**
      * @brief Default constructor
      *
      */
-    TorchCategorical() = default;
+    TorchBernoulliDist() = default;
 
     /**
      * @brief Build the categorical distribution from given
@@ -39,12 +42,12 @@ public:
      * to represent logits
      *
      */
-    TorchCategorical(torch_tensor_t probs, bool do_build_from_logits=false);
+    TorchBernoulliDist(torch_tensor_t probs, bool do_build_from_logits=false);
 
     ///
     /// \brief ~TorchCategorical. Destructor
     ///
-    virtual ~TorchCategorical() = default;
+    virtual ~TorchBernoulliDist() = default;
 
     ///
     /// \brief entropy
@@ -92,9 +95,12 @@ private:
   torch_tensor_t param_;
   int num_events_;
 
+
 };
+
 }
 }
 }
-#endif
+
+#endif // TORCH_BERNOULLI_DIST_H
 #endif

@@ -6,6 +6,8 @@
 #ifdef USE_PYTORCH
 
 #include "cubeai/base/cubeai_types.h"
+
+#include <torch/torch.h>
 #include <vector>
 
 namespace cubeai{
