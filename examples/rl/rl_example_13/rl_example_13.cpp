@@ -13,7 +13,10 @@
 #include "cubeai/base/cubeai_types.h"
 #include "cubeai/io/csv_file_writer.h"
 #include "cubeai/rl/algorithms/pg/simple_reinforce.h"
+#include "cubeai/rl/trainers/rl_serial_agent_trainer.h"
 #include "cubeai/rl/trainers/pytorch_rl_agent_trainer.h"
+#include "cubeai/maths/optimization/optimizer_type.h"
+#include "cubeai/maths/optimization/pytorch_optimizer_factory.h"
 #include "cubeai/maths/statistics/distributions/torch_categorical.h"
 
 #include "rlenvs/envs/gymnasium/classic_control/cart_pole_env.h"
@@ -24,7 +27,7 @@
 #include <string>
 #include <any>
 #include <filesystem>
-
+#include <map>
 
 namespace rl_example_13{
 
@@ -39,8 +42,8 @@ using cubeai::uint_t;
 using cubeai::torch_tensor_t;
 using cubeai::rl::algos::pg::ReinforceSolver;
 using cubeai::rl::algos::pg::ReinforceConfig;
-using cubeai::rl::PyTorchRLTrainer;
-using cubeai::rl::PyTorchRLTrainerConfig;
+using cubeai::rl::RLSerialAgentTrainer;
+using cubeai::rl::RLSerialTrainerConfig;
 using cubeai::maths::stats::TorchCategorical;
 using rlenvs_cpp::envs::gymnasium::CartPole;
 
@@ -123,6 +126,7 @@ PolicyNetImpl::act(const StateTp& state){
 
 TORCH_MODULE(PolicyNet);
 
+typedef CartPole env_type;
 }
 
 
@@ -132,15 +136,13 @@ int main(){
 
     try{
 
-         // let's create a directory where we want to
-         //store all the results from running a simualtion
-
+        // let's create a directory where we want to
+        //store all the results from running a simualtion
         std::filesystem::create_directories("experiments/" + EXPERIMENT_ID);
         torch::manual_seed(42);
 
         auto env = CartPole(SERVER_URL);
         std::cout<<"Environment URL: "<<env.get_url()<<std::endl;
-
 
         std::cout<<"Creating the environment..."<<std::endl;
         std::unordered_map<std::string, std::any> options;
@@ -153,18 +155,34 @@ int main(){
         std::cout<<"Number of actions="<<env.n_actions()<<std::endl;
 
         PolicyNet policy;
-        auto optimizer_ptr = std::make_unique<torch::optim::Adam>(policy->parameters(),
-                                                                  torch::optim::AdamOptions(1e-2));
+
+        //auto optimizer_ptr = std::make_unique<torch::optim::Adam>(policy->parameters(),
+        //                                                          torch::optim::AdamOptions(1e-2));
+
+        typedef ReinforceSolver<CartPole, PolicyNet> solver_type;
 
         // reinforce options
         ReinforceConfig opts = {1000, 100, 100, 100, 1.0e-2, 0.1, 195.0};
-        ReinforceSolver<CartPole, PolicyNet> algorithm(opts, policy);
 
-        PyTorchRLTrainerConfig trainer_config{1.0e-8, 1001, 50};
-        PyTorchRLTrainer<CartPole, ReinforceSolver<CartPole, PolicyNet>> trainer(trainer_config, algorithm, std::move(optimizer_ptr));
+        std::map<std::string, std::any> opt_options;
+        opt_options.insert(std::make_pair("lr", 0.001));
+
+        auto pytorch_ops = cubeai::maths::optim::pytorch::build_pytorch_optimizer_options(cubeai::maths::optim::OptimzerType::ADAM,
+                                                                                          opt_options);
+
+        auto policy_optimizer = cubeai::maths::optim::pytorch::build_pytorch_optimizer(cubeai::maths::optim::OptimzerType::ADAM,
+                                                                                       *policy, pytorch_ops);
+
+        solver_type solver(opts, policy, policy_optimizer);
+
+
+        RLSerialTrainerConfig config;
+        config.n_episodes = 10;
+        config.output_msg_frequency = 10;
+        RLSerialAgentTrainer<env_type, solver_type> trainer(config, solver);
+        trainer.train(env);
 
         auto info = trainer.train(env);
-
         std::cout<<"Trainer info: "<<info<<std::endl;
 
         // save the rewards per episode for visualization
@@ -173,7 +191,6 @@ int main(){
         filename += "/reinforce_rewards.csv";
         cubeai::io::CSVWriter csv_writer(filename, cubeai::io::CSVWriter::default_delimiter());
         csv_writer.open();
-
         csv_writer.write_column_vector(trainer.episodes_total_rewards());
 
 

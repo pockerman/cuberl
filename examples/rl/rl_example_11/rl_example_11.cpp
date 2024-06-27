@@ -27,7 +27,6 @@ using cubeai::rl::algos::ac::A2CSolver;
 using cubeai::rl::RLSerialAgentTrainer;
 using cubeai::rl::RLSerialTrainerConfig;
 using rlenvs_cpp::envs::gymnasium::CartPoleActionsEnum;
-typedef  rlenvs_cpp::envs::gymnasium::CartPole env_type;
 
 
 // create the Action and the Critic networks
@@ -40,10 +39,7 @@ public:
 
 
     torch_tensor_t forward(torch_tensor_t state);
-
-
     torch_tensor_t log_probabilities(torch_tensor_t actions);
-
     torch_tensor_t sample();
 
 
@@ -135,6 +131,9 @@ TORCH_MODULE(ActorNet);
 TORCH_MODULE(CriticNet);
 
 
+typedef  rlenvs_cpp::envs::gymnasium::CartPole env_type;
+
+
 }
 
 
@@ -173,12 +172,15 @@ int main(){
 
         auto critic_optimizer = cubeai::maths::optim::pytorch::build_pytorch_optimizer(cubeai::maths::optim::OptimzerType::ADAM,
                                                                                        *critic, pytorch_ops);
-        A2CSolver<env_type, ActorNet, CriticNet> solver(a2c_config,
-                                                        policy, critic,
-                                                        policy_optimizer,
-                                                        critic_optimizer);
 
+        typedef A2CSolver<env_type, ActorNet, CriticNet> solver_type;
 
+        solver_type solver(a2c_config, policy, critic,
+                           policy_optimizer, critic_optimizer);
+
+        RLSerialTrainerConfig config;
+        RLSerialAgentTrainer<env_type, solver_type> trainer(config, solver);
+        trainer.train(env);
 
     }
     catch(std::exception& e){
