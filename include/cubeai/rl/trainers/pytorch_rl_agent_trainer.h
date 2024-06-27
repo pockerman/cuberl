@@ -16,6 +16,8 @@
 namespace cubeai {
 namespace rl {
 
+/*
+ *
 // forward declare
 struct EpisodeInfo;
 
@@ -31,10 +33,7 @@ struct PyTorchRLTrainerConfig
 };
 
 
-/**
- * @brief Trainer class to use with PyTorch
- *
- */
+
 template<typename EnvType, typename AgentType>
 class PyTorchRLTrainer final: public IterativeRLTrainerBase<EnvType, AgentType>
 {
@@ -43,10 +42,7 @@ public:
     typedef EnvType env_type;
     typedef AgentType agent_type;
 
-    /**
-     * @brief Constructor
-     *
-     */
+
     PyTorchRLTrainer(const PyTorchRLTrainerConfig config, agent_type& agent,
                      std::unique_ptr<torch::optim::Optimizer> optimizer);
 
@@ -60,9 +56,7 @@ public:
 
 protected:
 
-    /**
-     * @brief Pointer to the optimization to use for training the agent
-     */
+
     std::unique_ptr<torch::optim::Optimizer> optimizer_;
 
 
@@ -91,6 +85,8 @@ PyTorchRLTrainer<EnvType, AgentType>::actions_after_episode_ends(env_type& env, 
 
     optimizer_->step();
 }
+
+*/
 
 }
 
