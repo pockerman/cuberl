@@ -1,7 +1,6 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 3.6 FATAL_ERROR)
 MESSAGE(STATUS "Using CMake ${CMAKE_VERSION}")
 
-
 SET(CUBEAILIB_VERSION_MAJOR 0)
 SET(CUBEAILIB_VERSION_MINOR 0)
 SET(CUBEAILIB_VERSION_PATCH 9)
@@ -45,11 +44,9 @@ SET(CMAKE_C_STANDARD 20)
 SET(CMAKE_C_STANDARD_REQUIRED True)
 SET(CMAKE_LINKER_FLAGS "-pthread")
 
-
 SET(USE_OPENMP ON)
 SET(USE_LOG ON)
 SET(USE_PYTORCH ON)
-
 
 SET(USE_OPENCV OFF)
 SET(USE_RLENVS_CPP ON)
@@ -72,7 +69,6 @@ IF(USE_PYTORCH)
 	SET(PYTORCH_PATH "/home/alex/MySoftware/libtorch")
 ENDIF()
 
-
 IF(CMAKE_BUILD_TYPE STREQUAL "Debug")
 	SET(CMAKE_INSTALL_PREFIX  ${PROJECT_SOURCE_DIR}/install/dbg)
 	SET(CMAKE_CXX_FLAGS "-g ") # -Wall -Wextra")
@@ -85,8 +81,6 @@ ELSEIF(CMAKE_BUILD_TYPE STREQUAL "Release")
     SET(CUBEAI_DEBUG OFF)
     SET(BOOST_LOG_DYN_LINK ON)
 ENDIF()
-
-
 
 IF(USE_RLENVS_CPP)
 	IF(CMAKE_BUILD_TYPE MATCHES "Debug")
@@ -139,7 +133,6 @@ IF(USE_PYTORCH)
 	MESSAGE(STATUS "TORCH Lib directory ${TORCH_LIBRARIES}")
 ENDIF()
 
-
 MESSAGE(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
 MESSAGE(STATUS "C++ Compiler: ${CMAKE_CXX_COMPILER}")
 MESSAGE(STATUS "C Compiler: ${CMAKE_C_COMPILER}")
@@ -175,7 +168,8 @@ FILE(GLOB SRCS src/cubeai/base/*.cpp
                src/cubeai/maths/statistics/distributions/*.cpp
                src/cubeai/maths/optimization/*.cpp
                src/cubeai/planning/*.cpp
-               src/cubeai/pytorch_utils/*.cpp)
+               src/cubeai/pytorch_utils/*.cpp
+	)
 
 
 ADD_LIBRARY(cubeailib SHARED ${SRCS})
