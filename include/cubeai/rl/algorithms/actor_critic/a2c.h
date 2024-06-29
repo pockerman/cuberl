@@ -40,6 +40,10 @@ namespace ac {
 
 namespace  {
 
+
+// utility functio to stack the values under prop_name
+// in the given buffer as PyTorch tensor.
+// TODO: maybe we need to guard against the prop_name
 template<typename ExperienceType>
 torch_tensor_t
 stack_values(const cubeai::containers::ExperienceBuffer<ExperienceType>& buffer,
@@ -107,11 +111,6 @@ struct A2CConfig
     ///
     ///
     uint_t buffer_size{100};
-
-    ///
-    ///
-    ///
-    //uint_t n_workers{1};
 
     ///
     ///
@@ -216,7 +215,6 @@ private:
         torch_tensor_t values;
         torch_tensor_t actions;
         torch_tensor_t entropies;
-
     };
 
     ///

@@ -102,5 +102,11 @@ pip install m2r2
 
 You may want to check with ```nvidia-msi``` your CUDA Version and make sure it is compatible with the PyTorch library you are linking against
 
+#### TypeError: Descriptors cannot be created directly.
+
+This issue may be occur when using the TensorBoardServer in _cuberl_.
+This issue  is related an issue with protobuf. See: https://stackoverflow.com/questions/72441758/typeerror-descriptors-cannot-not-be-created-directly for 
+possible solutions.
+
 
 

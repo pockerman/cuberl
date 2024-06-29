@@ -14,7 +14,6 @@
 #include "cubeai/io/csv_file_writer.h"
 #include "cubeai/rl/algorithms/pg/simple_reinforce.h"
 #include "cubeai/rl/trainers/rl_serial_agent_trainer.h"
-#include "cubeai/rl/trainers/pytorch_rl_agent_trainer.h"
 #include "cubeai/maths/optimization/optimizer_type.h"
 #include "cubeai/maths/optimization/pytorch_optimizer_factory.h"
 #include "cubeai/maths/statistics/distributions/torch_categorical.h"
