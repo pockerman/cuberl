@@ -14,38 +14,35 @@ The following is an indicative list of examples. More tutorials can be found at 
 - <a href="examples/intro/intro_example_1/intro_example_1.md">_CubeRl_ Basics</a>
 - <a href="examples/intro/intro_example_2/intro_example_2.md">Using PyTorch C++ API Part 1</a>
 - <a href="examples/intro/intro_example_3/intro_example_3.md">Using PyTorch C++ API Part 2</a>
+- <a href="examples/intro/intro_example_4/intro_example_4.md">Using ```TensorboardServer``` class</a>
 
 ### Reinforcement learning
 
-- <a href="https://pockerman-py-cubeai.readthedocs.io/en/latest/ExamplesCpp/rl/rl_example_0.html">Example 0: DummyAgent on  ```MountainCar-v0```</a>
-- <a href="examples/example_1/example_1.cpp">Example 1: Toy Markov chain</a>
-- <a href="examples/example_2/example_2.cpp">Example 2: Multi-armed bandit with epsilon-greedy policy</a>
-- <a href="examples/example_3/example_3.cpp">Example 3: Multi-armed bandit with soft-max policy</a>
-- <a href="examples/example_4/example_4.cpp">Example 4: Advertisement placement</a>
-- <a href="examples/rl/rl_example_6/rl_example_6.cpp">Example 6: Iterative policy evaluation on ```FrozenLake-v0```</a>
-- <a href="examples/rl/rl_example_7/rl_example_7.cpp">Example 7: Policy iteration on ```FrozenLake-v0```</a>
-- <a href="examples/rl/rl_example_8/rl_example_8.cpp">Example 8: Value iteration on ```FrozenLake-v0```</a>
-- <a href="examples/rl/rl_example_9/rl_example_9.cpp">Example 9: SARSA on ```CliffWalking-v0```</a>
-- <a href="examples/rl/rl_example_10/rl_example_10.cpp">Example 10: Q-learning on ```CliffWalking-v0```</a>
+- <a href="https://pockerman-py-cubeai.readthedocs.io/en/latest/ExamplesCpp/rl/rl_example_0.html">DummyAgent on  ```MountainCar-v0```</a>
+- <a href="examples/example_1/example_1.cpp">Toy Markov chain</a>
+- <a href="examples/example_2/example_2.cpp">Multi-armed bandit with epsilon-greedy policy</a>
+- <a href="examples/example_3/example_3.cpp">Multi-armed bandit with soft-max policy</a>
+- <a href="examples/example_4/example_4.cpp">Advertisement placement</a>
+- <a href="examples/rl/rl_example_6/rl_example_6.cpp">Iterative policy evaluation on ```FrozenLake-v0```</a>
+- <a href="examples/rl/rl_example_7/rl_example_7.cpp">Policy iteration on ```FrozenLake-v0```</a>
+- <a href="examples/rl/rl_example_8/rl_example_8.cpp">Value iteration on ```FrozenLake-v0```</a>
+- <a href="examples/rl/rl_example_9/rl_example_9.cpp">SARSA on ```CliffWalking-v0```</a>
+- <a href="examples/rl/rl_example_10/rl_example_10.cpp">Q-learning on ```CliffWalking-v0```</a>
 - <a href="examples/rl/rl_example_11/rl_example_11.md">A2C on ```CartPole-v1```</a>
-- <a href="examples/rl/rl_example_12/example_12.cpp">Example 12: DQN on ```CartPole-v0```</a>
-- <a href="examples/rl/rl_example_13/rl_example_13.cpp">Example 13: Reinforce algorithm on ```CartPole-v0```</a>
-- <a href="examples/rl/rl_example_14/rl_example_14.cpp">Example 14: Expected SARSA on ```CliffWalking-v0```</a>
-- <a href="examples/example_15/example_15.cpp">Example 15: Approximate Monte Carlo on ```MountainCar-v0```</a>
-- <a href="examples/example_16/example_16.cpp">Example 16: Monte Carlo tree search on ```Taxi-v3```</a>
-- <a href="examples/rl/rl_example_18.cpp">Example 18: Double Q-learning on  ```CartPole-v0``` </a>
-- <a href="examples/rl/rl_example_19/rl_example_19.cpp">Example 19: First visit Monte Carlo on ```FrozenLake-v0```</a>
+- <a href="examples/rl/rl_example_12/example_12.cpp">DQN on ```CartPole-v0```</a>
+- <a href="examples/rl/rl_example_13/rl_example_13.cpp">REINFORCE algorithm on ```CartPole-v0```</a>
+- <a href="examples/rl/rl_example_14/rl_example_14.cpp">Expected SARSA on ```CliffWalking-v0```</a>
+- <a href="examples/example_15/example_15.cpp">Approximate Monte Carlo on ```MountainCar-v0```</a>
+- <a href="examples/example_16/example_16.cpp">Monte Carlo tree search on ```Taxi-v3```</a>
+- <a href="examples/rl/rl_example_18.cpp">Double Q-learning on  ```CartPole-v0``` </a>
+- <a href="examples/rl/rl_example_19/rl_example_19.cpp">First visit Monte Carlo on ```FrozenLake-v0```</a>
 
 
 ### Path planning
 
-- <a href="#">Example 19: Path planning with rapidly-exploring random trees (TODO)</a> 
-- <a href="#">Example 20: Path planning with dynamic windows (TODO) </a>
-- <a href="examples/example_17/example_17.cpp">Example 17: A* search on a road network  from Open Street Map data</a>
-
-### PyTorch based examples
-
-- <a href="examples/example_11/example_11.cpp">Example 11: Simple linear regression</a>
+- <a href="#">Path planning with rapidly-exploring random trees (TODO)</a>
+- <a href="#">Path planning with dynamic windows (TODO) </a>
+- <a href="examples/example_17/example_17.cpp"> A* search on a road network  from Open Street Map data</a>
 
 
 ## Installation
