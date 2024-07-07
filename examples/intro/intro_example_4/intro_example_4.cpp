@@ -62,8 +62,6 @@ int main() {
       BOOST_LOG_TRIVIAL(info)<<"Output size: "<<output_size;
       BOOST_LOG_TRIVIAL(info)<<"Max epochs: "<<num_epochs;
       BOOST_LOG_TRIVIAL(info)<<"Learning rate: "<<learning_rate;
-      BOOST_LOG_TRIVIAL(info)<<"Logging results at "<<logger.get_log_dir_path()<<std::endl;
-
 
       // figure out the device we are using
       auto cuda_available = torch::cuda::is_available();
@@ -93,6 +91,8 @@ int main() {
                                   torch::optim::SGDOptions(learning_rate));
 
       TensorboardServer logger("http://0.0.0.0:8002");
+
+      BOOST_LOG_TRIVIAL(info)<<"Logging results at "<<logger.get_log_dir_path()<<std::endl;
       logger.init(log_path);
 
       logger.add_scalar("lr", learning_rate);
@@ -108,7 +108,6 @@ int main() {
 
       // Set floating point output precision
       BOOST_LOG_TRIVIAL(info)<<"Start training...";
-
 
       IterationCounter iteration_ctrl(num_epochs);
       while(iteration_ctrl.continue_iterations()){

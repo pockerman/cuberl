@@ -15,11 +15,11 @@ The following is an indicative list of examples. More tutorials can be found at 
 - <a href="examples/intro/intro_example_2/intro_example_2.md">Using PyTorch C++ API Part 1</a>
 - <a href="examples/intro/intro_example_3/intro_example_3.md">Using PyTorch C++ API Part 2</a>
 - <a href="examples/intro/intro_example_4/intro_example_4.md">Using ```TensorboardServer``` class</a>
+- <a href="examples/intro/intro_example_4/intro_example_5.md">Toy Markov chain</a>
 
 ### Reinforcement learning
 
 - <a href="https://pockerman-py-cubeai.readthedocs.io/en/latest/ExamplesCpp/rl/rl_example_0.html">DummyAgent on  ```MountainCar-v0```</a>
-- <a href="examples/example_1/example_1.cpp">Toy Markov chain</a>
 - <a href="examples/example_2/example_2.cpp">Multi-armed bandit with epsilon-greedy policy</a>
 - <a href="examples/example_3/example_3.cpp">Multi-armed bandit with soft-max policy</a>
 - <a href="examples/example_4/example_4.cpp">Advertisement placement</a>
