@@ -1,3 +1,13 @@
+# Example 5:  Toy Markov chain
+
+This example uses to toy Markov chain model to introduce some operations on the
+main linear algebra backend that _cuberl_ is using namely <a href="https://eigen.tuxfamily.org/index.php?title=Main_Page">Eigen</a>.
+
+## The driver code
+
+The driver code for this tutorial is shown below.
+
+```cpp
 #include "cubeai/base/cubeai_types.h"
 
 
@@ -22,7 +32,8 @@ DynMat<real_t> create_transition_matrix(){
 }
 
 // create transition matrix
-DynMat<real_t> compute_matrix_power(const DynMat<real_t>& mat, uint_t power ){
+DynMat<real_t>
+compute_matrix_power(const DynMat<real_t>& mat, uint_t power ){
 
     auto result = mat;
 
@@ -57,31 +68,60 @@ int main() {
     print_matrix(t_50);
 
     std::cout<<"After 100 steps..."<<std::endl;
+
     // after 3 steps
     auto t_100 = compute_matrix_power(transition, 100 );
     print_matrix(t_100);
 
     // initial vector
-    auto v1 = DynVec<real_t>({1.0, 0.0});
+    auto v1 = DynVec<real_t>(2);
+    v1[0] = 1.0;
+    v1[1] = 0.0;
 
     // We can calculate the probability of being
     // in a specific state after k iterations multiplying
     // the initial distribution and the transition matrix: v⋅Tk.
 
-    std::cout<<"v_3="<<blaze::trans(v1) * t_3<<std::endl;
-    std::cout<<"v_50="<<blaze::trans(v1) * t_50<<std::endl;
-    std::cout<<"v_100="<<blaze::trans(v1) * t_100<<std::endl;
+    std::cout<<"v_3="<<v1.transpose() * t_3<<std::endl;
+    std::cout<<"v_50="<<v1.transpose() * t_50<<std::endl;
+    std::cout<<"v_100="<<v1.transpose() * t_100<<std::endl;
 
     // initial vector
-    v1 = DynVec<real_t>({0.5, 0.5});
+    v1[0] = 0.5;
+    v1[1] = 0.5;
 
-    std::cout<<"v_3="<<blaze::trans(v1) * t_3<<std::endl;
-    std::cout<<"v_50="<<blaze::trans(v1) * t_50<<std::endl;
-    std::cout<<"v_100="<<blaze::trans(v1) * t_100<<std::endl;
-
-
-
-   return 0;
+    std::cout<<"v_3="<<v1.transpose() * t_3<<std::endl;
+    std::cout<<"v_50="<<v1.transpose() * t_50<<std::endl;
+    std::cout<<"v_100="<<v1.transpose() * t_100<<std::endl;
+    return 0;
 }
 
+```
+
+Running the driver code above produces the following output
+
+```bash
+After 3 steps...
+[0.844 , 0.156]
+[0.78 , 0.22]
+After 50 steps...
+[0.833333 , 0.166667]
+[0.833333 , 0.166667]
+After 100 steps...
+[0.833333 , 0.166667]
+[0.833333 , 0.166667]
+v_3=0.844 0.156
+    0     0
+v_50=0.833333 0.166667
+       0        0
+v_100=0.833333 0.166667
+       0        0
+v_3=0.422 0.078
+0.422 0.078
+v_50= 0.416667 0.0833333
+ 0.416667 0.0833333
+v_100= 0.416667 0.0833333
+ 0.416667 0.0833333
+
+```
 
