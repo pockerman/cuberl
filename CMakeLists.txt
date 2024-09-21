@@ -35,7 +35,7 @@ ENDIF(COMMAND cmake_policy)
 # configure the project accordingly
 # Set the build type options supported
 # Debug and Release are the types supported
-SET(CMAKE_BUILD_TYPE "Release")
+SET(CMAKE_BUILD_TYPE "Debug")
 SET(CMAKE_CXX_COMPILER g++-11)
 SET(CMAKE_CXX_STANDARD 20)
 SET(CMAKE_CXX_STANDARD_REQUIRED True)
@@ -98,7 +98,7 @@ IF(ENABLE_TESTS_FLAG)
 
 	IF(GTest_FOUND)
 		INCLUDE_DIRECTORIES(${GTEST_INCLUDE_DIRS})
-		LINK_DIRECTORIES(${GTEST_BOTH_LIBRARIES})
+		LINK_DIRECTORIES("/usr/local/lib")
     ELSE()
 	    MESSAGE( FATAL_ERROR  "ENABLE_TESTS_FLAG is ON but could not find GTest library.")
 	ENDIF()
