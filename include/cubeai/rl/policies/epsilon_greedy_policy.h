@@ -1,9 +1,14 @@
 #ifndef EPSILON_GREEDY_POLICY_H
 #define EPSILON_GREEDY_POLICY_H
 
+#include "cubeai/base/cubeai_config.h"
 #include "cubeai/base/cubeai_types.h"
 #include "cubeai/rl/policies/max_tabular_policy.h"
 #include "cubeai/rl/policies/random_tabular_policy.h"
+
+#ifdef USE_PYTORCH
+#include "cubeai/utils/torch_adaptor.h"
+#endif
 
 #include <random>
 #include <cmath>
@@ -56,11 +61,17 @@ public:
     template<typename MapType>
     uint_t operator()(const MapType& q_map, uint_t state)const;
 
+
     /**
      * @brief Get an action i.e. index from the given values
      */
     template<typename VecType>
     uint_t operator()(const VecType& vec)const;
+
+#ifdef USE_PYTORCH
+    uint_t operator()(const torch_tensor_t& vec)const;
+#endif
+
 
 
     /**
@@ -140,6 +151,25 @@ EpsilonGreedyPolicy::EpsilonGreedyPolicy(real_t eps, uint_t seed)
                         eps, eps, eps)
 {}
 
+
+#ifdef USE_PYTORCH
+uint_t
+EpsilonGreedyPolicy::operator()(const torch_tensor_t& vector)const{
+
+     auto vec = cubeai::torch_utils::TorchAdaptor::to_vector<real_t>(vector);
+
+     std::uniform_real_distribution<> real_dist_(0.0, 1.0);
+
+    if(real_dist_(generator_) > eps_){
+        // select greedy action with probability 1 - epsilon
+        return max_policy_(vec);
+    }
+
+    // else select a random action
+    return random_policy_(vec);
+
+}
+#endif
 
 template<typename VecType>
 uint_t
