@@ -7,7 +7,7 @@
 namespace cubeai{
 namespace io{
 
-FileReaderBase::FileReaderBase(const std::string& file_name, FileFormats::Type t) //, const std::ios_base::openmode mode=std::ios_base::out)
+FileReaderBase::FileReaderBase(const std::string& file_name, FileFormats::Type t)
 :
 FileHandlerBase<std::ifstream>(file_name, t)
 {}
@@ -25,8 +25,9 @@ FileReaderBase::open(){
 
 #ifdef CUBEAI_DEBUG
 
-            if(!file_reader_.good()){
-                std::string msg = "Failed to open file: " + file_name_;
+            if(!f.good()){
+                auto file_name = this->get_filename();
+                std::string msg = "Failed to open file: " + file_name;
                 assert(false && msg.c_str());
             }
 #endif
@@ -36,7 +37,8 @@ FileReaderBase::open(){
 
 #ifdef CUBEAI_DEBUG
             std::string msg("Failed to open file: ");
-            msg += file_name_;
+            auto file_name = this->get_filename();
+            msg += file_name;
             assert(false && msg.c_str());
 #else
             throw;
