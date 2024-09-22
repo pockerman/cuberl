@@ -4,7 +4,12 @@
 #ifndef MAX_TABULAR_POLICY_H
 #define MAX_TABULAR_POLICY_H
 
+#include "cubeai/base/cubeai_config.h"
 #include "cubeai/base/cubeai_types.h"
+
+#ifdef USE_PYTORCH
+#include <torch/torch.h>
+#endif
 
 namespace cubeai {
 namespace rl {
@@ -33,6 +38,15 @@ public:
     template<typename MatType>
     output_type operator()(const MatType& q_map, uint_t state_idx)const;
 
+#ifdef USE_PYTORCH
+     /**
+     * @brief operator(). Given a vector always returns the position
+     * of the maximum occuring element. If the given vector is empty returns
+     * CubeAIConsts::invalid_size_type
+     */
+    uint_t operator()(const torch_tensor_t& vec)const;
+#endif
+
     /**
      * @brief operator(). Given a vector always returns the position
      * of the maximum occuring element. If the given vector is empty returns
@@ -54,6 +68,15 @@ public:
 
 
 };
+
+
+#ifdef USE_PYTORCH
+inline
+uint_t
+MaxTabularPolicy::operator()(const torch_tensor_t& vec)const{
+    return torch::argmax(vec).item<uint_t>();
+}
+#endif
 
 
 template<typename VecTp>

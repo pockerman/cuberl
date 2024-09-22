@@ -1,10 +1,7 @@
 # cuberl
 
-Cuberl is a C++ library containing implementations of various reinforcement learning, filtering and planning algorithms.
-The library documentation (under development) can be found here <a href="https://pockerman-py-cubeai.readthedocs.io/en/latest/">CubeAI</a>
-The Python flavor of the library can be found at <a href="https://github.com/pockerman/py_cube_ai">PyCubeAI</a>. 
-
-The following is an indicative list of examples. More tutorials can be found at <a href="https://pockerman-py-cubeai.readthedocs.io/en/latest/">CubeAI</a>.
+_cuberl_ is a C++ library containing implementations of various reinforcement learning, filtering and planning algorithms.
+The following is an indicative list of examples. 
  
 
 ## Examples
@@ -48,7 +45,18 @@ The following is an indicative list of examples. More tutorials can be found at 
 ## Installation
 
 The cubeai library has a host of dependencies:
-Installation instructions and dependencies can be found <a href="https://pockerman-py-cubeai.readthedocs.io/en/latest/install.html">here</a>.
+
+- A compiler that supports C++20 e.g. g++-11
+- <a href="https://www.boost.org/">Boost C++</a> 
+- <a href="https://cmake.org/">CMake</a> >= 3.6
+- <a href="https://eigen.tuxfamily.org/index.php?title=Main_Page">Eigen</a>
+- <a href="https://github.com/google/googletest">Gtest</a> (if configured with tests)
+
+In addition, the library also incorporates, see ```(include/cubeai/extern)```, the following libraries (you don't need to install these):
+
+- <a href="https://github.com/elnormous/HTTPRequest">HTTPRequest</a>
+- <a href="http://github.com/aantron/better-enums">better-enums</a>
+- <a href="https://github.com/nlohmann/json">nlohmann/json</a>
 
 ### Enabling PyTorch and CUDA
 
@@ -102,7 +110,7 @@ You may want to check with ```nvidia-msi``` your CUDA Version and make sure it i
 #### TypeError: Descriptors cannot be created directly.
 
 This issue may be occur when using the TensorBoardServer in _cuberl_.
-This issue  is related an issue with protobuf. See: https://stackoverflow.com/questions/72441758/typeerror-descriptors-cannot-not-be-created-directly for 
+This issue  is related with an issue with _protobuf_. See: https://stackoverflow.com/questions/72441758/typeerror-descriptors-cannot-not-be-created-directly for 
 possible solutions.
 
 

@@ -27,7 +27,8 @@ public:
     ///
     /// \brief Constructor
     ///
-    CSVWriter(const std::string& filename, char delim=CSVWriter::default_delimiter()); //, const std::ios_base::openmode mode=std::ios_base::out);
+    CSVWriter(	const std::string& filename, 
+				char delim=CSVWriter::default_delimiter()); 
 
     ///
     /// \brief Write the column names

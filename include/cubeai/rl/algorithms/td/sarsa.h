@@ -90,7 +90,8 @@ public:
     ///
     /// \brief actions_after_training_episode
     ///
-    virtual void actions_after_episode_ends(env_type&, uint_t /*episode_idx*/, const EpisodeInfo& /*einfo*/){}
+    virtual void actions_after_episode_ends(env_type&, uint_t /*episode_idx*/, 
+											const EpisodeInfo& /*einfo*/){}
 
     ///
     /// \brief on_episode Do one on_episode of the algorithm
@@ -130,7 +131,8 @@ private:
 
 
 template<envs::discrete_world_concept EnvTp, typename ActionSelector>
-SarsaSolver<EnvTp, ActionSelector>::SarsaSolver(SarsaConfig config, const ActionSelector& selector)
+SarsaSolver<EnvTp, ActionSelector>::SarsaSolver(SarsaConfig config, 
+												const ActionSelector& selector)
     :
       TDAlgoBase<EnvTp>(),
       config_(config),
@@ -213,7 +215,7 @@ SarsaSolver<EnvTp, ActionSelector>::on_training_episode(env_type& env, uint_t ep
 
 template<envs::discrete_world_concept EnvTp, typename ActionSelector>
 void
-SarsaSolver<EnvTp, ActionSelector>::save(std::string filename)const{
+SarsaSolver<EnvTp, ActionSelector>::save(std::string /*filename*/)const{
 
     /*CSVWriter file_writer(filename, ',', true);
     std::vector<std::string> col_names(1 + q_table_.cols());

@@ -184,19 +184,24 @@ with_double_q_table_mixin< DynMat<real_t>>::get<1>(const state_type& state, cons
 
 template<>
 with_double_q_table_mixin< DynMat<real_t>>::value_type
-with_double_q_table_mixin< DynMat<real_t>>::get<2>(const state_type& state, const action_type action)const{
+with_double_q_table_mixin< DynMat<real_t>>::get<2>(	const state_type& state, 
+													const action_type action)const{
     return q_table_2(state, action);
 }
 
 template<>
 void
-with_double_q_table_mixin< DynMat<real_t>>::set<1>(const state_type& state, const action_type action, const value_type value){
+with_double_q_table_mixin< DynMat<real_t>>::set<1>(	const state_type& state, 
+													const action_type action, 
+													const value_type value){
     q_table_1(state, action) = value;
 }
 
 template<>
 void
-with_double_q_table_mixin< DynMat<real_t>>::set<2>(const state_type& state, const action_type action, const value_type value){
+with_double_q_table_mixin< DynMat<real_t>>::set<2>(	const state_type& state, 
+													const action_type action, 
+													const value_type value){
     q_table_2(state, action) = value;
 }
 
@@ -246,7 +251,9 @@ struct with_double_q_table_mixin<std::map<KeyTp, DynVec<real_t>>>
 
 template<typename KeyTp>
 void
-with_double_q_table_mixin<std::map<KeyTp, DynVec<real_t>>>::initialize(const std::vector<index_type>& indices, action_type n_actions, real_t init_value){
+with_double_q_table_mixin<std::map<KeyTp, DynVec<real_t>>>::initialize(	const std::vector<index_type>& indices, 
+																		action_type n_actions, 
+																		real_t init_value){
 
 
     DynVec<real_t> init_vals(n_actions, init_value);
@@ -275,7 +282,9 @@ with_double_q_table_mixin<std::map<KeyTp, DynVec<real_t>>>::get(const state_type
 template<typename KeyTp>
 template<int index>
 void
-with_double_q_table_mixin<std::map<KeyTp, DynVec<real_t>>>::set(const state_type& state, const action_type action, const value_type value){
+with_double_q_table_mixin<std::map<KeyTp, DynVec<real_t>>>::set(const state_type& state, 
+																const action_type action, 
+																const value_type value){
 
     static_assert (index == 1 || index == 2, "Invalid index for template parameter");
 

@@ -6,6 +6,12 @@
 
 #include "cubeai/base/cubeai_types.h"
 #include "cubeai/base/cubeai_consts.h"
+#include "cubeai/base/cubeai_config.h"
+#include "cubeai/utils/torch_adaptor.h"
+
+#ifdef USE_PYTORCH
+#include <torch/torch.h>
+#endif
 
 #include <random>
 
@@ -37,6 +43,10 @@ public:
     template<typename MatType>
     uint_t operator()(const MatType& q_map, uint_t state_idx)const;
 
+#ifdef USE_PYTORCH
+    uint_t operator()(const torch_tensor_t& vec)const;
+#endif
+
     /**
      * @brief operator(). Given a vector always returns the position
      * of the maximum occuring element. If the given vector is empty returns
@@ -64,6 +74,18 @@ private:
      */
     mutable std::mt19937 generator_;
 };
+
+#ifdef USE_PYTORCH
+inline
+uint_t
+RandomTabularPolicy::operator()(const torch_tensor_t& vec)const{
+
+    auto vector = cubeai::torch_utils::TorchAdaptor::to_vector<real_t>(vec);
+    std::discrete_distribution<int> distribution(vector.begin(), vector.end());
+    return distribution(generator_);
+
+}
+#endif
 
 template<typename VecTp>
 uint_t
