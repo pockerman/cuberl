@@ -12,8 +12,8 @@
 
 namespace cubeai{
 namespace torch_utils {
-
-
+	
+	
 ///
 /// \brief create_mask. Create a mask from the given container. The
 /// contaier should contain values convertble to bool

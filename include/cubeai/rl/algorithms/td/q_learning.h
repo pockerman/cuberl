@@ -133,7 +133,8 @@ private:
 };
 
 template <envs::discrete_world_concept EnvTp, typename ActionSelector>
-QLearning<EnvTp, ActionSelector>::QLearning(const QLearningConfig config, const ActionSelector& selector)
+QLearning<EnvTp, ActionSelector>::QLearning(const QLearningConfig config, 
+											const ActionSelector& selector)
     :
       TDAlgoBase<EnvTp>(),
       config_(config),
@@ -224,7 +225,7 @@ QLearning<EnvTp, ActionSelector>::actions_after_episode_ends(env_type&, uint_t e
 
 template<envs::discrete_world_concept EnvTp, typename ActionSelector>
 void
-QLearning<EnvTp, ActionSelector>::save(std::string filename)const{
+QLearning<EnvTp, ActionSelector>::save(std::string /*filename*/)const{
 
     /*CSVWriter file_writer(filename, ',', true);
     std::vector<std::string> col_names(1 + q_table_.columns());
@@ -247,7 +248,8 @@ QLearning<EnvTp, ActionSelector>::save(std::string filename)const{
 template <envs::discrete_world_concept EnvTp, typename ActionSelector>
 void
 QLearning<EnvTp, ActionSelector>::update_q_table_(const action_type& action, const state_type& cstate,
-                                                       const state_type& next_state, const  action_type& /*next_action*/, real_t reward){
+												  const state_type& next_state, 
+												  const  action_type& /*next_action*/, real_t reward){
 
     auto q_current = q_table_(cstate, action);
     auto q_next = next_state != CubeAIConsts::invalid_size_type() ? cubeai::maths::get_row_max(q_table_, next_state) : 0.0;

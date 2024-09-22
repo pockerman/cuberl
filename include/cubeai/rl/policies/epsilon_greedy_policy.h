@@ -69,7 +69,10 @@ public:
     uint_t operator()(const VecType& vec)const;
 
 #ifdef USE_PYTORCH
-    uint_t operator()(const torch_tensor_t& vec)const;
+    uint_t operator()(const torch_tensor_t& vec, torch_tensor_value_type<real_t>)const;
+	uint_t operator()(const torch_tensor_t& vec, torch_tensor_value_type<float_t>)const;
+	uint_t operator()(const torch_tensor_t& vec, torch_tensor_value_type<int_t>)const;
+	uint_t operator()(const torch_tensor_t& vec, torch_tensor_value_type<lint_t>)const;
 #endif
 
 
@@ -89,6 +92,12 @@ public:
      * @brief Returns the value of the epsilon
      * */
     real_t eps_value()const noexcept{return eps_;}
+	
+	/**
+	 * @brief Set the epsilon value
+	 * @param eps
+	 */
+	void set_eps_value(real_t eps);
 
 
     /**
@@ -151,25 +160,6 @@ EpsilonGreedyPolicy::EpsilonGreedyPolicy(real_t eps, uint_t seed)
                         eps, eps, eps)
 {}
 
-
-#ifdef USE_PYTORCH
-uint_t
-EpsilonGreedyPolicy::operator()(const torch_tensor_t& vector)const{
-
-     auto vec = cubeai::torch_utils::TorchAdaptor::to_vector<real_t>(vector);
-
-     std::uniform_real_distribution<> real_dist_(0.0, 1.0);
-
-    if(real_dist_(generator_) > eps_){
-        // select greedy action with probability 1 - epsilon
-        return max_policy_(vec);
-    }
-
-    // else select a random action
-    return random_policy_(vec);
-
-}
-#endif
 
 template<typename VecType>
 uint_t

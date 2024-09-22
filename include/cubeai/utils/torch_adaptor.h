@@ -21,15 +21,23 @@ struct TorchAdaptor{
 
 
     typedef torch_tensor_t value_type;
+	
+	static value_type to_torch(const std::vector<real_t>& data, DeviceType type=DeviceType::CPU);
+	static value_type to_torch(const std::vector<float_t>& data, DeviceType type=DeviceType::CPU);
+	static value_type to_torch(const std::vector<int_t>& data, DeviceType type=DeviceType::CPU);
+	static value_type to_torch(const std::vector<lint_t>& data, DeviceType type=DeviceType::CPU);
+
+    template<typename T>
+    static std::vector<T> to_vector(torch_tensor_t tensor);
 
     torch_tensor_t operator()(real_t value)const;
     torch_tensor_t operator()(const std::vector<real_t>& data)const;
     torch_tensor_t operator()(const std::vector<int>& data)const;
 
-    value_type stack(const std::vector<value_type>& values)const;
+    value_type stack(const std::vector<value_type>& values, DeviceType type=DeviceType::CPU)const;
 
-    template<typename T>
-    static std::vector<T> to_vector(torch_tensor_t tensor);
+
+
 };
 
 }

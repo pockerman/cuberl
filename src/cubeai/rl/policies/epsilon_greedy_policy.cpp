@@ -5,6 +5,7 @@
 
 #ifdef CUBEAI_DEBUG
 #include <cassert>
+#include <boost/log/trivial.hpp>
 #endif
 
 #include <vector>
@@ -12,6 +13,72 @@
 namespace cubeai {
 namespace rl {
 namespace policies {
+	
+	
+#ifdef USE_PYTORCH
+    uint_t 
+	EpsilonGreedyPolicy::operator()(const torch_tensor_t& tensor, torch_tensor_value_type<real_t>)const{
+		
+		auto vec = cubeai::torch_utils::TorchAdaptor::to_vector<real_t>(tensor);
+
+		std::uniform_real_distribution<> real_dist_(0.0, 1.0);
+
+		if(real_dist_(generator_) > eps_){
+			// select greedy action with probability 1 - epsilon
+			return max_policy_(vec);
+		}
+
+		// else select a random action
+		return random_policy_(vec);
+		
+	}
+	uint_t 
+	EpsilonGreedyPolicy::operator()(const torch_tensor_t& tensor, torch_tensor_value_type<float_t>)const{
+		
+		auto vec = cubeai::torch_utils::TorchAdaptor::to_vector<float_t>(tensor);
+
+		std::uniform_real_distribution<> real_dist_(0.0, 1.0);
+
+		if(real_dist_(generator_) > eps_){
+			// select greedy action with probability 1 - epsilon
+			return max_policy_(vec);
+		}
+
+		// else select a random action
+		return random_policy_(vec);
+		
+	}
+	uint_t 
+	EpsilonGreedyPolicy::operator()(const torch_tensor_t& tensor, torch_tensor_value_type<int_t>)const{
+		
+		auto vec = cubeai::torch_utils::TorchAdaptor::to_vector<int_t>(tensor);
+
+		std::uniform_real_distribution<> real_dist_(0.0, 1.0);
+
+		if(real_dist_(generator_) > eps_){
+			// select greedy action with probability 1 - epsilon
+			return max_policy_(vec);
+		}
+
+		// else select a random action
+		return random_policy_(vec);
+		
+	}
+	uint_t 
+	EpsilonGreedyPolicy::operator()(const torch_tensor_t& tensor, torch_tensor_value_type<lint_t>)const{
+		auto vec = cubeai::torch_utils::TorchAdaptor::to_vector<lint_t>(tensor);
+
+		std::uniform_real_distribution<> real_dist_(0.0, 1.0);
+
+		if(real_dist_(generator_) > eps_){
+			// select greedy action with probability 1 - epsilon
+			return max_policy_(vec);
+		}
+
+		// else select a random action
+		return random_policy_(vec);
+	}
+#endif
 
 
 template<>
@@ -35,6 +102,28 @@ EpsilonGreedyPolicy::operator()(const std::vector<std::vector<real_t>>& mat,
 
     return (*this)(mat[state_idx]);
 
+}
+
+void 
+EpsilonGreedyPolicy::set_eps_value(real_t eps){
+	
+	if(decay_op_ != EpsilonDecayOption::NONE){
+#ifdef CUBEAI_DEBUG
+	BOOST_LOG_TRIVIAL(warning)<<"Epsilon is not update as you have set up a decay policy..."<<std::endl;
+#endif
+		return;
+	}
+	
+	// need to guard against zero etc
+	if(eps < min_eps_){
+		eps_ = min_eps_;
+	}
+	else if(eps > max_eps_){
+		eps_ = max_eps_;
+	}
+	else{
+		eps_ = eps;
+	}
 }
 
 void

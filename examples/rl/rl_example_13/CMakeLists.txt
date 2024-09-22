@@ -15,5 +15,5 @@ TARGET_LINK_LIBRARIES(${EXECUTABLE} pthread)
 TARGET_LINK_LIBRARIES(${EXECUTABLE} openblas)
 TARGET_LINK_LIBRARIES(${EXECUTABLE} rlenvscpplib)
 target_link_libraries(${EXECUTABLE} tbb)
-
+target_link_libraries(${EXECUTABLE} boost_log)
 

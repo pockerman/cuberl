@@ -307,9 +307,7 @@ A2CSolver<EnvType, PolicyType, CriticType>::on_training_episode(env_type& env, u
 
     auto start = std::chrono::steady_clock::now();
 
-    //uint_t itrs = 0;
     auto R = 0.0;
-
     auto eps_info = do_train_on_episode_(env, episode_idx);
 
     auto end = std::chrono::steady_clock::now();
