@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.6 FATAL_ERROR)
 
-SET(EXECUTABLE  rl_example_10)
+SET(EXECUTABLE  rl_example_12)
 SET(SOURCE ${EXECUTABLE}.cpp)
 
 ADD_EXECUTABLE(${EXECUTABLE} ${SOURCE})
@@ -16,3 +16,5 @@ TARGET_LINK_LIBRARIES(${EXECUTABLE} openblas)
 TARGET_LINK_LIBRARIES(${EXECUTABLE} rlenvscpplib)
 target_link_libraries(${EXECUTABLE} tbb)
 target_link_libraries(${EXECUTABLE} boost_log)
+
+

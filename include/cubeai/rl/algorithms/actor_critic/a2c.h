@@ -297,7 +297,7 @@ A2CSolver<EnvType, PolicyType, CriticType>::set_evaluation_mode()noexcept{
 
 template<typename EnvType, typename PolicyType, typename CriticType>
 void
-A2CSolver<EnvType, PolicyType, CriticType>::actions_before_training_begins(env_type& env){
+A2CSolver<EnvType, PolicyType, CriticType>::actions_before_training_begins(env_type& /*env*/){
     set_train_mode();
 }
 
@@ -307,9 +307,7 @@ A2CSolver<EnvType, PolicyType, CriticType>::on_training_episode(env_type& env, u
 
     auto start = std::chrono::steady_clock::now();
 
-    uint_t itrs = 0;
     auto R = 0.0;
-
     auto eps_info = do_train_on_episode_(env, episode_idx);
 
     auto end = std::chrono::steady_clock::now();
@@ -329,12 +327,12 @@ A2CSolver<EnvType, PolicyType, CriticType>::do_train_on_episode_(env_type& env, 
 
     auto episode_score = 0.0;
 
-    typedef torch_utils::TorchAdaptor::state_type state_type;
+    //typedef torch_utils::TorchAdaptor::state_type state_type;
     typedef torch_utils::TorchAdaptor::value_type value_type;
     typedef typename EnvType::time_step_type time_step_type;
 
-    typedef std::tuple<state_type,
-                       state_type,
+    typedef std::tuple<value_type,
+                       value_type,
                        real_t,
                        time_step_type,
                        std::map<std::string, std::any>> experience_type;

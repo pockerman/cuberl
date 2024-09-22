@@ -1,9 +1,14 @@
 #ifndef EPSILON_GREEDY_POLICY_H
 #define EPSILON_GREEDY_POLICY_H
 
+#include "cubeai/base/cubeai_config.h"
 #include "cubeai/base/cubeai_types.h"
 #include "cubeai/rl/policies/max_tabular_policy.h"
 #include "cubeai/rl/policies/random_tabular_policy.h"
+
+#ifdef USE_PYTORCH
+#include "cubeai/utils/torch_adaptor.h"
+#endif
 
 #include <random>
 #include <cmath>
@@ -56,11 +61,20 @@ public:
     template<typename MapType>
     uint_t operator()(const MapType& q_map, uint_t state)const;
 
+
     /**
      * @brief Get an action i.e. index from the given values
      */
     template<typename VecType>
     uint_t operator()(const VecType& vec)const;
+
+#ifdef USE_PYTORCH
+    uint_t operator()(const torch_tensor_t& vec, torch_tensor_value_type<real_t>)const;
+	uint_t operator()(const torch_tensor_t& vec, torch_tensor_value_type<float_t>)const;
+	uint_t operator()(const torch_tensor_t& vec, torch_tensor_value_type<int_t>)const;
+	uint_t operator()(const torch_tensor_t& vec, torch_tensor_value_type<lint_t>)const;
+#endif
+
 
 
     /**
@@ -78,6 +92,12 @@ public:
      * @brief Returns the value of the epsilon
      * */
     real_t eps_value()const noexcept{return eps_;}
+	
+	/**
+	 * @brief Set the epsilon value
+	 * @param eps
+	 */
+	void set_eps_value(real_t eps);
 
 
     /**

@@ -17,6 +17,55 @@
 
 namespace cubeai{
 namespace maths{
+	
+namespace detail_{
+	
+	template<typename T>
+	struct randomize_handler;
+	
+	template<>
+	struct randomize_handler<real_t>
+	{
+		template<typename VecType>
+		static void randomize_(VecType& v, real_t a, real_t b, uint_t seed);
+	};
+	
+	
+	template<typename VecType>
+	void
+	randomize_handler<real_t>::randomize_(VecType& v, real_t a, real_t b, uint_t seed){
+		
+		std::mt19937 generator(seed);
+		std::uniform_real_distribution<real_t> distribution(a, b);
+    
+		std::for_each(v.begin(),
+					  v.end(),
+					  [&](auto& val){
+						  val =  distribution(generator);
+					  });
+	}
+	
+	template<>
+	struct randomize_handler<float_t>
+	{
+		template<typename VecType>
+		static void randomize_(VecType& v, float_t a, float_t b, uint_t seed);
+	};
+	
+	template<typename VecType>
+	void
+	randomize_handler<float_t>::randomize_(VecType& v, float_t a, float_t b, uint_t seed){
+		
+		std::mt19937 generator(seed);
+		std::uniform_real_distribution<float_t> distribution(a, b);
+    
+		std::for_each(v.begin(),
+					  v.end(),
+					  [&](auto& val){
+						  val =  distribution(generator);
+					  });
+	}
+}
 
 /**
  * @brief mean Compute the mean value of the values in
@@ -101,6 +150,8 @@ choose_value(const Vec& vals, uint_t seed=42){
     return vals[rand_idx];
 }
 
+
+
 ///
 /// \brief Given a vector of intergal or floating point values
 /// and a set of values to choose from, randomize the entries ofv
@@ -113,6 +164,38 @@ randomize_vec(Vec& v, const Vec& walk_set, uint_t seed=42){
                       val +=  choose_value(walk_set, seed);
                   });
 
+}
+
+/**
+ * @brief Fill in the given vector with random values
+ * @param vec The vector to fill in
+ * @param seed The seed for the random engine
+ */
+template<typename T>
+std::vector<T>& 
+randomize(std::vector<T>& vec, T a, T b, uint_t seed=42){
+	detail_::randomize_handler<T>::randomize_(vec, a, b, seed);
+	return vec;
+}
+
+template<utils::concepts::float_or_integral_vector Vec>
+Vec& divide(Vec& v1, typename Vec::value_type val){
+	
+	// both vectors must have the same size
+	for(uint_t i=0; i<v1.size(); ++i){
+		v1[i] /= val;
+	}
+	return v1;
+}
+
+template<utils::concepts::float_or_integral_vector Vec>
+Vec& add(Vec& v1, const Vec& v2){
+	
+	// both vectors must have the same size
+	for(uint_t i=0; i<v1.size(); ++i){
+		v1[i] += v2[i];
+	}
+	return v1;
 }
 
 
@@ -294,7 +377,8 @@ extract_subvector(const std::vector<T>& vec, uint_t end, bool up_to=true){
 /// index. Sequence should be sorted
 ///
 template<typename SequenceTp>
-uint_t bin_index(const typename SequenceTp::value_type& x, const SequenceTp& sequence){
+uint_t 
+bin_index(const typename SequenceTp::value_type& x, const SequenceTp& sequence){
 
     if(sequence.size() <= 1){
         return CubeAIConsts::invalid_size_type();

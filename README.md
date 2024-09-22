@@ -29,6 +29,7 @@ The following is an indicative list of examples. More tutorials can be found at 
 - <a href="examples/rl/rl_example_9/rl_example_9.cpp">SARSA on ```CliffWalking-v0```</a>
 - <a href="examples/rl/rl_example_10/rl_example_10.cpp">Q-learning on ```CliffWalking-v0```</a>
 - <a href="examples/rl/rl_example_11/rl_example_11.md">A2C on ```CartPole-v1```</a>
+- <a href="examples/rl/rl_example_12/example_12.md">DQN on ```Gridworld```</a>
 - <a href="examples/rl/rl_example_12/example_12.cpp">DQN on ```CartPole-v0```</a>
 - <a href="examples/rl/rl_example_13/rl_example_13.cpp">REINFORCE algorithm on ```CartPole-v0```</a>
 - <a href="examples/rl/rl_example_14/rl_example_14.cpp">Expected SARSA on ```CliffWalking-v0```</a>
