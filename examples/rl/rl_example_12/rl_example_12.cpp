@@ -204,7 +204,11 @@ int main(){
 
 				// step in the environment
                 time_step = env.step(action_idx);
-                torch_state = state_to_torch_tensor(time_step.observation());
+				obs = flattened_observation(time_step.observation());
+				// randomize the flattened observation
+				obs = cubeai::maths::add(obs, rand_vec);
+				
+                torch_state = cubeai::torch_utils::TorchAdaptor::to_torch(obs, cubeai::DeviceType::CPU);
 
                 // tell the model that we don't use grad here
                 qnet->eval();
