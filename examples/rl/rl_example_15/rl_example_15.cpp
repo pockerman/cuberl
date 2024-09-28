@@ -14,6 +14,7 @@
 #include "cubeai/rl/policies/epsilon_greedy_policy.h"
 #include "cubeai/utils/torch_adaptor.h"
 #include "cubeai/maths/vector_math.h"
+#include "cubeai/data_structs/experience_buffer.h"
 #include "rlenvs/envs/grid_world/grid_world_env.h"
 
 #include <boost/log/trivial.hpp>
@@ -29,10 +30,8 @@
 
 namespace rl_example_12{
 
-const std::string EXPERIMENT_ID = "3";
-
-namespace F = torch::nn::functional;
-
+	namespace F = torch::nn::functional;
+	
 using cubeai::real_t;
 using cubeai::uint_t;
 using cubeai::float_t;
@@ -41,13 +40,18 @@ using cubeai::torch_tensor_t;
 using cubeai::rl::RLSerialAgentTrainer;
 using cubeai::rl::RLSerialTrainerConfig;
 using cubeai::rl::policies::EpsilonGreedyPolicy;
+using cubeai::containers::ExperienceBuffer;
 using rlenvs_cpp::envs::grid_world::Gridworld;
+
+	
+const std::string EXPERIMENT_ID = "1";
 
 const uint_t l1 = 64;
 const uint_t l2 = 150;
 const uint_t l3 = 100;
 const uint_t l4 = 4;
 const uint_t SEED = 42;
+const uint_t BATCH_SIZE = 200;
 const uint_t TOTAL_EPOCHS = 1000;
 const uint_t TOTAL_ITRS_PER_EPOCH = 50;
 const real_t GAMMA = 0.9;
@@ -101,6 +105,8 @@ TORCH_MODULE(QNet);
 
 // 4x4 grid
 typedef Gridworld<4> env_type;
+typedef env_type::time_step_type time_step_type;
+typedef ExperienceBuffer<time_step_type> experience_buffer_type;
 typedef env_type::state_type state_type;
 
 
@@ -204,7 +210,7 @@ int main(){
 
 				// step in the environment
                 time_step = env.step(action_idx);
-				obs = flattened_observation(time_step.observation());
+                obs = flattened_observation(time_step.observation());
 				// randomize the flattened observation
 				obs = cubeai::maths::add(obs, rand_vec);
 				

@@ -4,32 +4,23 @@
 #include "cubeai/base/cubeai_config.h"
 #include "cubeai/base/cubeai_types.h"
 
+#ifdef CUBEAI_DEBUG
+#include <cassert>
+#endif
+
 #include "boost/noncopyable.hpp"
 #include "boost/circular_buffer.hpp"
 
-
+#include <vector>
 #include <random>
 
 namespace cubeai{
 namespace containers {
 
-///
-/// \brief The Transition struct Default transition to use
-/// with the ExperienceBuffer
-///
-struct Transition
-{
-    uint_t state;
-    uint_t action;
-    uint_t next_state;
-    uint_t reward;
-
-};
-
 /**
   * @brief The ExperienceBuffer class. A buffer based on
   * boost::circular_buffer to accumulate items of type ExperienceType.
-  * see for example the A2C algorithm in A2C.h
+  * see for example the A2C algorithm in A2C.h and rl_example_15
   */
 template<typename ExperienceType>
 class ExperienceBuffer: private boost::noncopyable{
@@ -136,8 +127,33 @@ ExperienceBuffer<ExperienceTp>::append(const experience_type& experience){
 template<typename ExperienceTp>
 template<typename BatchTp>
 void
-ExperienceBuffer<ExperienceTp>::sample(uint_t batch_size, BatchTp& batch, uint_t seed)const{
-    throw std::logic_error("This function is not implemented!!!");
+ExperienceBuffer<ExperienceTp>::sample(uint_t batch_size, 
+									   BatchTp& batch, uint_t seed)const{
+			
+#ifdef CUBEAI_DEBUG							   
+	 assert(!empty() && "Cannot sample from an empty buffer");
+#endif
+
+	if(batch_size == 0){
+#ifdef CUBEAI_DEBUG							   
+	 assert(false && "Cannot sample with zero batch_size");
+#endif	
+
+	return;
+		
+	}
+										
+	// uniformly initialize weights 
+	std::vector<real_t> weights(size(), 1.0/static_cast<real_t>(size()));
+    std::discrete_distribution<uint_t> distribution(weights.begin(), weights.end());
+	
+	std::mt19937 generator(seed);
+	for(uint_t c=0; c < batch_size; ++c){
+		
+		auto idx = distribution(generator);
+		batch.push_back(buffer_[idx]);
+	}
+    
 }
 
 }

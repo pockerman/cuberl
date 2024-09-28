@@ -27,6 +27,7 @@ The following is an indicative list of examples.
 - <a href="examples/rl/rl_example_10/rl_example_10.cpp">Q-learning on ```CliffWalking-v0```</a>
 - <a href="examples/rl/rl_example_11/rl_example_11.md">A2C on ```CartPole-v1```</a>
 - <a href="examples/rl/rl_example_12/rl_example_12.md">DQN on ```Gridworld```</a>
+- <a href="examples/rl/rl_example_15/rl_example_15.md">DQN on ```Gridworld``` with experience replay</a>
 - <a href="examples/rl/rl_example_13/rl_example_13.cpp">REINFORCE algorithm on ```CartPole-v0```</a>
 - <a href="examples/rl/rl_example_14/rl_example_14.cpp">Expected SARSA on ```CliffWalking-v0```</a>
 - <a href="examples/example_15/example_15.cpp">Approximate Monte Carlo on ```MountainCar-v0```</a>

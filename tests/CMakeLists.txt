@@ -42,6 +42,7 @@ ADD_SUBDIRECTORY(test_policies/test_random_tabular_policy)
 ADD_SUBDIRECTORY(test_policies/test_epsilon_greedy_policy)
 ADD_SUBDIRECTORY(test_policies/test_softmax_policy)
 ADD_SUBDIRECTORY(test_maths/test_vector_math)
+ADD_SUBDIRECTORY(test_experience_buffer)
 
 #ADD_SUBDIRECTORY(test_array_utils)
 #ADD_SUBDIRECTORY(test_mc_tree_search)
@@ -50,4 +51,4 @@ ADD_SUBDIRECTORY(test_maths/test_vector_math)
 #ADD_SUBDIRECTORY(test_iteration_counter)
 #ADD_SUBDIRECTORY(test_fixed_priority_queue)
 #ADD_SUBDIRECTORY(test_a2c)
-#ADD_SUBDIRECTORY(test_experience_buffer)
+
