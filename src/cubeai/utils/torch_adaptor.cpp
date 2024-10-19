@@ -23,9 +23,6 @@ TorchAdaptor::to_torch(const std::vector<bool>& data, DeviceType dtype){
 		d[i] = data[i];
 	}
 	
-	
-    /*torch::Tensor d = torch::from_blob(	const_cast<bool*>(data.data()),
-										{static_cast<long int>(data.size())}, options).clone(); */
 	return d;
 }
 

@@ -209,7 +209,13 @@ int main(){
 		
 		experience_buffer_type experience_buffer(EXPERIENCE_BUFFER_SIZE);
 
-        // loop over the epochs
+
+		// hold random values
+		std::vector<float_t> rand_vec(64, 0.0);
+		float_t a = 0.0;
+		float_t b = 1.0;
+        
+		// loop over the epochs
         for(uint_t epoch=0; epoch < TOTAL_EPOCHS; ++epoch){
 
             BOOST_LOG_TRIVIAL(info)<<"Starting epoch: "<<epoch<<std::endl;
@@ -219,8 +225,8 @@ int main(){
             
 			uint_t step_counter = 0;
 			
-			std::vector<float_t> rand_vec(64, 0.0);
 			
+			// the loss associated with the epoch
 			std::vector<real_t> epoch_loss;
 			epoch_loss.reserve(TOTAL_ITRS_PER_EPOCH);
             
@@ -229,12 +235,11 @@ int main(){
 
 				auto obs1 = flattened_observation(time_step.observation());
 				
-				float_t a = 0.0;
-				float_t b = 1.0;
 				rand_vec = cubeai::maths::randomize(rand_vec, a, b, 64);
 				rand_vec = cubeai::maths::divide(rand_vec, 100.0);
 				
-				// randomize the flattened observation
+				// randomize the flattened observation by adding
+				// some noise
 				obs1 = maths::add(obs1, rand_vec);
 				auto torch_state_1 = torch_utils::TorchAdaptor::to_torch(obs1, 
 																		 DeviceType::CPU);
@@ -256,13 +261,15 @@ int main(){
 				rand_vec = cubeai::maths::divide(rand_vec, 100.0);
 				obs2 = maths::add(obs2, rand_vec);
 				
-				auto torch_state_2 = torch_utils::TorchAdaptor::to_torch(obs, 
+				auto torch_state_2 = torch_utils::TorchAdaptor::to_torch(obs2, 
 																		 DeviceType::CPU);
 																		 
 																		 
 				
+				experience_tuple_type exp = {obs1, action_idx, reward, obs2, step_finished}; 
+				
 				// put the observation into the buffer
-				experience_buffer.append({obs1, reward, obs2, step_finished});
+				experience_buffer.append(exp);
 				
 				// if we reach the batch size we will do
 				// a backward propagation
@@ -281,15 +288,15 @@ int main(){
 					auto reward_batch  = get<real_t, 2>(batch_sample);
 					auto done_batch    = get<bool, 4>(batch_sample);
 					
-					auto state_1_batch_t = torch_utils::TorchAdaptor::to_torch(state_1_batch, 
-					                                                           cubeai::DeviceType::CPU);
+					auto state_1_batch_t = torch_utils::TorchAdaptor::stack(state_1_batch, 
+																			cubeai::DeviceType::CPU);
 					auto q1 = qnet(state_1_batch_t);
 					
 					// tell the model that we don't use grad here
 					qnet->eval();
 					
-					auto state_2_batch_t = torch_utils::TorchAdaptor::to_torch(state_2_batch, 
-					                                                           cubeai::DeviceType::CPU);
+					auto state_2_batch_t = torch_utils::TorchAdaptor::stack(state_2_batch, 
+																			cubeai::DeviceType::CPU);
 					auto q2 = qnet(state_2_batch_t);
 				
 					// we are training again
@@ -301,8 +308,11 @@ int main(){
 																			  cubeai::DeviceType::CPU);
 					auto action_batch_t = torch_utils::TorchAdaptor::to_torch(action_batch, 
 																			  cubeai::DeviceType::CPU);
-					auto Y = reward_batch_t + GAMMA * ((1-done_batch_t) * torch::max(q2, 1)[0]);
-					auto X = q1.gather(1, action_batch_t.long().unsqueeze(1)).squeeze();
+															
+					auto state_max = torch::max(q2, 1);
+					auto state_max_val = std::get<0>(state_max);
+					auto Y = reward_batch_t + GAMMA * ((1-done_batch_t) * state_max_val);
+					auto X = q1.gather(1, action_batch_t.unsqueeze(1)).squeeze();
 					auto loss = loss_fn(X, Y.detach());
 					
 					optimizer_ptr -> zero_grad();

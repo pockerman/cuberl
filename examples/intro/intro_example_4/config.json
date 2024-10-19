@@ -1,9 +1,10 @@
 {
-"experiment_dict": "intro_example_2_experiments/",
-"experiment_id": "1",
-"input_size": 1,
-"output_size": 1,
-"num_epochs": 60,
+"input_size": 784,
+"num_classes": 10,
+"batch_size": 100,
+"num_epochs": 5,
 "lr":0.001,
-"log_path":"/home/alex/qi3/cuberl/examples/intro/intro_example_2/tsb_log"
+"train_data_path": "/home/alex/qi3/cuberl/data/MNIST/train",
+"test_data_path":"/home/alex/qi3/cuberl/data/MNIST/test",
+"seed":42
 }
