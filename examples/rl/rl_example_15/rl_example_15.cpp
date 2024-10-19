@@ -27,6 +27,7 @@
 #include <filesystem>
 #include <map>
 #include <vector>
+#include <tuple>
 
 namespace rl_example_12{
 
@@ -52,10 +53,11 @@ const uint_t l3 = 100;
 const uint_t l4 = 4;
 const uint_t SEED = 42;
 const uint_t BATCH_SIZE = 200;
+const uint_t EXPERIENCE_BUFFER_SIZE = 1000;
 const uint_t TOTAL_EPOCHS = 1000;
 const uint_t TOTAL_ITRS_PER_EPOCH = 50;
 const real_t GAMMA = 0.9;
-const real_t EPSILON = 1.0;
+const real_t EPSILON = 0.3;
 const real_t LEARNING_RATE = 1.0e-3;
 
 
@@ -106,7 +108,10 @@ TORCH_MODULE(QNet);
 // 4x4 grid
 typedef Gridworld<4> env_type;
 typedef env_type::time_step_type time_step_type;
-typedef ExperienceBuffer<time_step_type> experience_buffer_type;
+
+typedef std::tuple<std::vector<float_t>, uint_t, real_t, std::vector<float_t>, bool> experience_tuple_type;
+
+typedef ExperienceBuffer<experience_tuple_type> experience_buffer_type;
 typedef env_type::state_type state_type;
 
 
@@ -127,12 +132,32 @@ flattened_observation(const state_type& state){
 	return data;
 }
 
+template<typename T, uint_t index>
+std::vector<T> 
+get(const std::vector<experience_tuple_type>& experience){
+	
+	std::vector<T> result;
+	result.reserve(experience.size());
+	
+	auto b = experience.begin();
+	auto e = experience.end();
+	
+	for(; b != e; ++b){
+		auto item = *b;
+		result.push_back(std::get<index>(item));
+	}
+	
+	return result;
+	
+}
+
 }
 
 
 int main(){
 
     using namespace rl_example_12;
+	using namespace cubeai;
 
     try{
 
@@ -151,8 +176,12 @@ int main(){
         // create a 4x4 grid
         auto env = env_type();
 
-        std::unordered_map<std::string, std::any> options;
-        env.make("v1", options);
+        
+		// initialize the environment using random mode
+		std::unordered_map<std::string, std::any> options;
+        options["mode"] = std::any(rlenvs_cpp::envs::grid_world::to_string(rlenvs_cpp::envs::grid_world::GridWorldInitType::RANDOM));
+
+        env.make("v0", options);
 
         BOOST_LOG_TRIVIAL(info)<<"Done...";
         BOOST_LOG_TRIVIAL(info)<<"Environment name: "<<env.name;
@@ -169,13 +198,16 @@ int main(){
         // we will use an epsilon-greedy policy
         EpsilonGreedyPolicy policy(	EPSILON, 
 									SEED, 
-									cubeai::rl::policies::EpsilonDecayOption::NONE);
+									rl::policies::EpsilonDecayOption::NONE);
 
         // the loss function to use
         auto loss_fn = torch::nn::MSELoss();
 
+		// track the average loss per epoch
         std::vector<real_t> losses;
         losses.reserve(TOTAL_EPOCHS);
+		
+		experience_buffer_type experience_buffer(EXPERIENCE_BUFFER_SIZE);
 
         // loop over the epochs
         for(uint_t epoch=0; epoch < TOTAL_EPOCHS; ++epoch){
@@ -184,87 +216,125 @@ int main(){
 
             // for every new epoch we reset the environment
             auto time_step = env.reset();
-            auto done = false;
+            
 			uint_t step_counter = 0;
-			std::vector<real_t> epoch_loss;
+			
 			std::vector<float_t> rand_vec(64, 0.0);
+			
+			std::vector<real_t> epoch_loss;
 			epoch_loss.reserve(TOTAL_ITRS_PER_EPOCH);
-            while(!done){
+            
+			auto done = false;
+			while(!done){
 
-				auto obs = flattened_observation(time_step.observation());
+				auto obs1 = flattened_observation(time_step.observation());
 				
 				float_t a = 0.0;
 				float_t b = 1.0;
 				rand_vec = cubeai::maths::randomize(rand_vec, a, b, 64);
-				rand_vec = cubeai::maths::divide(rand_vec, 10.0);
+				rand_vec = cubeai::maths::divide(rand_vec, 100.0);
 				
 				// randomize the flattened observation
-				obs = cubeai::maths::add(obs, rand_vec);
-				auto torch_state = cubeai::torch_utils::TorchAdaptor::to_torch(obs, cubeai::DeviceType::CPU);
+				obs1 = maths::add(obs1, rand_vec);
+				auto torch_state_1 = torch_utils::TorchAdaptor::to_torch(obs1, 
+																		 DeviceType::CPU);
                 
                 // get the qvals
-                auto qvals = qnet(torch_state);
-                auto action_idx = policy(qvals, cubeai::torch_tensor_value_type<float_t>());
+                auto qvals = qnet(torch_state_1);
+                auto action_idx = policy(qvals, 
+				                         cubeai::torch_tensor_value_type<float_t>());
 				
 				BOOST_LOG_TRIVIAL(info)<<"Action selected: "<<action_idx<<std::endl;
 
 				// step in the environment
                 time_step = env.step(action_idx);
-                obs = flattened_observation(time_step.observation());
-				// randomize the flattened observation
-				obs = cubeai::maths::add(obs, rand_vec);
+				auto reward = time_step.reward();
+				auto step_finished = time_step.done();
 				
-                torch_state = cubeai::torch_utils::TorchAdaptor::to_torch(obs, cubeai::DeviceType::CPU);
-
-                // tell the model that we don't use grad here
-                qnet->eval();
-                auto new_q_vals = qnet(torch_state);
+				auto obs2 = flattened_observation(time_step.observation());
+				rand_vec = cubeai::maths::randomize(rand_vec, a, b, 64);
+				rand_vec = cubeai::maths::divide(rand_vec, 100.0);
+				obs2 = maths::add(obs2, rand_vec);
 				
-				// we are training again
-				qnet->train();
-
-                // find the maximum
-                auto max_q = torch::max(new_q_vals);
-                auto reward = time_step.reward();
+				auto torch_state_2 = torch_utils::TorchAdaptor::to_torch(obs, 
+																		 DeviceType::CPU);
+																		 
+																		 
 				
-				BOOST_LOG_TRIVIAL(info)<<"Reward: "<<reward;
+				// put the observation into the buffer
+				experience_buffer.append({obs1, reward, obs2, step_finished});
+				
+				// if we reach the batch size we will do
+				// a backward propagation
+				if(experience_buffer.size() >= BATCH_SIZE){
+					
+					std::vector<experience_tuple_type> batch_sample;
+					batch_sample.reserve(BATCH_SIZE);
+					
+					// sample from the experience 
+					experience_buffer.sample(BATCH_SIZE, batch_sample, SEED);
+					
+					// stack the experiences
+					auto state_1_batch = get<std::vector<float_t>, 0>(batch_sample);
+					auto action_batch  = get<int_t, 1>(batch_sample);
+					auto state_2_batch = get<std::vector<float_t>, 3>(batch_sample);
+					auto reward_batch  = get<real_t, 2>(batch_sample);
+					auto done_batch    = get<bool, 4>(batch_sample);
+					
+					auto state_1_batch_t = torch_utils::TorchAdaptor::to_torch(state_1_batch, 
+					                                                           cubeai::DeviceType::CPU);
+					auto q1 = qnet(state_1_batch_t);
+					
+					// tell the model that we don't use grad here
+					qnet->eval();
+					
+					auto state_2_batch_t = torch_utils::TorchAdaptor::to_torch(state_2_batch, 
+					                                                           cubeai::DeviceType::CPU);
+					auto q2 = qnet(state_2_batch_t);
+				
+					// we are training again
+					qnet->train();
+					
+					auto reward_batch_t = torch_utils::TorchAdaptor::to_torch(reward_batch, 
+																			  cubeai::DeviceType::CPU);
+					auto done_batch_t = torch_utils::TorchAdaptor::to_torch(done_batch, 
+																			  cubeai::DeviceType::CPU);
+					auto action_batch_t = torch_utils::TorchAdaptor::to_torch(action_batch, 
+																			  cubeai::DeviceType::CPU);
+					auto Y = reward_batch_t + GAMMA * ((1-done_batch_t) * torch::max(q2, 1)[0]);
+					auto X = q1.gather(1, action_batch_t.long().unsqueeze(1)).squeeze();
+					auto loss = loss_fn(X, Y.detach());
+					
+					optimizer_ptr -> zero_grad();
+					loss.backward();
+					optimizer_ptr -> step();
+					
+					BOOST_LOG_TRIVIAL(info)<<"Loss at epoch: "<<loss.item<real_t>();
+					epoch_loss.push_back(loss.item<real_t>());
+					
+				}
+				
+				step_counter += 1;
 				
 				// update done
 				done = time_step.done();
 				
-				if(done){ //#Q
+				if(done || step_counter > TOTAL_ITRS_PER_EPOCH){ //#Q
 					//done = true;
 					BOOST_LOG_TRIVIAL(info)<<"Reward: "<<reward;
 					BOOST_LOG_TRIVIAL(info)<<"Finishing epoch at step: "<<step_counter;
+					step_counter = 0;
 				}
-				
-					
-                auto y = torch::tensor({reward});
-                if(reward == -1.0){
-                    y +=  max_q * GAMMA;
-                }
-
-                // the target according to Qvals
-                auto X = torch::tensor({qvals.squeeze()[action_idx].item<float_t>()});
-				
-                // calculate the loss
-                auto loss = loss_fn(X, y); 
-                optimizer_ptr -> zero_grad();
-                optimizer_ptr -> step();
-
-                BOOST_LOG_TRIVIAL(info)<<"Loss at epoch: "<<loss.item<real_t>();
-                epoch_loss.push_back(loss.item<real_t>());
-				step_counter += 1;
             }
 
             BOOST_LOG_TRIVIAL(info)<<"Epoch finished...";
 			
 			// get the epsilon
-			auto eps = policy.eps_value();
+			/*auto eps = policy.eps_value();
 			if(eps > 0.1){
 				eps -= 1/static_cast<real_t>(TOTAL_EPOCHS);
 				policy.set_eps_value(eps);
-			}
+			}*/
 			
 			losses.push_back(cubeai::maths::mean(epoch_loss.begin(),
 													epoch_loss.end()));
