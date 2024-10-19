@@ -1,91 +1,159 @@
+#include "cubeai/base/cubeai_config.h"
+
+#if defined(USE_PYTORCH)
+
 #include "cubeai/base/cubeai_types.h"
+#include "cubeai/utils/iteration_counter.h"
+#include "cubeai/io/json_file_reader.h"
+#include "cubeai/io/tensorboard_server.h"
 
+#include <torch/torch.h>
+#include <boost/log/trivial.hpp>
 
-#include <cmath>
-#include <utility>
-#include <tuple>
-#include <iostream>
 #include <random>
-#include <algorithm>
+#include <filesystem>
+#include <string>
 
-namespace exe
+namespace intro_example_4
 {
 
 using cubeai::real_t;
 using cubeai::uint_t;
-using cubeai::DynMat;
-using cubeai::DynVec;
+using cubeai::io::JSONFileReader;
+using cubeai::io::TensorboardServer;
+using cubeai::utils::IterationCounter;
 
-// create transition matrix
-DynMat<real_t> create_transition_matrix(){
-    return DynMat<real_t>({{0.9, 0.1}, {0.5, 0.5}});
-}
-
-// create transition matrix
-DynMat<real_t>
-compute_matrix_power(const DynMat<real_t>& mat, uint_t power ){
-
-    auto result = mat;
-
-    for(uint i=0; i<power - 1; ++i){
-        result *= mat;
-    }
-
-    return result;
-}
-
-void print_matrix(const DynMat<real_t>& mat){
-    std::cout<<"["<<mat(0, 0)<<" , "<<mat(0, 1)<<"]"<<std::endl;
-    std::cout<<"["<<mat(1, 0)<<" , "<<mat(1, 1)<<"]"<<std::endl;
-}
+namespace fs = std::filesystem;
+const std::string CONFIG = "config.json";
 
 }
 
 int main() {
 
-    using namespace exe;
+    using namespace intro_example_4;
 
-    auto transition = create_transition_matrix();
+    try{
 
-    std::cout<<"After 3 steps..."<<std::endl;
-    // after 3 steps
-    auto t_3 = compute_matrix_power(transition, 3 );
-    print_matrix(t_3);
+      // load the json configuration
+      JSONFileReader json_reader(CONFIG);
+      json_reader.open();
 
-    std::cout<<"After 50 steps..."<<std::endl;
-    // after 3 steps
-    auto t_50 = compute_matrix_power(transition, 50 );
-    print_matrix(t_50);
-
-    std::cout<<"After 100 steps..."<<std::endl;
-
-    // after 3 steps
-    auto t_100 = compute_matrix_power(transition, 100 );
-    print_matrix(t_100);
-
-    // initial vector
-    auto v1 = DynVec<real_t>(2);
-    v1[0] = 1.0;
-    v1[1] = 0.0;
-
-    // We can calculate the probability of being
-    // in a specific state after k iterations multiplying
-    // the initial distribution and the transition matrix: v⋅Tk.
-
-    std::cout<<"v_3="<<v1.transpose() * t_3<<std::endl;
-    std::cout<<"v_50="<<v1.transpose() * t_50<<std::endl;
-    std::cout<<"v_100="<<v1.transpose() * t_100<<std::endl;
-
-    // initial vector
-    v1[0] = 0.5;
-    v1[1] = 0.5;
-
-    std::cout<<"v_3="<<v1.transpose() * t_3<<std::endl;
-    std::cout<<"v_50="<<v1.transpose() * t_50<<std::endl;
-    std::cout<<"v_100="<<v1.transpose() * t_100<<std::endl;
+      auto experiment_dict = json_reader.template get_value<std::string>("experiment_dict");
+      auto experiment_id = json_reader.template get_value<std::string>("experiment_id");
 
 
+      BOOST_LOG_TRIVIAL(info)<<"Experiment directory: "<<experiment_dict;
+      BOOST_LOG_TRIVIAL(info)<<"Experiment id: "<<experiment_id<<std::endl;
+
+      const fs::path EXPERIMENT_DIR_PATH = experiment_dict + experiment_id;
+
+      // the first thing we want to do when monitoring experiments
+      // is to create a directory where all data will reside
+      std::filesystem::create_directories(experiment_dict + experiment_id);
+
+      const auto input_size = json_reader.template get_value<uint_t>("input_size");
+      const auto output_size = json_reader.template get_value<uint_t>("output_size");
+      const auto num_epochs = json_reader.template get_value<uint_t>("num_epochs");
+      const auto learning_rate = json_reader.template get_value<real_t>("lr");
+      auto log_path = json_reader.template get_value<std::string>("log_path");
+
+      // log the hyperparameters
+      BOOST_LOG_TRIVIAL(info)<<"Input size: "<<input_size;
+      BOOST_LOG_TRIVIAL(info)<<"Output size: "<<output_size;
+      BOOST_LOG_TRIVIAL(info)<<"Max epochs: "<<num_epochs;
+      BOOST_LOG_TRIVIAL(info)<<"Learning rate: "<<learning_rate;
+
+      // figure out the device we are using
+      auto cuda_available = torch::cuda::is_available();
+      torch::Device device(cuda_available ? torch::kCUDA : torch::kCPU);
+      if(cuda_available){
+        BOOST_LOG_TRIVIAL(info)<<"CUDA available. Training on GPU "<<std::endl;
+      }
+      else{
+        BOOST_LOG_TRIVIAL(info)<<"CUDA is not available. Training on CPU "<<std::endl;
+      }
+
+      torch::manual_seed(42);
+
+      // Sample dataset
+      auto x_train = torch::randint(0, 10, {15, 1},
+                                    torch::TensorOptions(torch::kFloat).device(device));
+
+      auto y_train = torch::randint(0, 10, {15, 1},
+                                    torch::TensorOptions(torch::kFloat).device(device));
+
+      // Linear regression model
+      torch::nn::Linear model(input_size, output_size);
+      model->to(device);
+
+      // Optimizer
+      torch::optim::SGD optimizer(model->parameters(),
+                                  torch::optim::SGDOptions(learning_rate));
+
+      TensorboardServer logger("http://0.0.0.0:8002");
+
+      BOOST_LOG_TRIVIAL(info)<<"Logging results at "<<logger.get_log_dir_path()<<std::endl;
+      logger.init(log_path);
+
+      logger.add_scalar("lr", learning_rate);
+      logger.add_scalar("seed", 42);
+      logger.add_scalar("num_epochs", num_epochs);
+      logger.add_text("optimizer", "torch::optim::SGD");
+      if(cuda_available){
+        logger.add_text("device", "GPU");
+      }
+      else{
+        logger.add_text("device", "CPU");
+      }
+
+      // Set floating point output precision
+      BOOST_LOG_TRIVIAL(info)<<"Start training...";
+
+      IterationCounter iteration_ctrl(num_epochs);
+      while(iteration_ctrl.continue_iterations()){
+
+        // Forward pass
+          auto output = model->forward(x_train);
+          auto loss = torch::nn::functional::mse_loss(output, y_train);
+
+          // Backward pass and optimize
+          optimizer.zero_grad();
+          loss.backward();
+          optimizer.step();
+
+          auto current_iteration = iteration_ctrl.current_iteration_index();
+          if ((current_iteration + 1) % 5 == 0) {
+            BOOST_LOG_TRIVIAL(info)<< "Epoch [" << (current_iteration + 1) << "/" << num_epochs <<"], Loss: " << loss.item<real_t>();
+            logger.add_scalar("Loss/Training", loss.item<real_t>());
+          }
+      }
+
+      BOOST_LOG_TRIVIAL(info)<<"Training is finished... ";
+
+      // let's also save the model
+      auto model_filename = std::string(EXPERIMENT_DIR_PATH) + std::string("/linear_regression_model.pth");
+      torch::save(model, model_filename);
+
+      logger.close();
+
+    }
+    catch(std::exception& e){
+        std::cout<<e.what()<<std::endl;
+    }
+    catch(...){
+
+        std::cout<<"Unknown exception occured"<<std::endl;
+    }
 
    return 0;
 }
+#else
+#include <iostream>
+int main(){
+
+    std::cout<<"This example requires PyTorch and gymfcpp. Reconfigure cuberl with USE_PYTORCH flags turned ON."<<std::endl;
+    return 0;
+}
+#endif
+
 

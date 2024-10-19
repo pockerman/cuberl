@@ -1,7 +1,17 @@
-/**
- * Use DQN on Gridworld
- *
- * */
+# EXample 15: DQN algorithm on Gridworld with experience replay
+
+In this example, we will train an agent so that it learns to navigate itself in a grid.
+Specifically, we will be using the ```Gridworld``` environmant from the book <a href="https://www.manning.com/books/deep-reinforcement-learning-in-action">Deep Reinforcement Learning in Action</a>.
+We have implemented this environment in <a herf="https://github.com/pockerman/rlenvs_from_cpp">rlenvs_from_cpp</a>; check the class <a href="https://github.com/pockerman/rlenvs_from_cpp/blob/master/src/rlenvs/envs/grid_world/grid_world_env.h">Gridworld</a>. 
+
+We will use the DQN algorithm, see <a href="https://www.manning.com/books/deep-reinforcement-learning-in-action">Deep Reinforcement Learning in Action</a> and references therein,
+in order to train our agent and we will TensorBoard to monitor the training. We will use a static environment configuration in this example something that makes this problem a lot easier to work on.
+
+We will code the same model as is done in the <a href="https://www.manning.com/books/deep-reinforcement-learning-in-action">Deep Reinforcement Learning in Action</a> book so you may also want to follow the code therein.
+
+## Driver code
+
+```
 #include "cubeai/base/cubeai_config.h"
 
 #if defined(USE_PYTORCH) && defined(USE_RLENVS_CPP)
@@ -204,11 +214,7 @@ int main(){
 
 				// step in the environment
                 time_step = env.step(action_idx);
-				obs = flattened_observation(time_step.observation());
-				// randomize the flattened observation
-				obs = cubeai::maths::add(obs, rand_vec);
-				
-                torch_state = cubeai::torch_utils::TorchAdaptor::to_torch(obs, cubeai::DeviceType::CPU);
+                torch_state = state_to_torch_tensor(time_step.observation());
 
                 // tell the model that we don't use grad here
                 qnet->eval();
@@ -244,9 +250,6 @@ int main(){
                 // calculate the loss
                 auto loss = loss_fn(X, y); 
                 optimizer_ptr -> zero_grad();
-				
-				loss.backward();
-				
                 optimizer_ptr -> step();
 
                 BOOST_LOG_TRIVIAL(info)<<"Loss at epoch: "<<loss.item<real_t>();
@@ -301,3 +304,44 @@ int main(){
     return 0;
 }
 #endif
+
+```
+
+Running the code above produces the following output:
+
+```
+[2024-09-22 15:21:59.327047] [0x00007f1454f2f000] [info]    Starting agent training...
+[2024-09-22 15:21:59.327062] [0x00007f1454f2f000] [info]    Numebr of episodes to trina: 1000
+[2024-09-22 15:22:00.527724] [0x00007f1454f2f000] [info]    Creating the environment...
+[2024-09-22 15:22:00.528006] [0x00007f1454f2f000] [info]    Done...
+[2024-09-22 15:22:00.528012] [0x00007f1454f2f000] [info]    Environment name: Gridworld
+[2024-09-22 15:22:00.528018] [0x00007f1454f2f000] [info]    Number of actions available: 4
+[2024-09-22 15:22:00.528022] [0x00007f1454f2f000] [info]    Number of states available: 16
+[2024-09-22 15:22:00.554437] [0x00007f1454f2f000] [info]    Starting epoch: 0
+
+[2024-09-22 15:22:00.599219] [0x00007f1454f2f000] [info]    Action selected: 3
+
+[2024-09-22 15:22:00.601347] [0x00007f1454f2f000] [info]    Reward: -1
+[2024-09-22 15:22:00.607770] [0x00007f1454f2f000] [info]    Loss at epoch: 1.02671
+[2024-09-22 15:22:00.608588] [0x00007f1454f2f000] [info]    Action selected: 2
+
+[2024-09-22 15:22:00.608693] [0x00007f1454f2f000] [info]    Reward: -1
+[2024-09-22 15:22:00.608754] [0x00007f1454f2f000] [info]    Loss at epoch: 0.989844
+[2024-09-22 15:22:00.608844] [0x00007f1454f2f000] [info]    Action selected: 3
+
+[2024-09-22 15:22:00.608925] [0x00007f1454f2f000] [info]    Reward: -1
+[2024-09-22 15:22:00.608974] [0x00007f1454f2f000] [info]    Loss at epoch: 1.01939
+[2024-09-22 15:22:00.609058] [0x00007f1454f2f000] [info]    Action selected: 3
+
+[2024-09-22 15:22:00.609138] [0x00007f1454f2f000] [info]    Reward: -1
+[2024-09-22 15:22:00.609183] [0x00007f1454f2f000] [info]    Loss at epoch: 1.02671
+[2024-09-22 15:22:00.609268] [0x00007f1454f2f000] [info]    Action selected: 2
+...
+```
+
+The average per epoch loss is shown in the figure below
+
+| ![average-per-epoch-loss](./average_loss.png) |
+|:--:|
+| **Figure: Average loss per epoch.**|
+

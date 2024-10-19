@@ -16,3 +16,6 @@ cd test_random_tabular_policy
 cd ..
 cd test_softmax_policy
 ./test_softmax_policy
+cd ..
+cd test_experience_buffer
+./test_experience_buffer

@@ -11,13 +11,27 @@ namespace cubeai{
 namespace torch_utils{
 
 	
+TorchAdaptor::value_type 
+TorchAdaptor::to_torch(const std::vector<bool>& data, DeviceType dtype){
+	
+	auto device_ =  dtype != DeviceType::CPU ? torch::kCUDA : torch::kCPU;
+	auto options = torch::TensorOptions().dtype(torch::kBool).device(device_);
+	
+	torch::Tensor d = torch::zeros(static_cast<long int>(data.size()), options);
+	
+	for(uint_t i=0; i < data.size(); ++i){
+		d[i] = data[i];
+	}
+	
+	return d;
+}
 
 TorchAdaptor::value_type 
 TorchAdaptor::to_torch(const std::vector<real_t>& data, DeviceType dtype){
 	auto device_ =  dtype != DeviceType::CPU ? torch::kCUDA : torch::kCPU;
 	auto options = torch::TensorOptions().dtype(torch::kFloat64).device(device_);
     torch::Tensor d = torch::from_blob(	const_cast<real_t*>(data.data()),
-										{static_cast<long int>(data.size())}, options).clone(); //(data);
+										{static_cast<long int>(data.size())}, options).clone(); 
 	return d;
 }
 
@@ -26,7 +40,7 @@ TorchAdaptor::to_torch(const std::vector<float_t>& data, DeviceType dtype){
 	auto device_ =  dtype != DeviceType::CPU ? torch::kCUDA : torch::kCPU;
 	auto options = torch::TensorOptions().dtype(torch::kFloat).device(device_);
     torch::Tensor d = torch::from_blob(	const_cast<float_t*>(data.data()),
-										{static_cast<long int>(data.size())}, options).clone(); //(data);
+										{static_cast<long int>(data.size())}, options).clone(); 
 	return d;
 }
 
@@ -36,7 +50,7 @@ TorchAdaptor::to_torch(const std::vector<int_t>& data, DeviceType dtype){
 	auto device_ =  dtype != DeviceType::CPU ? torch::kCUDA : torch::kCPU;
 	auto options = torch::TensorOptions().dtype(torch::kInt).device(device_);
     torch::Tensor d = torch::from_blob(	const_cast<int_t*>(data.data()),
-										{static_cast<long int>(data.size())}, options).clone(); //(data);
+										{static_cast<long int>(data.size())}, options).clone(); 
 	return d;
 }
 
@@ -46,8 +60,95 @@ TorchAdaptor::to_torch(const std::vector<lint_t>& data, DeviceType dtype){
 	auto device_ =  dtype != DeviceType::CPU ? torch::kCUDA : torch::kCPU;
 	auto options = torch::TensorOptions().dtype(torch::kLong).device(device_);
     torch::Tensor d = torch::from_blob(	const_cast<lint_t*>(data.data()),
-										{static_cast<long int>(data.size())}, options).clone(); //(data);
+										{static_cast<long int>(data.size())}, options).clone(); 
 	return d;
+}
+
+template<>
+TorchAdaptor::value_type 
+TorchAdaptor::stack(const std::vector<TorchAdaptor::value_type>& values, DeviceType dtype){
+	auto device_ =  dtype != DeviceType::CPU ? torch::kCUDA : torch::kCPU;
+    return torch::stack(values, 0).to(device_);
+}
+
+template<>
+TorchAdaptor::value_type 
+TorchAdaptor::stack(const std::vector<std::vector<real_t>>& values, DeviceType dtype){
+	
+	std::vector<TorchAdaptor::value_type> t_values;
+	t_values.reserve(values.size());
+	
+	for(auto& v:values){
+		TorchAdaptor::value_type t = TorchAdaptor::to_torch(v, dtype);
+		t_values.push_back(t);
+	}
+	
+	auto device_ =  dtype != DeviceType::CPU ? torch::kCUDA : torch::kCPU;
+    return torch::stack(t_values, 0).to(device_);
+}
+
+template<>
+TorchAdaptor::value_type 
+TorchAdaptor::stack(const std::vector<std::vector<float_t>>& values, DeviceType dtype){
+	
+	std::vector<TorchAdaptor::value_type> t_values;
+	t_values.reserve(values.size());
+	
+	for(auto& v:values){
+		TorchAdaptor::value_type t = TorchAdaptor::to_torch(v, dtype);
+		t_values.push_back(t);
+	}
+	
+	auto device_ =  dtype != DeviceType::CPU ? torch::kCUDA : torch::kCPU;
+    return torch::stack(t_values, 0).to(device_);
+}
+
+template<>
+TorchAdaptor::value_type 
+TorchAdaptor::stack(const std::vector<std::vector<lint_t>>& values, DeviceType dtype){
+	
+	std::vector<TorchAdaptor::value_type> t_values;
+	t_values.reserve(values.size());
+	
+	for(auto& v:values){
+		TorchAdaptor::value_type t = TorchAdaptor::to_torch(v, dtype);
+		t_values.push_back(t);
+	}
+	
+	auto device_ =  dtype != DeviceType::CPU ? torch::kCUDA : torch::kCPU;
+    return torch::stack(t_values, 0).to(device_);
+}
+
+template<>
+TorchAdaptor::value_type 
+TorchAdaptor::stack(const std::vector<std::vector<int_t>>& values, DeviceType dtype){
+	
+	std::vector<TorchAdaptor::value_type> t_values;
+	t_values.reserve(values.size());
+	
+	for(auto& v:values){
+		TorchAdaptor::value_type t = TorchAdaptor::to_torch(v, dtype);
+		t_values.push_back(t);
+	}
+	
+	auto device_ =  dtype != DeviceType::CPU ? torch::kCUDA : torch::kCPU;
+    return torch::stack(t_values, 0).to(device_);
+}
+
+template<>
+TorchAdaptor::value_type 
+TorchAdaptor::stack(const std::vector<std::vector<bool>>& values, DeviceType dtype){
+	
+	std::vector<TorchAdaptor::value_type> t_values;
+	t_values.reserve(values.size());
+	
+	for(auto& v:values){
+		TorchAdaptor::value_type t = TorchAdaptor::to_torch(v, dtype);
+		t_values.push_back(t);
+	}
+	
+	auto device_ =  dtype != DeviceType::CPU ? torch::kCUDA : torch::kCPU;
+    return torch::stack(t_values, 0).to(device_);
 }
 
 torch_tensor_t
@@ -64,6 +165,8 @@ torch_tensor_t
 TorchAdaptor::operator()(const std::vector<int>& data)const{
     return torch::tensor(data);
 };
+
+
 
 
 
