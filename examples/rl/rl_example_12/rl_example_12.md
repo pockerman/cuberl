@@ -12,6 +12,10 @@ We will code the same model as is done in the <a href="https://www.manning.com/b
 ## Driver code
 
 ```
+/**
+ * Use DQN on Gridworld
+ *
+ * */
 #include "cubeai/base/cubeai_config.h"
 
 #if defined(USE_PYTORCH) && defined(USE_RLENVS_CPP)
@@ -214,7 +218,11 @@ int main(){
 
 				// step in the environment
                 time_step = env.step(action_idx);
-                torch_state = state_to_torch_tensor(time_step.observation());
+				obs = flattened_observation(time_step.observation());
+				// randomize the flattened observation
+				obs = cubeai::maths::add(obs, rand_vec);
+				
+                torch_state = cubeai::torch_utils::TorchAdaptor::to_torch(obs, cubeai::DeviceType::CPU);
 
                 // tell the model that we don't use grad here
                 qnet->eval();
@@ -250,6 +258,9 @@ int main(){
                 // calculate the loss
                 auto loss = loss_fn(X, y); 
                 optimizer_ptr -> zero_grad();
+				
+				loss.backward();
+				
                 optimizer_ptr -> step();
 
                 BOOST_LOG_TRIVIAL(info)<<"Loss at epoch: "<<loss.item<real_t>();

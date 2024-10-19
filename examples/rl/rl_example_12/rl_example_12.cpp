@@ -244,6 +244,9 @@ int main(){
                 // calculate the loss
                 auto loss = loss_fn(X, y); 
                 optimizer_ptr -> zero_grad();
+				
+				loss.backward();
+				
                 optimizer_ptr -> step();
 
                 BOOST_LOG_TRIVIAL(info)<<"Loss at epoch: "<<loss.item<real_t>();
