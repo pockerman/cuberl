@@ -1,4 +1,4 @@
-name: CMake
+name: build-cuberl 
 
 on:
   push:
@@ -19,15 +19,14 @@ jobs:
 
     steps:
 
-    - name: Add universe repository
-      run: sudo add-apt-repository universe
-    - name: Update universe
-      run: sudo apt-get update
-    - name: Install Boost
-      run: sudo apt-get install libboost-dev-all
-
+    - name: Set up boost
+	  shell: bash
+	  run: |
+		echo "Installing libboost-dev-all"
+		apt install libboost-dev-all
+		
     - name: Checkout repository
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Configure CMake
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
@@ -35,8 +34,13 @@ jobs:
       run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
 
     - name: Build
+	  shell: bash
+	  run: |
+		mkdir build && cd build
+		cmake ..
+		make install
       # Build your program with the given configuration
-      run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
+      #run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
 
     - name: Test
       working-directory: ${{github.workspace}}/build
