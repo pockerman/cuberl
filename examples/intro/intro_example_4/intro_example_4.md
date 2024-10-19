@@ -1,6 +1,6 @@
 # Example 4:  Using PyTorch C++ API Part 3
 
-Example 2 showed you how to create a simple PyTorch model for linear regression.
+Example 3 showed you how to create a simple PyTorch model for linear regression.
 However, we did so by utilzing _torch::nn::Linear_. In this example,
 we want to go a step further and see how to build our own models.
 If you have used PyTorch with Python you will see that the process is

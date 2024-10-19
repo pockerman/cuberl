@@ -72,12 +72,8 @@ int main() {
    
   }
   
-  
-  
+  // create a tensor of shape 2x4 filled with ones
   std::cout << torch::ones({2, 4})<< std::endl;
-  
-  
-  
   
   return 0;
 
