@@ -1,13 +1,16 @@
 # EXample 1: Kalman filtering
 
-In this example, we will train an agent so that it learns to navigate itself in a grid.
-Specifically, we will be using the ```Gridworld``` environmant from the book <a href="https://www.manning.com/books/deep-reinforcement-learning-in-action">Deep Reinforcement Learning in Action</a>.
-We have implemented this environment in <a herf="https://github.com/pockerman/rlenvs_from_cpp">rlenvs_from_cpp</a>; check the class <a href="https://github.com/pockerman/rlenvs_from_cpp/blob/master/src/rlenvs/envs/grid_world/grid_world_env.h">Gridworld</a>. 
+In this example we will the ```KalmaFilter``` class in order to estimate the state
+of simple mobile robot. The example is taken from <a href="https://github.com/AtsushiSakai/PythonRobotics">PythonRobotics</a>.
+In particular, we will implement the example in <a href="https://atsushisakai.github.io/PythonRobotics/modules/localization/extended_kalman_filter_localization_files/extended_kalman_filter_localization.html#id3">Extended Kalman Filter Localization</a>.
+However, we will be using Kalman filtering instead of the extended Kalman filter.
 
-We will use the DQN algorithm, see <a href="https://www.manning.com/books/deep-reinforcement-learning-in-action">Deep Reinforcement Learning in Action</a> and references therein,
-in order to train our agent and we will TensorBoard to monitor the training. We will use a static environment configuration in this example something that makes this problem a lot easier to work on.
+In the simulation below the state of the is described by four variables. 
+The 2D position ```p=(x,y)```, the orientation ```phi! and the velocity ```v```.
 
-We will code the same model as is done in the <a href="https://www.manning.com/books/deep-reinforcement-learning-in-action">Deep Reinforcement Learning in Action</a> book so you may also want to follow the code therein.
+We will assume that the robot has a speed and a gyro sensors. Hence at each time step the input will be 
+a 2D vector describing the velocity and the angular velocity. In addition, the robot has a GNSS sensor providing 
+information about the positionof the robot. 
 
 ## Driver code
 
