@@ -14,6 +14,8 @@
 #include <random>
 #include <iterator>
 #include <iostream>
+#include <stdexcept>
+	
 
 namespace cubeai{
 namespace maths{
@@ -67,6 +69,48 @@ namespace detail_{
 	}
 }
 
+template<typename IteratorType>
+typename std::iterator_traits<IteratorType>::value_type
+dot_product(IteratorType bv1, IteratorType ev1, 
+            IteratorType bv2, IteratorType ev2) {
+
+	typedef typename std::iterator_traits<IteratorType>::value_type	value_type;
+	
+	auto size1_ = std::distance(bv1, ev1);
+	auto size2_ = std::distance(bv2, ev2);
+	
+	if(size1_ != size2_){
+		throw std::logic_error("Sizes not equal. Cannot compute dot product of vectors with no equal sizes");
+	}
+	
+	value_type sum_ = value_type(0);
+	
+	for(; bv1 != ev1; ++bv1, ++bv2){
+		sum_ += (*bv1) * (*bv2); 
+	}
+				
+	return sum_
+				
+}
+
+template<typename IteratorType>
+typename std::iterator_traits<IteratorType>::value_type
+sum(IteratorType begin, IteratorType end, bool parallel=true){
+
+	typedef typename std::iterator_traits<IteratorType>::value_type	value_type;
+    value_type sum_ = value_type(0);
+	
+    if(parallel){
+      sum_   = std::reduce(std::execution::par, begin, end, sum_);
+    }
+    else{
+        sum_ = std::accumulate(begin, end, sum_);
+    }
+
+    return sum_; 
+
+}
+
 /**
  * @brief mean Compute the mean value of the values in
  * the provided iterator range
@@ -76,15 +120,8 @@ template<typename IteratorType>
 real_t
 mean(IteratorType begin, IteratorType end, bool parallel=true){
 
-    auto sum = 0.0;
-    if(parallel){
-      sum   = std::reduce(std::execution::par, begin, end, sum);
-    }
-    else{
-        sum = std::accumulate(begin, end, sum);
-    }
-
-    return sum / static_cast<real_t>(std::distance(begin, end));
+    auto sum_ = sum(begin, end, parallel);
+    return sum_ / static_cast<real_t>(std::distance(begin, end));
 
 }
 

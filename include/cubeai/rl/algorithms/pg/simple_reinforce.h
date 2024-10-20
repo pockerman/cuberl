@@ -47,6 +47,20 @@ struct ReinforceConfig
     std::ostream& print(std::ostream& out)const;
 };
 
+
+struct ReinforceMonitor
+{
+	
+	/// monitor 
+    std::vector<real_t> scores;
+    std::deque<real_t> scores_deque;
+    std::vector<real_t> saved_log_probs;
+    std::vector<real_t> rewards;
+	
+	
+	void reset()noexcept;
+};
+
 inline
 std::ostream& operator<<(std::ostream& out, ReinforceConfig opts){
     return opts.print(out);
@@ -58,18 +72,20 @@ std::ostream& operator<<(std::ostream& out, ReinforceConfig opts){
   * on the environment represented by the EnvType parameter
   *
   */
-template<typename EnvType, typename PolicyType>
+template<typename EnvType, typename PolicyType, typename LossFuncType>
 class ReinforceSolver final: public RLSolverBase<EnvType>
 {
 public:
 
     typedef EnvType env_type;
     typedef PolicyType policy_type;
+	typedef LossFuncType loss_type;
 
     ///
     /// \brief Reinforce
     ///
     ReinforceSolver(ReinforceConfig opts, policy_type& policy,
+	                loss_type& loss_fn,
                     std::unique_ptr<torch::optim::Optimizer>& policy_optimizer);
 
     ///
@@ -100,17 +116,12 @@ public:
     ///
     virtual EpisodeInfo on_training_episode(env_type&, uint_t /*episode_idx*/);
 
-    ///
-    ///
-    ///
-    std::vector<torch::Tensor> parameters(bool recurse = true) const{return policy_ptr_ -> parameters(recurse);}
-
 
     ///
     /// \brief compute_loss
     /// \return
     ///
-    torch_tensor_t compute_loss(){return policy_ptr_->compute_loss();}
+    //torch_tensor_t compute_loss(){return policy_ptr_->compute_loss();}
 
 
 private:
@@ -125,7 +136,12 @@ private:
     /// \brief policy_ptr_
     ///
     policy_type policy_ptr_;
-
+	
+	///
+	/// \brief The loss function
+	///
+	loss_type loss_fn_;
+	
     /**
      * @brief The policy_ optimzer
      */
@@ -136,16 +152,15 @@ private:
     ///
     real_t exit_score_level_;
 
-
-    std::vector<real_t> scores_;
-    std::deque<real_t> scores_deque_;
-    std::vector<real_t> saved_log_probs_;
-    std::vector<real_t> rewards_;
+	///
+	/// \brief Helper class to monitor the algorithm
+	///
+	ReinforceMonitor monitor_;
 
     ///
     /// \brief reset_internal_structs_
     ///
-    void reset_internal_structs_()noexcept;
+    //void reset_internal_structs_()noexcept;
 
     ///
     /// \brief compute_discounts
@@ -155,7 +170,7 @@ private:
     ///
     /// \brief comoute_rewards_
     ///
-    real_t compute_total_reward_(const std::vector<real_t>& discounts)const;
+    //real_t compute_total_reward_(const std::vector<real_t>& discounts)const;
 
     ///
     /// \brief do_step_
@@ -166,12 +181,16 @@ private:
 
 template<typename EnvType, typename PolicyType>
 ReinforceSolver<EnvType, PolicyType>::ReinforceSolver(ReinforceConfig config,
-                                                      policy_type& policy,  std::unique_ptr<torch::optim::Optimizer>& policy_optimizer)
+                                                      policy_type& policy, 
+                                                      loss_type& loss_fn, 
+													  std::unique_ptr<torch::optim::Optimizer>& policy_optimizer)
     :
      RLSolverBase<EnvType>(),
      config_(config),
      policy_ptr_(policy),
-     policy_optimizer_(std::move(policy_optimizer))
+	 loss_fn_(loss_fn),
+     policy_optimizer_(std::move(policy_optimizer)),
+	 monitor_()
 
 {}
 
@@ -180,12 +199,14 @@ void
 ReinforceSolver<EnvType, PolicyType>::actions_before_training_begins(env_type& /*env*/){
 
     scores_.clear();
-    reset_internal_structs_();
+    monitor_.reset();
+	
+	// the policy to train mode
     policy_ptr_ -> train();
 
 }
 
-template<typename EnvType, typename PolicyType>
+/*template<typename EnvType, typename PolicyType>
 void
 ReinforceSolver<EnvType, PolicyType>::reset_internal_structs_()noexcept{
 
@@ -198,17 +219,10 @@ ReinforceSolver<EnvType, PolicyType>::reset_internal_structs_()noexcept{
     std::swap(scores_deque_, empty_deque);
 
 }
+*/
 
-/*template<typename WorldTp, typename PolicyTp, typename OptimizerTp>
-void
-Reinforce<WorldTp, PolicyTp, OptimizerTp>::compute_discounts_(std::vector<real_t>& data)const noexcept{
 
-    for(uint_t i=0; i < rewards_.size() + 1; ++i ){
-        data.push_back(std::pow(gamma_, i));
-    }
-}*/
-
-template<typename EnvType, typename PolicyType>
+/*template<typename EnvType, typename PolicyType>
 real_t
 ReinforceSolver<EnvType, PolicyType>::compute_total_reward_(const std::vector<real_t>& discounts)const{
 
@@ -220,6 +234,7 @@ ReinforceSolver<EnvType, PolicyType>::compute_total_reward_(const std::vector<re
 
     return reward;
 }
+*/
 
 template<typename EnvType, typename PolicyType>
 uint_t
@@ -231,23 +246,23 @@ ReinforceSolver<EnvType, PolicyType>::do_step_(env_type& env){
     uint_t itr = 0;
     for(; itr < config_.max_itrs_per_episode; ++itr){
 
-            // from the policy get the action to do based
-            // on the seen state
-            auto [action, log_prob] = policy_ptr_ -> act(state);
-
-            saved_log_probs_.push_back(log_prob);
-
-            // execute the selected action on the environment
-            auto time_step = env.step(action);
-
-            // update state
-            state = time_step.observation();
-
-            rewards_.push_back(time_step.reward());
-
-            if (time_step.done()){
-                break;
-            }
+      // from the policy get the action to do based
+      // on the seen state
+      auto [action, log_prob] = policy_ptr_ -> act(state);
+	  
+      monitor_.saved_log_probs.push_back(log_prob);
+	  
+      // execute the selected action on the environment
+      auto time_step = env.step(action);
+	  
+      // update state
+      state = time_step.observation();
+	  
+      rewards_.push_back(time_step.reward());
+	  
+      if (time_step.done()){
+          break;
+      }
     }
 
     return itr;
@@ -263,13 +278,21 @@ ReinforceSolver<EnvType, PolicyType>::on_training_episode(env_type& env, uint_t 
 
     //  for every episode reset the environment
     //auto state = world_ptr_ ->reset().observation();
-    reset_internal_structs_();
+    //reset_internal_structs_();
+	
+	monitor_.reset();
 
     auto itrs = do_step_(env);
-    auto rewards_sum = std::accumulate(rewards_.begin(), rewards_.end(), 0.0);
+    auto rewards_sum = maths::sum(monitor_.rewards.begin(),
+	                              monitor_.rewards.end(),true);
+	                              	                              
 
-    scores_deque_.push_back(rewards_sum);
-    scores_.push_back(rewards_sum);
+	
+//	std::accumulate(monitor_.rewards.begin(), 
+//	                                   monitor_.rewards.end(), 0.0);
+
+    monitor_.scores_deque.push_back(rewards_sum);
+    monitor_.scores.push_back(rewards_sum);
 
     std::vector<real_t> discounts;
     discounts.reserve(rewards_.size() + 1);
@@ -278,7 +301,8 @@ ReinforceSolver<EnvType, PolicyType>::on_training_episode(env_type& env, uint_t 
     cubeai::maths::exponentiate(discounts);
 
     // R = sum([a * b for a, b in zip(discounts, self.rewards)])
-    auto R = compute_total_reward_(discounts);
+    auto R = maths::dot_product(discounts.begin(), discounts.end(),
+	                            rewards_.begin(), rewards_.end()); //compute_total_reward_(discounts);
 
     std::vector<real_t> policy_loss_values;
     policy_loss_values.reserve(saved_log_probs_.size());
@@ -321,9 +345,6 @@ void
 ReinforceSolver<EnvType, PolicyType>::actions_after_episode_ends(env_type&, uint_t /*episode_idx*/,
                                                                const EpisodeInfo& /*einfo*/){
 
-    // compute the loss
-    // auto loss = compute_loss();
-    // loss.backward();
      policy_optimizer_ -> zero_grad();
      auto loss = policy_ptr_->compute_loss();
      loss.backward();

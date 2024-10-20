@@ -1,11 +1,7 @@
 /**
  * This example illustrates how to use the REINFORCE algorithm
  * on the CartPole environment from Gymnasium
- *
- *
- *
- *
- * */
+ **/
 #include "cubeai/base/cubeai_config.h"
 
 #if defined(USE_PYTORCH) && defined(USE_RLENVS_CPP)
@@ -46,6 +42,12 @@ using cubeai::rl::RLSerialTrainerConfig;
 using cubeai::maths::stats::TorchCategorical;
 using rlenvs_cpp::envs::gymnasium::CartPole;
 
+
+const uint_t L1 = 4;
+const uint_t L2 = 150;
+const uint_t L3 = 3;
+const real_t LEARNING_RATE = 0.0009;
+
 // The class that models the Policy network to train
 class PolicyNetImpl: public torch::nn::Module
 {
@@ -65,7 +67,7 @@ public:
     void step_backward_policy_loss();
 
     torch_tensor_t compute_loss(){return loss_;}
-
+	
 private:
 
    torch::nn::Linear fc1_;
@@ -119,7 +121,8 @@ PolicyNetImpl::act(const StateTp& state){
     auto probs = forward(torch_state);
     auto m = TorchCategorical(probs, false);
     auto action = m.sample();
-    return std::make_tuple(action.item().toLong(), m.log_prob(action).item().to<real_t>());
+    return std::make_tuple(action.item().toLong(), 
+	                       m.log_prob(action).item().to<real_t>());
 
 }
 

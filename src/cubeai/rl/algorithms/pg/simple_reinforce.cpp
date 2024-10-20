@@ -23,6 +23,19 @@ ReinforceOpts::print(std::ostream& out)const{
     return out;
 }
 
+void 
+ReinforceMonitor::reset()noexcept{
+
+    std::vector<real_t> empty;
+    std::swap(saved_log_probs, empty);
+    empty.clear();
+    std::swap(rewards, empty);
+
+    std::deque<real_t> empty_deque;
+    std::swap(scores_deque, empty_deque);
+
+}
+
 }
 }
 }
