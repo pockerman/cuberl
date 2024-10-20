@@ -9,10 +9,10 @@ namespace cubeai{
 namespace utils{
 	
 	template<typename InputT, typename OutT>
-	struct InputResolver;
+	struct MapInputResolver;
 
 	template<typename OutT>
-	struct InputResolver<std::map<std::string, std::any>, OutT>
+	struct MapInputResolver<std::map<std::string, std::any>, OutT>
 	{
 		typedef std::map<std::string, boost::any> input_type;
 		typedef OutT out_type;
@@ -22,8 +22,8 @@ namespace utils{
 	};
 
 	template<typename OutT>
-	typename InputResolver<std::map<std::string, std::any>, OutT>::out_type
-	InputResolver<std::map<std::string, std::any>, OutT>::resolve(const std::string& name,
+	typename MapInputResolver<std::map<std::string, std::any>, OutT>::out_type
+	MapInputResolver<std::map<std::string, std::any>, OutT>::resolve(const std::string& name,
 																	const input_type& input){
 
 		auto itr = input.find(name);
