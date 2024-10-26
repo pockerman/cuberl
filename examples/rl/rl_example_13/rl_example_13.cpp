@@ -48,6 +48,9 @@ const uint_t L2 = 150;
 const uint_t L3 = 3;
 const real_t LEARNING_RATE = 0.0009;
 
+
+
+
 // The class that models the Policy network to train
 class PolicyNetImpl: public torch::nn::Module
 {
@@ -56,17 +59,17 @@ public:
 
     PolicyNetImpl();
 
-    torch_tensor_t forward(torch_tensor_t);
+    torch_tensor_t forward(torch_tensor_t state);
 
     template<typename StateTp>
     std::tuple<uint_t, real_t> act(const StateTp& state);
 
-    template<typename LossValuesTp>
-    void update_policy_loss(const LossValuesTp& vals);
+    //template<typename LossValuesTp>
+    //void update_policy_loss(const LossValuesTp& vals);
 
-    void step_backward_policy_loss();
+    //void step_backward_policy_loss();
 
-    torch_tensor_t compute_loss(){return loss_;}
+    //torch_tensor_t compute_loss(){return loss_;}
 	
 private:
 
@@ -74,7 +77,7 @@ private:
    torch::nn::Linear fc2_;
 
    // placeholder for the loss
-   torch_tensor_t loss_;
+   //torch_tensor_t loss_;
 
 };
 
@@ -88,7 +91,7 @@ PolicyNetImpl::PolicyNetImpl()
     register_module("fc2", fc2_);
 }
 
-template<typename LossValuesTp>
+/*template<typename LossValuesTp>
 void
 PolicyNetImpl::update_policy_loss(const LossValuesTp& vals){
 
@@ -101,7 +104,7 @@ PolicyNetImpl::update_policy_loss(const LossValuesTp& vals){
 void
 PolicyNetImpl::step_backward_policy_loss(){
     loss_.backward();
-}
+}*/
 
 torch_tensor_t
 PolicyNetImpl::forward(torch_tensor_t x){
@@ -128,7 +131,20 @@ PolicyNetImpl::act(const StateTp& state){
 
 TORCH_MODULE(PolicyNet);
 
+
+struct Loss_1
+{
+	torch_tensor_t operator(torch_tensor_t preds, torch_tensor_t y)const;
+};
+
+torch_tensor_t 
+Loss_1::operator(torch_tensor_t preds, torch_tensor_t y)const{
+	return -1.0 * torch::sum(y * torch.log(preds));
+}
+
+typedef Loss_1 loss_type
 typedef CartPole env_type;
+typedef ReinforceSolver<env_type, PolicyNet, loss_type> solver_type;
 }
 
 
@@ -161,13 +177,11 @@ int main(){
         //auto optimizer_ptr = std::make_unique<torch::optim::Adam>(policy->parameters(),
         //                                                          torch::optim::AdamOptions(1e-2));
 
-        typedef ReinforceSolver<CartPole, PolicyNet> solver_type;
-
         // reinforce options
         ReinforceConfig opts = {1000, 100, 100, 100, 1.0e-2, 0.1, 195.0};
 
         std::map<std::string, std::any> opt_options;
-        opt_options.insert(std::make_pair("lr", 0.001));
+        opt_options.insert(std::make_pair("lr", LEARNING_RATE));
 
         auto pytorch_ops = cubeai::maths::optim::pytorch::build_pytorch_optimizer_options(cubeai::maths::optim::OptimzerType::ADAM,
                                                                                           opt_options);
@@ -175,7 +189,8 @@ int main(){
         auto policy_optimizer = cubeai::maths::optim::pytorch::build_pytorch_optimizer(cubeai::maths::optim::OptimzerType::ADAM,
                                                                                        *policy, pytorch_ops);
 
-        solver_type solver(opts, policy, policy_optimizer);
+		loss_type loss;
+        solver_type solver(opts, policy, policy_optimizer, loss);
 
 
         RLSerialTrainerConfig config;
