@@ -89,6 +89,18 @@ public:
     ///
     template<typename BatchTp>
     void sample(uint_t batch_size, BatchTp& batch, uint_t seed=42)const;
+	
+	///
+	/// \brief Copy the contents of the buffer to the given container
+	///
+	template<typename ContainerType>
+	void get(ContainerType& container)const;
+	
+	///
+	/// \brief Copy the contents of the buffer to the given container
+	///
+	template<typename ContainerType>
+	ContainerType get()const;
 
     iterator begin(){return buffer_.begin();}
     iterator end(){return buffer_.end();}
@@ -154,6 +166,30 @@ ExperienceBuffer<ExperienceTp>::sample(uint_t batch_size,
 		batch.push_back(buffer_[idx]);
 	}
     
+}
+
+template<typename ExperienceType>
+template<typename ContainerType>
+void 
+ExperienceBuffer<ExperienceType>::get(ContainerType& container)const{
+	
+	for(auto val: buffer_){
+		container.push_back(val);
+	}
+}
+
+template<typename ExperienceType>
+template<typename ContainerType>
+ContainerType
+ExperienceBuffer<ExperienceType>::get()const{
+	
+	ContainerType container_;
+	container_.reserve(size());
+	for(auto val: buffer_){
+		container_.push_back(val);
+	}
+	
+	return container_;
 }
 
 }
