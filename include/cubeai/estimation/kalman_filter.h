@@ -11,13 +11,80 @@
 
 namespace cubeai{
 namespace estimation{
+	
+template<typename MatrixType>
+class KFModelBase
+{
+public:
+	
+	typedef MatrixType matrix_type;
+	
+	virtual void add_matrix(const std::string& name, matrix_type& mat);
+	virtual matrix_type& get_matrix(const std::string& mat);
+	virtual const matrix_type& get_matrix(const std::string& mat)const;
+	
+protected:
+	
+	std::map<std::string, matrix_type> matrices_;
+	
+};
+
+
+template<typename MatrixType>
+void 
+KFModelBase<MatrixType>::add_matrix(const std::string& name, matrix_type& mat){
+	 matrices_.insert_or_assign(name, mat);	
+}
+
+template<typename MatrixType>
+typename KFModelBase<MatrixType>::matrix_type& 
+KFModelBase<MatrixType>::get_matrix(const std::string& name){
+	
+	auto itr = matrices_.find(name);
+	if(itr != matrices_.end()){
+		return itr->second;
+	}
+	
+	throw std::invalid_argument("Matrix not found");
+}
+
+
+template<typename MatrixType>
+const typename KFModelBase<MatrixType>::matrix_type& 
+KFModelBase<MatrixType>::get_matrix(const std::string& name)const{
+	
+	auto itr = matrices_.find(name);
+	if(itr != matrices_.end()){
+		return itr->second;
+	}
+	
+	throw std::invalid_argument("Matrix not found");
+}
+	
+template<typename MatrixType, typename StateType>
+class KFMotionModelBase: public KFModelBase<MatrixType>
+{
+public:
+	
+	typedef MatrixType matrix_type;
+	typedef StateType state_type;
+	
+	virtual state_type& get_state(){return state_;}
+	virtual const state_type& get_state()const{return state_;}
+	
+protected:
+	
+	// the state 
+	state_type state_;
+};
+
 
 	
 ///
 /// \brief Configuration class for the Kalman filter
 ///
 
-template<typename MotionModelTp, typename ObservationModelTp>
+template<typename MotionModelType, typename ObservationModelType>
 struct KalmanFilterConfig
 {
 	
@@ -91,31 +158,21 @@ class KalmanFilter: private boost::noncopyable
 
 public:
 	
-	typedef KalmanFilterConfig<MotionModelType, MotionModelType>  config_type;
+	typedef KalmanFilterConfig<MotionModelType, ObservationModelType>  config_type;
 	typedef DynMat<real_t> matrix_type;
 	
-    //typedef MotionModelType motion_model_type;
-    //typedef ObservationModelType observation_model_type;
-    typedef typename config_type::motion_model_type::input_type motion_model_input_type;
+    typedef MotionModelType motion_model_type;
+    typedef ObservationModelType observation_model_type;
+    //typedef typename config_type::motion_model_type::input_type motion_model_input_type;
 	typedef typename config_type::motion_model_type::state_type state_type;
-    typedef typename config_type::observation_model_type::input_type observation_model_input_type;
+    //typedef typename config_type::observation_model_type::input_type observation_model_input_type;
     
     typedef std::map<std::string, std::any> input_type;
 
     ///
-    ///  \brief Constructor
-    ///
-    //KalmanFilter();
-
-    ///
-    /// \brief Constructor
-    ///
-    //KalmanFilter(motion_model_t& motion_model, const observation_model_t& observation_model);
-
-    ///
     /// \brief KalmanFilter Constructor
     ///
-    KalmanFilter(const config_type& config);
+    KalmanFilter(const KalmanFilterConfig<MotionModelType, ObservationModelType>& config);
 
     ///
     /// \brief Estimate the state. This function simply
@@ -216,32 +273,10 @@ private:
     std::map<std::string, matrix_type> matrices_;
 };
 
-/*template<typename MotionModelTp, typename ObservationModelTp>
-KalmanFilter<MotionModelTp,ObservationModelTp>::KalmanFilter()
-    :
-    motion_model_ptr_(nullptr),
-    observation_model_ptr_(nullptr),
-    matrices_()
-{}
-*/
-
-/*
-template<typename MotionModelTp, typename ObservationModelTp>
-KalmanFilter<MotionModelTp,
-             ObservationModelTp>::KalmanFilter(motion_model_t& motion_model,
-                                                               const observation_model_t& observation_model)
-    :
-
-    motion_model_ptr_(&motion_model),
-    observation_model_ptr_(&observation_model)
-{
-
-}
-*/
 
 template<typename MotionModelType, typename ObservationModelType>
 KalmanFilter<MotionModelType,
-             ObservationModelType>::KalmanFilter(const config_type& config)
+             ObservationModelType>::KalmanFilter(const KalmanFilterConfig<MotionModelType, ObservationModelType>& config)
     :
     motion_model_ptr_(config.motion_model),
     observation_model_ptr_(config.observation_model)
@@ -285,7 +320,7 @@ template<typename MotionModelType, typename ObservationModelType>
 void
 KalmanFilter<MotionModelType, 
              ObservationModelType>::set_matrix(const std::string& name,
-											   const matrix_t& mat){
+											   const matrix_type& mat){
 
     if(name != "Q" && 
        name != "K" && 
@@ -325,8 +360,8 @@ KalmanFilter<MotionModelType,
         throw std::runtime_error("Motion model has not been set");
     }
 
-    auto u = utils::InputResolver<input_type, DynVec<real_t> >::resolve("u", input);
-    auto w = utils::InputResolver<input_type, DynVec<real_t> >::resolve("w", input);
+    auto u = utils::MapInputResolver<input_type, DynVec<real_t> >::resolve("u", input);
+    auto w = utils::MapInputResolver<input_type, DynVec<real_t> >::resolve("w", input);
 
     // make a state predicion using the
     // motion model
@@ -344,7 +379,7 @@ KalmanFilter<MotionModelType,
     // predict the covariance matrix
     auto& P = (*this)["P"];
     auto& Q = (*this)["Q"];
-    auto F_T = trans( F );
+    auto F_T =  F.transpose();
 
     P = (F*P*F_T) + Q;
 }
@@ -368,7 +403,7 @@ KalmanFilter<MotionModelType,
     auto& R = (*this)["R"];
 
     auto& H = observation_model_ptr_->get_matrix("H");
-    auto H_T = trans(H);
+    auto H_T = H.transpose();
 
     try{
 
@@ -385,7 +420,7 @@ KalmanFilter<MotionModelType,
       }
 
       auto& K = (*this)["K"];
-      auto z = utils::InputResolver<input_type, DynVec<real_t>>::resolve("z", input);
+      auto z = utils::MapInputResolver<input_type, DynVec<real_t>>::resolve("z", input);
       auto innovation = z - H*x;
 
       if(K.columns() != innovation.size()){
@@ -398,7 +433,8 @@ KalmanFilter<MotionModelType,
       x += K*innovation;
       state.set(x);
 
-      IdentityMatrix<real_t> I(state.size());
+	  auto I = matrix_type::Identity(state.size(), state.size());
+      //IdentityMatrix<real_t> I(state.size());
 
       // update covariance matrix
       P = (I - K*H)*P;

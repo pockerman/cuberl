@@ -14,7 +14,7 @@ namespace utils{
 	template<typename OutT>
 	struct MapInputResolver<std::map<std::string, std::any>, OutT>
 	{
-		typedef std::map<std::string, boost::any> input_type;
+		typedef std::map<std::string, std::any> input_type;
 		typedef OutT out_type;
 
 		static out_type resolve(const std::string& name, const input_type& input);
