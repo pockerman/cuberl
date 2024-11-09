@@ -26,6 +26,8 @@ template<typename ExperienceType>
 class ExperienceBuffer: private boost::noncopyable{
 
 public:
+	
+	static const uint_t DEFAULT_CAPACITY = 100;
 
     typedef ExperienceType value_type ;
     typedef ExperienceType experience_type;
@@ -35,6 +37,11 @@ public:
     typedef typename boost::circular_buffer<ExperienceType>::const_iterator const_iterator;
     typedef typename boost::circular_buffer<ExperienceType>::reverse_iterator reverse_iterator;
     typedef typename boost::circular_buffer<ExperienceType>::const_reverse_iterator const_reverse_iterator;
+	
+	///
+    /// \brief ExperienceBuffer
+    ///
+    ExperienceBuffer();
 
     ///
     /// \brief ExperienceBuffer
@@ -122,6 +129,12 @@ private:
    boost::circular_buffer<ExperienceType> buffer_;
 
 };
+
+template<typename ExperienceTp>
+ExperienceBuffer<ExperienceTp>::ExperienceBuffer()
+    :
+      buffer_(ExperienceBuffer<ExperienceTp>::DEFAULT_CAPACITY)
+{}
 
 template<typename ExperienceTp>
 ExperienceBuffer<ExperienceTp>::ExperienceBuffer(uint_t max_size)
