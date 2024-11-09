@@ -10,6 +10,7 @@
 #include "cubeai/rl/episode_info.h"
 #include "cubeai/maths/vector_math.h"
 #include "cubeai/data_structs/experience_buffer.h"
+# include "cubeai/utils/torch_adaptor.h"
 
 #include <torch/torch.h>
 
@@ -40,6 +41,8 @@ struct ReinforceConfig
     real_t gamma;
     real_t tolerance;
     real_t exit_score_level;
+	
+	DeviceType device_type;
 
     ///
     /// \brief print
@@ -77,6 +80,9 @@ struct ReinforceMonitor
 	template<typename T, uint_t index>
     std::vector<T> 
     get(const std::vector<experience_tuple_type>& experience)const;
+	
+	
+
 };
 
 
@@ -98,6 +104,28 @@ ReinforceMonitor<ActionType, StateType>::get(const std::vector<experience_tuple_
 	
 	return result;
 	
+}
+
+template<typename ActionType, typename StateType>
+void 
+ReinforceMonitor<ActionType, StateType>::reset()noexcept{
+
+    std::vector<real_t> empty;
+    std::swap(saved_log_probs, empty);
+    empty.clear();
+    std::swap(rewards, empty);
+	
+	empty.clear();
+	std::swap(policy_loss_values, empty);
+	
+	empty.clear();
+	std::swap(discounts, empty);
+
+    std::deque<real_t> empty_deque;
+    std::swap(scores_deque, empty_deque);
+	
+	experience_buffer.clear();
+
 }
 
 
@@ -127,7 +155,8 @@ public:
     ///
     /// \brief Reinforce
     ///
-    ReinforceSolver(ReinforceConfig opts, policy_type& policy,
+    ReinforceSolver(ReinforceConfig opts, 
+	                policy_type& policy,
 	                loss_type& loss_fn,
                     std::unique_ptr<torch::optim::Optimizer>& policy_optimizer);
 
@@ -187,8 +216,6 @@ private:
 	///
 	ReinforceMonitor<action_type, state_type> monitor_;
 
-    
-
     ///
     /// \brief compute_discounts
     ///
@@ -220,7 +247,7 @@ template<typename EnvType, typename PolicyType, typename LossFuncType>
 void
 ReinforceSolver<EnvType, PolicyType, LossFuncType>::actions_before_training_begins(env_type& /*env*/){
 
-    scores_.clear();
+    //scores_.clear();
     monitor_.reset();
 	
 	// the policy to train mode
@@ -233,10 +260,10 @@ uint_t
 ReinforceSolver<EnvType, PolicyType, LossFuncType>::do_step_(env_type& env){
 
 	
-	typedef ReinforceMonitor::experience_tuple_type experience_tuple_type;
+	typedef typename ReinforceMonitor<action_type, state_type>::experience_tuple_type experience_tuple_type;
 	
     //  for every episode reset the environment
-    auto old_timestep = env.reset().observation();
+    auto old_timestep = env.reset();
 
     uint_t itr = 0;
     for(; itr < config_.max_itrs_per_episode; ++itr){
@@ -245,20 +272,15 @@ ReinforceSolver<EnvType, PolicyType, LossFuncType>::do_step_(env_type& env){
       // on the seen state
       auto [action, log_prob] = policy_ptr_ -> act(old_timestep.observation());
 	  
-      //monitor_.saved_log_probs.push_back(log_prob);
-	  
       // execute the selected action on the environment
       auto new_timestep = env.step(action);
-	  auto reward = new_timestep.reward()
+	  auto reward = new_timestep.reward();
 	  
-      // update state
-      //auto new_state = time_step.observation();
-	  
-	  // keep track of the rewards
-      //rewards_.push_back(time_step.reward());
-	  
-	  experience_tuple_type exp = {old_timestep.observation(), action, reward, 
-	                               new_timestep.observation(), new_timestep.done(), 
+	  experience_tuple_type exp = {old_timestep.observation(), 
+	                               action, 
+								   reward, 
+	                               new_timestep.observation(), 
+								   new_timestep.done(), 
 								   log_prob};
 	  
 	  // put the observation into the buffer
@@ -272,70 +294,63 @@ ReinforceSolver<EnvType, PolicyType, LossFuncType>::do_step_(env_type& env){
     }
 
     return itr;
-
 }
 
 template<typename EnvType, typename PolicyType, typename LossFuncType>
 EpisodeInfo
 ReinforceSolver<EnvType, PolicyType, LossFuncType>::on_training_episode(env_type& env, 
                                                                         uint_t episode_idx){
-		
+	
+	
     // start the time for the episode																	
     auto start = std::chrono::steady_clock::now();
 
 	// reset all the internal structures
 	monitor_.reset();
 
-	// Accummulate the data
+	// Accummulate the data i.e. create the
+	// batch data we need to train the parameters
     auto itrs = do_step_(env);
 	
-	typedef ReinforceMonitor::experience_tuple_type experience_tuple_type;
+	typedef typename ReinforceMonitor<action_type, state_type>::experience_tuple_type experience_tuple_type;
 	typedef std::vector<experience_tuple_type> batch_type;
 	
-	auto batch = monitor_.experience_buffer.get<batch_type>();
+	// the accumulated batch
+	auto batch = monitor_.experience_buffer.template get<batch_type>();
 	
 	// create the batches
 	// stack the experiences
-	auto state_1_batch = monitor_.get<state_type,  0>(batch);
-	auto action_batch  = monitor_.get<action_type, 1>(batch);
-	auto reward_batch  = monitor_.get<real_t,      2>(batch);
-	auto state_2_batch = monitor_.get<state_type,  3>(batch);
-	auto done_batch    = monitor._get<bool, 4>(batch);
-	auto log_probs_batch  = monitor_.get<real_t, 5>(batch);
+	auto state_1_batch = monitor_.template get<state_type,  0>(batch);
+	auto action_batch  = monitor_.template get<action_type, 1>(batch);
+	auto reward_batch  = monitor_.template get<real_t,      2>(batch);
+	auto state_2_batch = monitor_.template get<state_type,  3>(batch);
+	auto done_batch    = monitor_.template get<bool, 4>(batch);
+	auto log_probs_batch  = monitor_.template get<real_t, 5>(batch);
+	
+	// TODO: These should be the discounted rewards
+	auto tensor_reward_batch = cubeai::torch_utils::TorchAdaptor::to_torch(reward_batch, 
+													                       config_.device_type);
+	auto tensor_log_probs_batch = cubeai::torch_utils::TorchAdaptor::to_torch(log_probs_batch, 
+														                      config_.device_type);
+	
+	// now that we have the batches
+	policy_optimizer_ -> zero_grad();
+	auto loss = loss_fn_(tensor_log_probs_batch, tensor_reward_batch);
+	loss.backward();
+	policy_optimizer_ -> step();
 					
 	
-    //auto rewards_sum = maths::sum(monitor_.rewards.begin(),
-	//                              monitor_.rewards.end(),true);
-	                              	                              
-
-    //monitor_.scores_deque.push_back(rewards_sum);
-    //monitor_.scores.push_back(rewards_sum);
-    //monitor_.discounts.reserve(rewards_.size() + 1);
-
-    //discounts = [self.gamma ** i for i in range(len(self.rewards) + 1)]
-    //cubeai::maths::exponentiate(monitor_.discounts);
-
-    // R = sum([a * b for a, b in zip(discounts, self.rewards)])
-    /auto R = maths::dot_product(discounts.begin(), discounts.end(),
-	//                            rewards_.begin(), rewards_.end()); //compute_total_reward_(discounts);
-
-    //std::vector<real_t> policy_loss_values;
-    //monitor_.policy_loss_values.reserve(saved_log_probs_.size());
-
-    //for(auto& log_prob: saved_log_probs_){
-    //    policy_loss_values.push_back(-log_prob * R);
-    //}
-
     auto end = std::chrono::steady_clock::now();
     std::chrono::duration<real_t> elapsed_seconds = end - start;
 
     // the info class to return for the episode
     EpisodeInfo info;
     info.episode_index = episode_idx;
-    info.episode_reward = R;
+    //info.episode_reward = R;
     info.episode_iterations = itrs;
     info.total_time = elapsed_seconds;
     return info;
+
 }
 
 template<typename EnvType, typename PolicyType, typename LossFuncType>
@@ -343,10 +358,10 @@ void
 ReinforceSolver<EnvType, PolicyType, LossFuncType>::actions_after_episode_ends(env_type&, uint_t /*episode_idx*/,
                                                                                const EpisodeInfo& /*einfo*/){
 
-     policy_optimizer_ -> zero_grad();
+     /*policy_optimizer_ -> zero_grad();
 	 auto loss = loss_fn_(monitor_.policy_loss_values, monitor_.rewards);
      loss.backward();
-     policy_optimizer_ -> step();
+     policy_optimizer_ -> step();*/
 
 
 }

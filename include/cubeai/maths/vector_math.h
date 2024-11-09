@@ -89,7 +89,7 @@ dot_product(IteratorType bv1, IteratorType ev1,
 		sum_ += (*bv1) * (*bv2); 
 	}
 				
-	return sum_
+	return sum_;
 				
 }
 
