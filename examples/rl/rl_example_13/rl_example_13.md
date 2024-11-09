@@ -2,7 +2,8 @@
 
 The DQN algorithm we used in examples <a href="../rl_example_12/rl_example_12.md">EXample 12: DQN algorithm on Gridworld</a>
 and <a href="../rl_example_15/rl_example_15.md">EXample 15: DQN algorithm on Gridworld with experience replay</a> approximate a value function
-and in particular the Q state-action value function. However, in Reinforcement Learning we are interested in policies since a policydictates how 
+and in particular the Q state-action value function. 
+However, in reinforcement learning we are more interested in policies since a policy dictates how 
 an agent behaves in a given state.
 
 
@@ -12,11 +13,17 @@ REINFORCE algorithm. In particular, we will train an agent that learns how to ba
 a pole placed on a moving cart. In order to do this, we will use the ```gymnasium.CartPole``` environment.
 
 We will use the policy network from the book <a href="https://www.manning.com/books/deep-reinforcement-learning-in-action">Deep Reinforcement Learning in Action</a>
-by Manning Publications.
+by Manning Publications. However, feel free to experiment with this. 
 
 The REINFORCE algorithm is implemented in the class <a href="https://github.com/pockerman/cuberl/blob/master/include/cubeai/rl/algorithms/pg/simple_reinforce.h">ReinforceSolver</a>
 The solver is passed to the ```RLSerialAgentTrainer``` class that manages the loop over the specified number of episodes.
 The ```ReinforceSolver``` class overrides some virtual methods defined in the ```RLSolverBase``` class.
+
+The class ```ReinforceSolver``` accepts three template parameters:
+
+- The environment type 
+- The policy type 
+- The loss function type 
 
 
 ## The ```PolicyImpl```
