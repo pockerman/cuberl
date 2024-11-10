@@ -167,7 +167,7 @@ int main(){
         //                                                          torch::optim::AdamOptions(1e-2));
 
         // reinforce options
-        ReinforceConfig opts = {1000, 100, 100, 100, 1.0e-2, 0.1, 195.0};
+        ReinforceConfig opts = {true, 1000, 100, 100, 100, 1.0e-2, 0.1, 195.0};
 
         std::map<std::string, std::any> opt_options;
         opt_options.insert(std::make_pair("lr", LEARNING_RATE));

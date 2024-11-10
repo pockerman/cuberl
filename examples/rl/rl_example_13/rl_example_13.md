@@ -25,6 +25,10 @@ The class ```ReinforceSolver``` accepts three template parameters:
 - The policy type 
 - The loss function type 
 
+The environment type is a standard argument for all solvers in ```cubeai```. The policy type represents the 
+PyTorch model that we will use. The loss function type  represents the object responsible for calculating the 
+model loss during training. 
+
 
 ## The ```PolicyImpl```
 

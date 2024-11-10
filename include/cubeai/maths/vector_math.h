@@ -69,27 +69,26 @@ namespace detail_{
 	}
 }
 
-template<typename IteratorType>
-typename std::iterator_traits<IteratorType>::value_type
-dot_product(IteratorType bv1, IteratorType ev1, 
-            IteratorType bv2, IteratorType ev2) {
+template<utils::concepts::float_or_integral_vector VectorType>
+VectorType
+element_product(const VectorType& v1, const VectorType& v2) {
 
-	typedef typename std::iterator_traits<IteratorType>::value_type	value_type;
-	
-	auto size1_ = std::distance(bv1, ev1);
-	auto size2_ = std::distance(bv2, ev2);
+	auto size1_ = v1.size();
+	auto size2_ = v2.size();
 	
 	if(size1_ != size2_){
-		throw std::logic_error("Sizes not equal. Cannot compute dot product of vectors with no equal sizes");
+		throw std::logic_error("Sizes not equal. Cannot compute element product of vectors with no equal sizes");
 	}
 	
-	value_type sum_ = value_type(0);
 	
-	for(; bv1 != ev1; ++bv1, ++bv2){
-		sum_ += (*bv1) * (*bv2); 
+	VectorType v_(v1.size(), 0); 
+	
+	for(uint_t i=0; i < v1.size(); ++i){
+		
+		v_[i] = v1[i] * v2[i];
 	}
-				
-	return sum_;
+	
+	return v_;
 				
 }
 
@@ -249,6 +248,19 @@ exponentiate(const VectorType& vec){
     return vec_exp;
 }
 
+template<utils::concepts::float_or_integral_vector VectorType>
+VectorType
+exponentiate(const VectorType& vec, typename VectorType::value_type v){
+    VectorType vec_exp(vec.size());
+    uint_t counter = 0;
+    static auto func = [&counter, v](const auto&){
+        return std::pow(v, counter++);
+    };
+    std::transform(vec.begin(), vec.end(),
+                   vec_exp.begin(), func);
+    return vec_exp;
+}
+
 
 /**
  * @brief applies softmax operation to the elements of the vector
@@ -304,8 +316,7 @@ softmax_vec(const DynVec<T>& vec, real_t tau=1.0){
  */
 template<typename IteratorType>
 DynVec<typename IteratorType::value_type>
-softmax_vec(IteratorType begin, IteratorType end,
-                                                      real_t tau=1.0){
+softmax_vec(IteratorType begin, IteratorType end, real_t tau=1.0){
     auto vec_size = std::distance(begin, end);
     DynVec<typename IteratorType::value_type> result(vec_size);
     auto exp_sum = 0.0;
@@ -460,6 +471,55 @@ zero_center(const VectorType& vec, bool parallel=true){
 }
 
 /**
+ * @brief Normalize the values of the given vector with the given value.
+ * Essentially this function divides the elements of the vector with the
+ * value provided
+ * @param vec
+ * @param v
+ * @param parallel
+ */
+template<typename VectorType>
+VectorType
+normalize(const VectorType& vec, typename VectorType::value_type v){
+	
+	VectorType v_(vec.size(), 0);
+	
+	for(uint_t i=0; i<v_.size(); ++i){
+		v_[i] =  vec[i] / v;
+	}
+	return v_;
+	
+} 
+
+template<typename T>
+std::vector<T>
+normalize_max(const std::vector<T>& vec){
+	
+	auto max_val = std::max_element(vec.begin(),
+	                                vec.end());
+	std::vector<T> v_(vec.size(), T(0));
+	
+	for(uint_t i=0; i<v_.size(); ++i){
+		v_[i] = vec[i] / *max_val;
+	}
+	return v_;
+} 
+
+template<typename T>
+std::vector<T>
+normalize_min(const std::vector<T>& vec){
+	
+	auto min_val = std::min_element(vec.begin(),
+	                                vec.end());
+	std::vector<T> v_(vec.size(), T(0));
+	
+	for(uint_t i=0; i<v_.size(); ++i){
+		v_[i] = vec[i] / *min_val;
+	}
+	return v_;
+}
+
+/**
  * Return numbers spaced evenly on a log scale.
  * The implementation is inspired from numpy: https://numpy.org/doc/stable/reference/generated/numpy.logspace.html
  * See also: https://quick-bench.com/q/Hs39BWQf5kr5Gjnv6zQkLXMrsDw
@@ -476,6 +536,29 @@ zero_center(const VectorType& vec, bool parallel=true){
 std::vector<real_t>
 logspace(real_t start, real_t end, uint_t num, real_t base=10.0);
 
+
+template<typename IteratorType>
+typename std::iterator_traits<IteratorType>::value_type
+dot_product(IteratorType bv1, IteratorType ev1, 
+            IteratorType bv2, IteratorType ev2) {
+
+	typedef typename std::iterator_traits<IteratorType>::value_type	value_type;
+	
+	auto size1_ = std::distance(bv1, ev1);
+	auto size2_ = std::distance(bv2, ev2);
+	
+	if(size1_ != size2_){
+		throw std::logic_error("Sizes not equal. Cannot compute dot product of vectors with no equal sizes");
+	}
+	
+	value_type sum_ = value_type(0);
+	
+	for(; bv1 != ev1; ++bv1, ++bv2){
+		sum_ += (*bv1) * (*bv2); 
+	}
+				
+	return sum_;
+}
 
 
 template<typename VectorType>

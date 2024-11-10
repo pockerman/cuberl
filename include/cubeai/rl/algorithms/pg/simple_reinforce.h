@@ -21,6 +21,7 @@
 #include <chrono>
 #include <memory>
 #include <tuple>
+#include <string>
 
 namespace cubeai {
 namespace rl {
@@ -34,6 +35,7 @@ namespace pg {
 ///
 struct ReinforceConfig
 {
+	bool normalize_rewards{false};
     uint_t max_num_of_episodes;
     uint_t max_itrs_per_episode;
     uint_t print_frequency;
@@ -50,6 +52,11 @@ struct ReinforceConfig
     /// \return
     ///
     std::ostream& print(std::ostream& out)const;
+	
+	///
+	/// \brief Load the configuration from the given json file
+	///
+	void load_from_json(const std::string& filename);
 };
 
 template<typename ActionType, typename StateType>
@@ -81,8 +88,6 @@ struct ReinforceMonitor
     std::vector<T> 
     get(const std::vector<experience_tuple_type>& experience)const;
 	
-	
-
 };
 
 
@@ -247,10 +252,9 @@ template<typename EnvType, typename PolicyType, typename LossFuncType>
 void
 ReinforceSolver<EnvType, PolicyType, LossFuncType>::actions_before_training_begins(env_type& /*env*/){
 
-    //scores_.clear();
     monitor_.reset();
 	
-	// the policy to train mode
+	// set the policy to train mode
     policy_ptr_ -> train();
 
 }
@@ -327,11 +331,21 @@ ReinforceSolver<EnvType, PolicyType, LossFuncType>::on_training_episode(env_type
 	auto done_batch    = monitor_.template get<bool, 4>(batch);
 	auto log_probs_batch  = monitor_.template get<real_t, 5>(batch);
 	
-	// TODO: These should be the discounted rewards
-	auto tensor_reward_batch = cubeai::torch_utils::TorchAdaptor::to_torch(reward_batch, 
-													                       config_.device_type);
 	auto tensor_log_probs_batch = cubeai::torch_utils::TorchAdaptor::to_torch(log_probs_batch, 
 														                      config_.device_type);
+	
+	
+	auto discounted_coeffs = cubeai::maths::exponentiate(reward_batch, config_.gamma);
+	auto discounted_returns = cubeai::maths::element_product(reward_batch, discounted_coeffs);
+	
+	if(config_.normalize_rewards){
+		
+		discounted_returns = cubeai::maths::normalize_max(discounted_returns);
+	}
+	
+	// TODO: These should be the discounted rewards
+	auto tensor_reward_batch = cubeai::torch_utils::TorchAdaptor::to_torch(discounted_returns, 
+													                       config_.device_type);
 	
 	// now that we have the batches
 	policy_optimizer_ -> zero_grad();
