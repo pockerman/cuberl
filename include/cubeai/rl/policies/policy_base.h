@@ -31,6 +31,7 @@ public:
     ///
     virtual std::ostream& print(std::ostream& out)const = 0;
 
+
 protected:
 
     ///

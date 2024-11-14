@@ -1,9 +1,14 @@
 #ifndef EPSILON_GREEDY_POLICY_H
 #define EPSILON_GREEDY_POLICY_H
 
+#include "cubeai/base/cubeai_config.h"
 #include "cubeai/base/cubeai_types.h"
-#include "cubeai/utils/array_utils.h"
-#include "cubeai/maths/matrix_utilities.h"
+#include "cubeai/rl/policies/max_tabular_policy.h"
+#include "cubeai/rl/policies/random_tabular_policy.h"
+
+#ifdef USE_PYTORCH
+#include "cubeai/utils/torch_adaptor.h"
+#endif
 
 #include <random>
 #include <cmath>
@@ -25,55 +30,81 @@ class EpsilonGreedyPolicy
 {
 public:
 
-    ///
-    /// \brief EpsilonGreedyPolicy
-    /// \param eps
-    /// \param reduce
-    /// \param min_eps
-    /// \param max_eps
-    ///
-    explicit EpsilonGreedyPolicy(real_t eps, uint_t n_actions, EpsilonDecayOption decay_op,
-                                 real_t min_eps = 0.01, real_t max_eps=1.0,  uint_t seed=0 );
+    constexpr static real_t MIN_EPS = 0.01;
+    constexpr static real_t MAX_EPS = 1.0;
+    constexpr static real_t EPSILON_DECAY_FACTOR = 0.01;
+
+
+    /**
+     * @brief Constructor. Creates an epsilon-greedy tabular policy
+     * */
+    EpsilonGreedyPolicy(real_t eps);
+
+    /**
+     * @brief Constructor. Creates an epsilon-greedy tabular policy
+     * */
+    explicit EpsilonGreedyPolicy(real_t eps, uint_t seed);
+
+
+    /**
+     * @brief Constructor Creates an epsilon greedy policy with an
+     * epsilon decay strategy
+     * */
+    explicit EpsilonGreedyPolicy(real_t eps, uint_t seed, EpsilonDecayOption decay_op,
+                                 real_t min_eps = MIN_EPS,
+                                 real_t max_eps=MAX_EPS,
+                                 real_t epsilon_decay = EPSILON_DECAY_FACTOR);
 
     ///
-    /// \brief operator()
+    /// \brief operator() Select action for the given state
     ///
-    template<typename QMapTp>
-    uint_t operator()(const QMapTp& q_map, uint_t state)const;
+    template<typename MapType>
+    uint_t operator()(const MapType& q_map, uint_t state)const;
 
-    ///
-    ///
-    ///
-    template<typename VectorType>
-    uint_t choose_action_index(const VectorType& values)const;
 
-    ///
-    /// \brief adjust_on_episode
-    /// \param episode
-    ///
-    void adjust_on_episode(uint_t episode)noexcept;
+    /**
+     * @brief Get an action i.e. index from the given values
+     */
+    template<typename VecType>
+    uint_t operator()(const VecType& vec)const;
 
-    ///
-    /// \brief reset
-    ///
+#ifdef USE_PYTORCH
+    uint_t operator()(const torch_tensor_t& vec, torch_tensor_value_type<real_t>)const;
+	uint_t operator()(const torch_tensor_t& vec, torch_tensor_value_type<float_t>)const;
+	uint_t operator()(const torch_tensor_t& vec, torch_tensor_value_type<int_t>)const;
+	uint_t operator()(const torch_tensor_t& vec, torch_tensor_value_type<lint_t>)const;
+#endif
+
+
+
+    /**
+     * @brief any actions the policy should perform
+     * on the given episode index
+     */
+    void on_episode(uint_t episode_idx)noexcept;
+
+    /**
+     * @brief Reset the policy
+     * */
     void reset()noexcept{eps_ = eps_init_;}
 
-    ///
-    /// \brief set_epsilon_decay_factor
-    /// \param eps_decay
-    ///
-    void set_epsilon_decay_factor(real_t eps_decay)noexcept{epsilon_decay_ = eps_decay;}
-
-    ///
-    /// \brief eps_value
-    ///
+    /**
+     * @brief Returns the value of the epsilon
+     * */
     real_t eps_value()const noexcept{return eps_;}
+	
+	/**
+	 * @brief Set the epsilon value
+	 * @param eps
+	 */
+	void set_eps_value(real_t eps);
 
-    ///
-    /// \brief set_seed
-    /// \param seed
-    ///
-    void set_seed(const uint_t seed)noexcept{seed_ = seed;}
+
+    /**
+     * @brief Returns the decay option
+     * */
+    EpsilonDecayOption decay_option()const noexcept{return decay_op_;}
+
 
 private:
 
@@ -82,117 +113,68 @@ private:
     real_t min_eps_;
     real_t max_eps_;
     real_t epsilon_decay_;
-    uint_t n_actions_;
-    uint_t seed_;
     EpsilonDecayOption decay_op_;
+
+     /**
+     * @brief The random engine generator
+     */
+    mutable std::mt19937 generator_;
+
+    // how to select the action
+    RandomTabularPolicy random_policy_;
+    MaxTabularPolicy max_policy_;
 };
 
-EpsilonGreedyPolicy::EpsilonGreedyPolicy(real_t eps, uint_t n_actions, EpsilonDecayOption decay_op,
-                                         real_t min_eps, real_t max_eps,  uint_t seed)
+inline
+EpsilonGreedyPolicy::EpsilonGreedyPolicy(real_t eps, uint_t seed, EpsilonDecayOption decay_op,
+                                         real_t min_eps, real_t max_eps, real_t epsilon_decay)
+:
+eps_init_(eps),
+eps_(eps),
+min_eps_(min_eps),
+max_eps_(max_eps),
+epsilon_decay_(epsilon_decay),
+decay_op_(decay_op),
+generator_(seed),
+random_policy_(seed),
+max_policy_()
+{}
+
+inline
+EpsilonGreedyPolicy::EpsilonGreedyPolicy(real_t eps)
     :
       eps_init_(eps),
       eps_(eps),
-      min_eps_(min_eps),
-      max_eps_(max_eps),
-      epsilon_decay_(0.01),
-      n_actions_(n_actions),
-      seed_(seed),
-      decay_op_(decay_op)
+      min_eps_(eps),
+      max_eps_(eps),
+      epsilon_decay_(eps),
+      decay_op_(EpsilonDecayOption::NONE),
+      random_policy_(),
+      max_policy_()
 {}
 
-template<typename QMapTp>
+inline
+EpsilonGreedyPolicy::EpsilonGreedyPolicy(real_t eps, uint_t seed)
+    :
+    EpsilonGreedyPolicy(eps, seed, EpsilonDecayOption::NONE,
+                        eps, eps, eps)
+{}
+
+
+template<typename VecType>
 uint_t
-EpsilonGreedyPolicy::operator()(const QMapTp& q_map, uint_t state)const{
-
-    const auto& actions = q_map.find(state)->second;
-
-    //std::random_device rd;
-    std::mt19937 gen(seed_); //rd());
+EpsilonGreedyPolicy::operator()(const VecType& vec)const{
 
     // generate a number in [0, 1]
     std::uniform_real_distribution<> real_dist_(0.0, 1.0);
 
-    if(real_dist_(gen) > eps_){
+    if(real_dist_(generator_) > eps_){
         // select greedy action with probability 1 - epsilon
-        return blaze::argmax(actions);
+        return max_policy_(vec);
     }
 
-    //std::mt19937 another_gen(seed_);
-    std::uniform_int_distribution<> distrib_(0,  n_actions_ - 1);
-    return distrib_(gen);
-}
-
-template<>
-uint_t
-EpsilonGreedyPolicy::operator()(const DynMat<real_t>& q_map, uint_t state)const{
-
-    const DynVec<real_t> actions = maths::get_row(q_map, state);
-    std::mt19937 gen(seed_);
-
-    // generate a number in [0, 1]
-    std::uniform_real_distribution<> real_dist_(0.0, 1.0);
-
-    if(real_dist_(gen) > eps_){
-        // select greedy action with probability 1 - epsilon
-        return blaze::argmax(actions);
-    }
-
-    //std::mt19937 another_gen(seed_);
-    std::uniform_int_distribution<> distrib_(0,  n_actions_ - 1);
-    return distrib_(gen);
-}
-
-template<typename VectorType>
-uint_t
-EpsilonGreedyPolicy::choose_action_index(const VectorType& values)const{
-
-    std::mt19937 gen(seed_);
-
-    // generate a number in [0, 1]
-    std::uniform_real_distribution<> real_dist_(0.0, 1.0);
-
-    if(real_dist_(gen) > eps_){
-        // select greedy action with probability 1 - epsilon
-        return arg_max(values);
-    }
-
-    //std::mt19937 another_gen(seed_);
-    std::uniform_int_distribution<> distrib_(0,  n_actions_ - 1);
-    return distrib_(gen);
-}
-
-void
-EpsilonGreedyPolicy::adjust_on_episode(uint_t episode)noexcept{
-
-    if(decay_op_ == EpsilonDecayOption::NONE)
-        return;
-
-    if(decay_op_  == EpsilonDecayOption::INVERSE_STEP ){
-
-        if(episode == 0){
-            episode = 1;
-        }
-
-        // there are various methods to do epsilon
-        // reduction
-        eps_ = 1.0 / episode;
-
-        if(eps_ < min_eps_){
-            eps_ = min_eps_;
-        }
-    }
-    else if(decay_op_ == EpsilonDecayOption::EXPONENTIAL){
-        eps_ = min_eps_ + (max_eps_ - min_eps_)*std::exp(-epsilon_decay_ * episode);
-    }
-    else if(decay_op_ == EpsilonDecayOption::CONSTANT_RATE){
-
-        eps_ -= epsilon_decay_;
-
-        if(eps_ < min_eps_){
-            eps_ = min_eps_;
-        }
-
-    }
+    // else select a random action
+    return random_policy_(vec);
 }
 
 }

@@ -29,7 +29,16 @@
 #cmakedefine USE_OPENCV
 
 /*Use OpenCV */
-#cmakedefine USE_GYMFCPP
+#cmakedefine USE_RLENVS_CPP
+
+/*Use CUDA */
+#cmakedefine USE_CUDA
+
+/*Use RL */
+#cmakedefine USE_RL
+
+/* We need this when linking to boost log*/
+#cmakedefine BOOST_LOG_DYN_LINK
 
 
 #endif

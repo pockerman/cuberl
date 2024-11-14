@@ -14,7 +14,7 @@
 #include "torch/torch.h"
 #endif
 
-//#include <concepts>
+
 #include <type_traits>
 
 namespace cubeai{
@@ -33,12 +33,12 @@ concept float_or_integral_vector = std::is_integral<typename VectorType::value_t
 template<typename Type>
 concept is_default_constructible = std::is_default_constructible<Type>::value;
 
-/*
+
 #ifdef USE_PYTORCH
 template<typename AlgoType>
-concept pytorch_algo = std::derived_from<AlgoType, torch::nn::Module>::value;
+concept pytorch_module = std::is_base_of<torch::nn::Module, AlgoType>::value;
 #endif
-*/
+
 }
 
 }

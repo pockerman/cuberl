@@ -56,7 +56,7 @@ public:
     ///
     /// \brief Dummy string
     ///
-    static std::string dummy_string(){return "DUMMY_STR";}
+    static std::string dummy_string(){return "CUBEAI_DUMMY_STR";}
 
     ///
     /// \brief Returns static_cast<uint_t>(-1)

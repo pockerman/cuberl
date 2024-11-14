@@ -4,11 +4,11 @@
 #include "cubeai/base/cubeai_types.h"
 #include "cubeai/io/csv_file_writer.h"
 #include "cubeai/rl/algorithms/rl_algorithm_base.h"
-//#include "cubeai/rl/algorithms/algorithm_base.h"
 
 #include <tuple>
 #include <vector>
 #include <string>
+#include <type_traits>
 
 namespace cubeai {
 namespace rl {
@@ -16,22 +16,26 @@ namespace algos {
 namespace dp {
 
 ///
-/// \brief The DPAlgoBase class
+/// \brief The DPSolverBase class
 ///
 template<typename EnvType>
-class DPAlgoBase: public RLAlgoBase<EnvType>
+class DPSolverBase: public RLSolverBase<EnvType>
 {
 public:
 
     ///
-    /// \brief env_t
+    /// \brief The environment type the  solver is using
     ///
-    typedef typename RLAlgoBase<EnvType>::env_type env_type;
+    typedef typename RLSolverBase<EnvType>::env_type env_type;
+
+    // state type should be integral
+    static_assert(std::is_integral<typename EnvType::state_type>::value);
+    static_assert(std::is_integral<typename EnvType::action_type>::value);
 
     ///
     /// \brief Destructor
     ///
-    virtual ~DPAlgoBase() = default;
+    virtual ~DPSolverBase() = default;
 
 protected:
 
@@ -39,35 +43,14 @@ protected:
     /// \brief DPAlgoBase
     /// \param name
     ///
-    DPAlgoBase()=default;
+    DPSolverBase()=default;
 
 
 };
 
-/*template<typename TimeStepTp>
-void
-DPAlgoBase<TimeStepTp>::save(const std::string& filename)const{
-
-    CSVWriter writer(filename, ',', true);
-
-    std::vector<std::string> columns(2);
-    columns[0] = "State Id";
-    columns[1] = "Value";
-    writer.write_column_names(columns);
-
-    for(uint_t s=0; s < v_.size(); ++s){
-        auto row = std::make_tuple(s, v_[s]);
-        writer.write_row(row);
-    }
-}*/
-
-
 }
-
 }
-
 }
-
 }
 
 #endif // DP_ALGO_BASE_H

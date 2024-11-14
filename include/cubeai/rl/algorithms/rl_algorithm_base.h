@@ -3,6 +3,8 @@
 
 #include "cubeai/base/cubeai_types.h"
 #include "cubeai/rl/episode_info.h"
+
+
 #include <boost/noncopyable.hpp>
 
 namespace cubeai{
@@ -13,7 +15,7 @@ namespace algos{
 /// \brief RLAlgoBase. Base class for RL algorithms
 ///
 template<typename EnvType>
-class RLAlgoBase: private boost::noncopyable{
+class RLSolverBase: private boost::noncopyable{
 
 public:
 
@@ -22,7 +24,7 @@ public:
     ///
     /// \brief Destructor
     ///
-    virtual ~RLAlgoBase()=default;
+    virtual ~RLSolverBase()=default;
 
     ///
     /// \brief actions_before_training_begins. Execute any actions the
@@ -44,7 +46,7 @@ public:
     ///
     /// \brief actions_after_training_episode
     ///
-    virtual void actions_after_episode_ends(env_type&, uint_t /*episode_idx*/){}
+    virtual void actions_after_episode_ends(env_type&, uint_t /*episode_idx*/, const EpisodeInfo& /*einfo*/){}
 
     ///
     /// \brief on_episode Do one on_episode of the algorithm
@@ -56,7 +58,7 @@ protected:
     ///
     /// \brief Constructor
     ///
-    RLAlgoBase()=default;
+    RLSolverBase()=default;
 
 };
 

@@ -5,6 +5,9 @@
   *
   * */
 
+#include "cubeai/base/cubeai_config.h"
+
+#ifdef USE_RL
 
 #include "cubeai/base/cubeai_types.h"
 #include "cubeai/rl/algorithms/dummy/dummy_algorithm.h"
@@ -13,18 +16,19 @@
 #include "cubeai/rl/agents/dummy_agent.h"
 #include "cubeai/utils/iteration_counter.h"
 #include "cubeai/utils/cubeai_concepts.h"
-#include "cubeai/extern/matplotlibcpp.h"
 
-#include "gymfcpp/gymfcpp_types.h"
-#include "gymfcpp/mountain_car_env.h"
-#include "gymfcpp/time_step.h"
-#include "gymfcpp/render_mode_enum.h"
+#include "rlenvs/rlenvs_types_v2.h"
+#include "rlenvs/envs/gymnasium/classic_control/mountain_car_env.h"
+#include "rlenvs/time_step.h"
+
 
 #include <iostream>
-
+#include <unordered_map>
 
 namespace example_0
 {
+
+const std::string SERVER_URL = "http://0.0.0.0:8001/api";
 
 using cubeai::real_t;
 using cubeai::uint_t;
@@ -36,7 +40,7 @@ using cubeai::rl::RLSerialAgentTrainer;
 using cubeai::rl::RLSerialTrainerConfig;
 using cubeai::rl::agents::DummyAgent;
 using cubeai::utils::IterationCounter;
-using gymfcpp::MountainCar;
+using rlenvs_cpp::envs::gymnasium::MountainCar;
 
 
 template<cubeai::utils::concepts::float_or_integral_vector PolicyValuesType, typename StateType>
@@ -67,7 +71,8 @@ private:
 };
 
 
-template<cubeai::utils::concepts::float_or_integral_vector PolicyValuesType, typename StateType>
+template<cubeai::utils::concepts::float_or_integral_vector PolicyValuesType,
+typename StateType>
 DummyPolicy<PolicyValuesType, StateType>::DummyPolicy(policy_values_type&& values)
     :
     policy_values_(values)
@@ -116,7 +121,7 @@ bool
 Criteria<EnvType>::continue_iterations()noexcept{
 
     if(counter_.continue_iterations()){
-        env_.render(gymfcpp::RenderModeType::human);
+        //env_.render(rlenvs_cpp::RenderModeType::human);
         return true;
     }
 
@@ -131,22 +136,21 @@ int main() {
 
     try{
 
-        Py_Initialize();
-        auto main_module = boost::python::import("__main__");
-        auto gym_namespace = main_module.attr("__dict__");
-
         // create the environment
-        MountainCar env("v0", gym_namespace, false);
-        env.make();
-        env.reset();
+        MountainCar env(SERVER_URL);
 
+        std::cout<<"Environment URL: "<<env.get_url()<<std::endl;
+
+        std::unordered_map<std::string, std::any> options;
+        env.make("v0", options);
+        env.reset();
 
         // The episode terminates after 200
         // steps: https://github.com/openai/gym/blob/master/gym/envs/classic_control/mountain_car.py
-        DummyAlgorithmConfig config = {200};
+        DummyAlgorithmConfig config = {10};
         DummyAlgorithm<MountainCar> algorithm(config);
 
-        RLSerialTrainerConfig trainer_config = {100, 10000, 1.0e-8};
+        RLSerialTrainerConfig trainer_config = {1, 2, 1.0e-8};
 
         RLSerialAgentTrainer<MountainCar, DummyAlgorithm<MountainCar>> trainer(trainer_config, algorithm);
 
@@ -154,29 +158,18 @@ int main() {
         std::cout<<info<<std::endl;
 
         // plot the rewarda
-        const auto& rewards = trainer.episodes_total_rewards();
+        trainer.episodes_total_rewards();
 
         typedef DummyPolicy<DummyAlgorithm<MountainCar>::policy_type, MountainCar::state_type> policy_type;
         policy_type policy(std::move(algorithm.get_policy()));
 
         // let's play initialize and agent with the policy
-        DummyAgent<MountainCar, policy_type> agent(policy);
+        //DummyAgent<MountainCar, policy_type> agent(policy);
 
-        Criteria<MountainCar> criteria(env, 100000);
-        env.reset();
-        agent.play(env, criteria);
+        //Criteria<MountainCar> criteria(env, 100000);
+        //env.reset(42);
+        //agent.play(env, criteria);
 
-        namespace plt = matplotlibcpp;
-        plt::plot(rewards, "r-");
-        plt::xlabel("Episode");
-        plt::ylabel("Reward");
-        plt::title("Dummy algorithm episode reward");
-        plt::show();
-        plt::save("dummy_agent_reward.png");
-    }
-    catch(const boost::python::error_already_set&)
-    {
-            PyErr_Print();
     }
     catch(std::exception& e){
         std::cout<<e.what()<<std::endl;
@@ -188,5 +181,14 @@ int main() {
 
    return 0;
 }
+#else
+
+#include <iostream>
+int main() {
+
+	std::cout<<"This example requires to configure the library with RL support. Set USE_RL to ON and rebuild"<<std::endl;
+}
+
+#endif
 
 

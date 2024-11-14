@@ -3,7 +3,6 @@
 
 #include "cubeai/base/cubeai_types.h"
 #include "cubeai/rl/algorithms/dp/dp_algo_base.h"
-#include "cubeai/rl/policies/discrete_policy_base.h"
 #include "cubeai/io/csv_file_writer.h"
 #include "cubeai/utils/iteration_counter.h"
 #include "cubeai/io/csv_file_writer.h"
@@ -23,21 +22,21 @@ struct IterativePolicyEvalConfig
 {
     real_t gamma{1.0};
     real_t tolerance{1.0e-6};
-    std::string save_path{""};
+    std::string save_path{CubeAIConsts::dummy_string()};
 };
 
 ///
 /// \brief The IterativePolicyEval class
 ///
 template<typename EnvType, typename PolicyType>
-class IterativePolicyEval final: public DPAlgoBase<EnvType>
+class IterativePolicyEvalutationSolver final: public DPSolverBase<EnvType>
 {
 public:
 
     ///
     /// \brief env_type
     ///
-    typedef typename DPAlgoBase<EnvType>::env_type env_type;
+    typedef typename DPSolverBase<EnvType>::env_type env_type;
 
     ///
     /// \brief policy_type
@@ -47,7 +46,8 @@ public:
     ///
     /// \brief IterativePolicyEval
     ///
-    explicit IterativePolicyEval(IterativePolicyEvalConfig config, policy_type& policy);
+    explicit IterativePolicyEvalutationSolver(IterativePolicyEvalConfig config,
+                                              policy_type& policy);
 
     ///
     /// \brief actions_before_training_begins. Execute any actions the
@@ -69,7 +69,7 @@ public:
     ///
     /// \brief actions_after_training_episode
     ///
-    virtual void actions_after_episode_ends(env_type&, uint_t /*episode_idx*/)override{}
+    virtual void actions_after_episode_ends(env_type&, uint_t /*episode_idx*/, const EpisodeInfo& /*einfo*/)override{}
 
     ///
     /// \brief on_episode Do one on_episode of the algorithm
@@ -116,9 +116,10 @@ protected:
 };
 
 template<typename EnvType, typename PolicyType>
-IterativePolicyEval<EnvType, PolicyType>::IterativePolicyEval(IterativePolicyEvalConfig config, policy_type& policy)
+IterativePolicyEvalutationSolver<EnvType, PolicyType>::IterativePolicyEvalutationSolver(IterativePolicyEvalConfig config,
+                                                                                        policy_type& policy)
     :
-      DPAlgoBase<EnvType>(),
+      DPSolverBase<EnvType>(),
       config_(config),
       v_(),
       policy_(policy)
@@ -126,22 +127,25 @@ IterativePolicyEval<EnvType, PolicyType>::IterativePolicyEval(IterativePolicyEva
 
 template<typename EnvType, typename PolicyType>
 void
-IterativePolicyEval<EnvType, PolicyType>::actions_before_training_begins(env_type& env){
-    v_ = blaze::generate(env.n_states(), []( size_t /*index*/ ){ return 0.0; } );
+IterativePolicyEvalutationSolver<EnvType, PolicyType>::actions_before_training_begins(env_type& env){
+
+    v_.resize(env.n_states());
+    std::for_each(v_.begin(), v_.end(),
+                  [](auto& item){item = 0.0;});
 }
 
 template<typename EnvType, typename PolicyType>
 void
-IterativePolicyEval<EnvType, PolicyType>::actions_after_training_ends(env_type& /*env*/){
+IterativePolicyEvalutationSolver<EnvType, PolicyType>::actions_after_training_ends(env_type& /*env*/){
 
-    if(config_.save_path != ""){
+    if(config_.save_path != CubeAIConsts::dummy_string()){
         save(config_.save_path);
     }
 }
 
 template<typename EnvType, typename PolicyType>
 EpisodeInfo
-IterativePolicyEval<EnvType, PolicyType>::on_training_episode(env_type& env, uint_t episode_idx){
+IterativePolicyEvalutationSolver<EnvType, PolicyType>::on_training_episode(env_type& env, uint_t episode_idx){
 
     auto start = std::chrono::steady_clock::now();
     auto episode_rewards = 0.0;
@@ -151,12 +155,9 @@ IterativePolicyEval<EnvType, PolicyType>::on_training_episode(env_type& env, uin
     cubeai::utils::IterationCounter itr_counter(env.n_states());
     uint_t s = 0;
     while(itr_counter.continue_iterations()){
-    //for(uint_t s=0; s < env.n_states(); ++s){
-
         // every time we query itr_counter we increase the
         // counter so we miss the zero state
         auto old_v = v_[s];
-
         auto new_v = 0.0;
 
         auto state_actions_probs = policy_(s);
@@ -166,7 +167,7 @@ IterativePolicyEval<EnvType, PolicyType>::on_training_episode(env_type& env, uin
             auto aidx = action_prob.first;
             auto action_p = action_prob.second;
 
-            // get transition dynamic from the environment
+            // get transition dynamics from the environment
             auto transition_dyn = env.p(s, aidx);
 
             for(auto& dyn: transition_dyn){
@@ -201,12 +202,13 @@ IterativePolicyEval<EnvType, PolicyType>::on_training_episode(env_type& env, uin
 
 template<typename EnvType, typename PolicyType>
 void
-IterativePolicyEval<EnvType, PolicyType>::save(const std::string& filename)const{
+IterativePolicyEvalutationSolver<EnvType, PolicyType>::save(const std::string& filename)const{
 
-    CSVWriter file_writer(filename, ',', true);
+    cubeai::io::CSVWriter file_writer(filename, ',');
+    file_writer.open();
     file_writer.write_column_names({"state_index", "value_function"});
 
-    for(uint_t s=0; s < v_.size(); ++s){
+    for(uint_t s=0; s < static_cast<uint_t>(v_.size()); ++s){
         auto row = std::make_tuple(s, v_[s]);
         file_writer.write_row(row);
     }

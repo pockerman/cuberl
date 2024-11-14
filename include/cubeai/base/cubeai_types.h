@@ -7,7 +7,8 @@
 #include <torch/torch.h>
 #endif
 
-#include "blaze/Math.h"
+//#include "blaze/Math.h"
+#include "Eigen/Core"
 #include <cstddef>
 #include <string>
 
@@ -18,46 +19,38 @@ namespace cubeai
     /// \brief unsigned int type
     ///
     typedef std::size_t uint_t;
+	
+	///
+	/// \brief int type
+	///
+	typedef int int_t;
+	
+	///
+	/// \brief long int type
+	///
+	typedef long int lint_t;
 
     ///
     /// \brief Configure the double precision type
     ///
-    #ifdef CUBEAI_REAL_TYPE_FLOAT
-        typedef float real_t;
-    #else
-        typedef double real_t;
-    #endif
+    
+	typedef float float_t;
+    
+	///
+    /// \brief Configure the double precision type
+    ///
+	typedef double real_t;
+    
 
     ///
     /// \brief General matrix type
     ///
     template<typename T>
-    using DynMat = blaze::DynamicMatrix<T, blaze::rowMajor>;
+    using DynMat = Eigen::MatrixX<T>;
 
-    ///
-    /// \brief General diagonal matrix
-    ///
-    template<typename T>
-    using DiagMat = blaze::DiagonalMatrix<DynMat<T>>;
 
-    ///
-    /// \brief Identity matrix
-    ///
     template<typename T>
-    using IdentityMatrix = blaze::IdentityMatrix<T>;
-
-    ///
-    /// \brief General Sparse matrix
-    ///
-    template<typename T>
-    using SparseMatrix = blaze::CompressedMatrix<T, blaze::rowMajor>;
-
-    ///
-    /// \brief General vector type. By default this is
-    /// a column vector
-    ///
-    template<typename T>
-    using DynVec = blaze::DynamicVector<T, blaze::columnVector>;
+    using DynVec = Eigen::RowVectorX<T>;
 
     ///
     ///
@@ -84,7 +77,18 @@ namespace cubeai
    /// \brief torch_tensor_t
    ///
    typedef torch::Tensor torch_tensor_t;
+   
+   
+	template<typename T>
+	struct torch_tensor_value_type{
+		typedef T value_type;
+	};
 #endif
+
+	///
+	/// \brief Device type
+	///
+	enum class DeviceType {INVALID_TYPE=0, CPU=1, GPU=2} ;
 
 }
 

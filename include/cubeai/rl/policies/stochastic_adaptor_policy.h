@@ -2,8 +2,8 @@
 #define STOCHASTIC_ADAPTOR_POLICY_H
 
 #include "cubeai/base/cubeai_types.h"
-#include "cubeai/rl/policies/policy_adaptor_base.h"
-#include "cubeai/utils/array_utils.h"
+//#include "cubeai/rl/policies/policy_adaptor_base.h"
+#include "cubeai/maths/vector_math.h"
 
 #include "cubeai/base/cubeai_config.h"
 
@@ -12,6 +12,8 @@
 #endif
 
 #include <memory>
+#include <any>
+#include <map>
 
 namespace cubeai {
 namespace rl {
@@ -34,7 +36,8 @@ public:
     /// \brief StochasticAdaptorPolicy
     /// \param policy
     ///
-    StochasticAdaptorPolicy(uint_t state_space_size, uint_t action_space_size, policy_type& policy);
+    StochasticAdaptorPolicy(uint_t state_space_size, uint_t action_space_size,
+                            policy_type& policy);
 
     ///
     /// \brief Destructor
@@ -67,7 +70,8 @@ private:
 };
 
 template<typename PolicyType>
-StochasticAdaptorPolicy<PolicyType>::StochasticAdaptorPolicy(uint_t state_space_size, uint_t action_space_size, policy_type& policy)
+StochasticAdaptorPolicy<PolicyType>::StochasticAdaptorPolicy(uint_t state_space_size,
+                                                             uint_t action_space_size, policy_type& policy)
     :
       //DiscretePolicyAdaptorBase(),
       state_space_size_(state_space_size),
@@ -83,7 +87,7 @@ StochasticAdaptorPolicy<PolicyType>::operator()(const std::map<std::string, std:
 
     auto state = std::any_cast<uint_t>(options.find("state")->second);
     auto state_actions = std::any_cast<DynVec<real_t>>(options.find("state_actions")->second);
-    auto best_actions = cubeai::max_indices(state_actions);
+    auto best_actions = maths::max_indices(state_actions);
 
 #ifdef CUBEAI_DEBUG
     assert(best_actions.size() <= action_space_size_ && "Incompatible number of best actions. Cannot exccedd the action space size");

@@ -142,7 +142,7 @@ using namespace example21;
               .map(torch::data::transforms::Normalize<>(0.1307, 0.3081))
               .map(torch::data::transforms::Stack<>());
 
-      // Number of samples in the testset
+      // Number of samples in the test set
       auto num_test_samples = test_dataset.size().value();
       std::cout<<cubeai::CubeAIConsts::info_str()<<"Number of test examples "<<num_test_samples<<std::endl;
 

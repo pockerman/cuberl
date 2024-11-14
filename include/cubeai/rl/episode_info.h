@@ -12,6 +12,9 @@
 namespace cubeai {
 namespace rl {
 
+///
+/// \brief The EpisodeInfo struct
+///
 struct EpisodeInfo
 {
 

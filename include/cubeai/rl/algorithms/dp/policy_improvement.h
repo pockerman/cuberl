@@ -3,8 +3,6 @@
 
 #include "cubeai/rl/algorithms/dp/dp_algo_base.h"
 #include "cubeai/rl/algorithms/utils.h"
-#include "cubeai/rl/policies/policy_adaptor_base.h"
-#include "cubeai/rl/policies/discrete_policy_base.h"
 
 #include <memory>
 #include <any>
@@ -16,18 +14,20 @@ namespace rl {
 namespace algos {
 namespace dp {
 
-///
-/// \brief The PolicyImprovement class
-///
+/**
+  * @brief The PolicyImprovement class. PolicyImprovement is not a real
+  *  algorithm in the sense that it looks for a policy. Instead, it is
+  * more of a helper function that allows as to improve on a given policy.
+  */
 template<typename EnvType, typename PolicyType, typename PolicyAdaptorType>
-class PolicyImprovement: public DPAlgoBase<EnvType>
+class PolicyImprovement: public DPSolverBase<EnvType>
 {
 public:
 
     ///
     /// \brief env_t
     ///
-    typedef typename DPAlgoBase<EnvType>::env_type env_type;
+    typedef typename DPSolverBase<EnvType>::env_type env_type;
 
     ///
     /// \brief policy_type
@@ -66,7 +66,7 @@ public:
     ///
     /// \brief actions_after_training_episode
     ///
-    virtual void actions_after_episode_ends(env_type&, uint_t /*episode_idx*/)override{}
+    virtual void actions_after_episode_ends(env_type&, uint_t /*episode_idx*/, const EpisodeInfo& /*einfo*/)override{}
 
     ///
     /// \brief on_episode Do one on_episode of the algorithm
@@ -119,7 +119,7 @@ template<typename EnvType, typename PolicyType, typename PolicyAdaptorType>
 PolicyImprovement<EnvType, PolicyType, PolicyAdaptorType>::PolicyImprovement(real_t gamma, const DynVec<real_t>& val_func,
                                                  policy_type& policy, policy_adaptor_type& policy_adaptor)
     :
-      DPAlgoBase<EnvType>(),
+      DPSolverBase<EnvType>(),
       gamma_(gamma),
       v_(val_func),
       policy_(policy),
@@ -134,7 +134,6 @@ PolicyImprovement<EnvType, PolicyType, PolicyAdaptorType>::on_training_episode(e
 
     std::map<std::string, std::any> options;
 
-    uint_t counter = 0;
     for(uint_t s=0; s<env.n_states(); ++s){
 
         auto state_actions = state_actions_from_v(env, v_, gamma_, s);
@@ -142,7 +141,6 @@ PolicyImprovement<EnvType, PolicyType, PolicyAdaptorType>::on_training_episode(e
         options.insert_or_assign("state", s);
         options.insert_or_assign("state_actions", std::any(state_actions));
         policy_ = policy_adaptor_(options);
-        ++counter;
     }
 
     auto end = std::chrono::steady_clock::now();
@@ -150,16 +148,14 @@ PolicyImprovement<EnvType, PolicyType, PolicyAdaptorType>::on_training_episode(e
 
     EpisodeInfo info;
     info.episode_index = episode_idx;
-    info.episode_iterations = counter;
+    info.episode_iterations = env.n_states();
     info.total_time = elapsed_seconds;
     return info;
 }
 
 
 }
-
 }
-
 }
 }
 

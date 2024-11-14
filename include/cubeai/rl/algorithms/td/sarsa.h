@@ -7,7 +7,7 @@
 #include "cubeai/base/cubeai_consts.h"
 #include "cubeai/base/cubeai_config.h"
 #include "cubeai/io/csv_file_writer.h"
-#include "cubeai/maths/matrix_utilities.h"
+//#include "cubeai/maths/matrix_utilities.h"
 
 #ifdef CUBEAI_DEBUG
 #include <cassert>
@@ -41,7 +41,7 @@ struct SarsaConfig
 /// \brief The Sarsa class.
 ///
 template<envs::discrete_world_concept EnvType, typename ActionSelector>
-class Sarsa final: public TDAlgoBase<EnvType>
+class SarsaSolver final: public TDAlgoBase<EnvType>
 {
 public:
 
@@ -66,9 +66,9 @@ public:
     typedef ActionSelector action_selector_type;
 
     ///
-    /// \brief Sarsa
+    /// \brief SarsaSolver
     ///
-    Sarsa(SarsaConfig config, const ActionSelector& selector);
+    SarsaSolver(SarsaConfig config, const ActionSelector& selector);
 
     ///
     /// \brief actions_before_training_begins. Execute any actions the
@@ -90,7 +90,8 @@ public:
     ///
     /// \brief actions_after_training_episode
     ///
-    virtual void actions_after_episode_ends(env_type&, uint_t /*episode_idx*/){}
+    virtual void actions_after_episode_ends(env_type&, uint_t /*episode_idx*/, 
+											const EpisodeInfo& /*einfo*/){}
 
     ///
     /// \brief on_episode Do one on_episode of the algorithm
@@ -115,7 +116,7 @@ private:
     action_selector_type action_selector_;
 
     ///
-    /// \brief q_table_. The tabilar representation of the Q-function
+    /// \brief q_table_. The tabular representation of the Q-function
     ///
     DynMat<real_t> q_table_;
 
@@ -130,7 +131,8 @@ private:
 
 
 template<envs::discrete_world_concept EnvTp, typename ActionSelector>
-Sarsa<EnvTp, ActionSelector>::Sarsa(SarsaConfig config, const ActionSelector& selector)
+SarsaSolver<EnvTp, ActionSelector>::SarsaSolver(SarsaConfig config, 
+												const ActionSelector& selector)
     :
       TDAlgoBase<EnvTp>(),
       config_(config),
@@ -139,13 +141,18 @@ Sarsa<EnvTp, ActionSelector>::Sarsa(SarsaConfig config, const ActionSelector& se
 
 template<envs::discrete_world_concept EnvTp, typename ActionSelector>
 void
-Sarsa<EnvTp, ActionSelector>::actions_before_training_begins(env_type& env){
-    q_table_ = DynMat<real_t>(env.n_states(), env.n_actions(), 0.0);
+SarsaSolver<EnvTp, ActionSelector>::actions_before_training_begins(env_type& env){
+    q_table_ = DynMat<real_t>(env.n_states(), env.n_actions());
+
+    for(uint_t i=0; i < env.n_states(); ++i)
+        for(uint_t j=0; j < env.n_actions(); ++j)
+            q_table_(i, j) = 0.0;
+
 }
 
 template<envs::discrete_world_concept EnvTp, typename ActionSelector>
 void
-Sarsa<EnvTp, ActionSelector>::actions_after_training_ends(env_type&){
+SarsaSolver<EnvTp, ActionSelector>::actions_after_training_ends(env_type&){
 
     if(config_.path != ""){
         save(config_.path);
@@ -154,7 +161,7 @@ Sarsa<EnvTp, ActionSelector>::actions_after_training_ends(env_type&){
 
 template<envs::discrete_world_concept EnvTp, typename ActionSelector>
 EpisodeInfo
-Sarsa<EnvTp, ActionSelector>::on_training_episode(env_type& env, uint_t episode_idx){
+SarsaSolver<EnvTp, ActionSelector>::on_training_episode(env_type& env, uint_t episode_idx){
 
     auto start = std::chrono::steady_clock::now();
     EpisodeInfo info;
@@ -208,10 +215,10 @@ Sarsa<EnvTp, ActionSelector>::on_training_episode(env_type& env, uint_t episode_
 
 template<envs::discrete_world_concept EnvTp, typename ActionSelector>
 void
-Sarsa<EnvTp, ActionSelector>::save(std::string filename)const{
+SarsaSolver<EnvTp, ActionSelector>::save(std::string /*filename*/)const{
 
-    CSVWriter file_writer(filename, ',', true);
-    std::vector<std::string> col_names(1 + q_table_.columns());
+    /*CSVWriter file_writer(filename, ',', true);
+    std::vector<std::string> col_names(1 + q_table_.cols());
     col_names[0] = "state_index";
 
     for(uint_t i = 0; i< q_table_.columns(); ++i){
@@ -224,13 +231,13 @@ Sarsa<EnvTp, ActionSelector>::save(std::string filename)const{
         auto actions = maths::get_row(q_table_, s);
         auto row = std::make_tuple(s, actions);
         file_writer.write_row(row);
-    }
+    }*/
 
 }
 
 template<envs::discrete_world_concept EnvTp, typename ActionSelector>
 void
-Sarsa<EnvTp, ActionSelector>::update_q_table_(const action_type& action, const state_type& cstate,
+SarsaSolver<EnvTp, ActionSelector>::update_q_table_(const action_type& action, const state_type& cstate,
                                                    const state_type& next_state, const action_type& next_action, real_t reward){
 
     auto q_current = q_table_(cstate, action);

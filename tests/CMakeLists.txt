@@ -18,25 +18,37 @@ IF(GTEST_INCLUDE_DIRS MATCHES " ")
 	FIND_PACKAGE(GTest REQUIRED)
 
 	IF(GTest_FOUND)
-
 		INCLUDE_DIRECTORIES(${GTEST_INCLUDE_DIRS})
-		LINK_DIRECTORIES(${GTEST_BOTH_LIBRARIES})
+		LINK_DIRECTORIES("/usr/local/lib")
 	ENDIF()
 
 ELSE()
 	INCLUDE_DIRECTORIES(${GTEST_INCLUDE_DIRS})
-	LINK_DIRECTORIES(${GTEST_BOTH_LIBRARIES})
+	LINK_DIRECTORIES("/usr/local/lib")
 ENDIF()
 
-# use the Boost link directories
-LINK_DIRECTORIES(${Boost_LIBRARY_DIR})
+
+INCLUDE_DIRECTORIES(${EIGEN_INCLUDE_DIRS})
+INCLUDE_DIRECTORIES(${BOOST_INCLUDEDIR})
+INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/include)
+
 LINK_DIRECTORIES(${CMAKE_INSTALL_PREFIX})
+LINK_DIRECTORIES(${Boost_LIBRARY_DIRS})
 LINK_DIRECTORIES(${PYTHON_CONFIG_LIBS_PATH})
 
 # add the test dirs
-ADD_SUBDIRECTORY(test_array_utils)
-ADD_SUBDIRECTORY(test_mc_tree_search)
+ADD_SUBDIRECTORY(test_policies/test_max_tabular_policy)
+ADD_SUBDIRECTORY(test_policies/test_random_tabular_policy)
+ADD_SUBDIRECTORY(test_policies/test_epsilon_greedy_policy)
+ADD_SUBDIRECTORY(test_policies/test_softmax_policy)
+ADD_SUBDIRECTORY(test_maths/test_vector_math)
+ADD_SUBDIRECTORY(test_experience_buffer)
+
+#ADD_SUBDIRECTORY(test_array_utils)
+#ADD_SUBDIRECTORY(test_mc_tree_search)
 #ADD_SUBDIRECTORY(test_kd_tree)
-ADD_SUBDIRECTORY(test_basic_stats)
-ADD_SUBDIRECTORY(test_iteration_counter)
-ADD_SUBDIRECTORY(test_fixed_priority_queue)
+#ADD_SUBDIRECTORY(test_basic_stats)
+#ADD_SUBDIRECTORY(test_iteration_counter)
+#ADD_SUBDIRECTORY(test_fixed_priority_queue)
+#ADD_SUBDIRECTORY(test_a2c)
+
