@@ -66,12 +66,9 @@ class QNetImpl: public torch::nn::Module
 {
 public:
 
-
     QNetImpl();
-
     torch_tensor_t forward(torch_tensor_t);
 
-    
 private:
 
    torch::nn::Linear fc1_;
@@ -241,8 +238,8 @@ int main(){
 				// randomize the flattened observation by adding
 				// some noise
 				obs1 = maths::add(obs1, rand_vec);
-				auto torch_state_1 = torch_utils::TorchAdaptor::to_torch(obs1, 
-																		 DeviceType::CPU);
+				auto torch_state_1 = cubeai::utils::pytorch::TorchAdaptor::to_torch(obs1, 
+																		            DeviceType::CPU);
                 
                 // get the qvals
                 auto qvals = qnet(torch_state_1);
@@ -261,7 +258,7 @@ int main(){
 				rand_vec = cubeai::maths::divide(rand_vec, 100.0);
 				obs2 = maths::add(obs2, rand_vec);
 				
-				auto torch_state_2 = torch_utils::TorchAdaptor::to_torch(obs2, 
+				auto torch_state_2 = cubeai::utils::pytorch::TorchAdaptor::to_torch(obs2, 
 																		 DeviceType::CPU);
 																		 
 																		 
@@ -288,25 +285,25 @@ int main(){
 					auto reward_batch  = get<real_t, 2>(batch_sample);
 					auto done_batch    = get<bool, 4>(batch_sample);
 					
-					auto state_1_batch_t = torch_utils::TorchAdaptor::stack(state_1_batch, 
+					auto state_1_batch_t = cubeai::utils::pytorch::TorchAdaptor::stack(state_1_batch, 
 																			cubeai::DeviceType::CPU);
 					auto q1 = qnet(state_1_batch_t);
 					
 					// tell the model that we don't use grad here
 					qnet->eval();
 					
-					auto state_2_batch_t = torch_utils::TorchAdaptor::stack(state_2_batch, 
+					auto state_2_batch_t = cubeai::utils::pytorch::TorchAdaptor::stack(state_2_batch, 
 																			cubeai::DeviceType::CPU);
 					auto q2 = qnet(state_2_batch_t);
 				
 					// we are training again
 					qnet->train();
 					
-					auto reward_batch_t = torch_utils::TorchAdaptor::to_torch(reward_batch, 
+					auto reward_batch_t = cubeai::utils::pytorch::TorchAdaptor::to_torch(reward_batch, 
 																			  cubeai::DeviceType::CPU);
-					auto done_batch_t = torch_utils::TorchAdaptor::to_torch(done_batch, 
+					auto done_batch_t = cubeai::utils::pytorch::TorchAdaptor::to_torch(done_batch, 
 																			  cubeai::DeviceType::CPU);
-					auto action_batch_t = torch_utils::TorchAdaptor::to_torch(action_batch, 
+					auto action_batch_t = cubeai::utils::pytorch::TorchAdaptor::to_torch(action_batch, 
 																			  cubeai::DeviceType::CPU);
 															
 					auto state_max = torch::max(q2, 1);

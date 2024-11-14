@@ -1,4 +1,4 @@
-# EXample 15: DQN algorithm on Gridworld with experience replay
+# Example 15: DQN algorithm on Gridworld with experience replay
 
 In this example, we will train an agent so that it learns to navigate itself in a grid.
 Specifically, we will be using the ```Gridworld``` environmant from the book <a href="https://www.manning.com/books/deep-reinforcement-learning-in-action">Deep Reinforcement Learning in Action</a>.
@@ -12,6 +12,10 @@ We will code the same model as is done in the <a href="https://www.manning.com/b
 ## Driver code
 
 ```
+/**
+ * Use DQN on Gridworld
+ *
+ * */
 #include "cubeai/base/cubeai_config.h"
 
 #if defined(USE_PYTORCH) && defined(USE_RLENVS_CPP)
@@ -24,6 +28,7 @@ We will code the same model as is done in the <a href="https://www.manning.com/b
 #include "cubeai/rl/policies/epsilon_greedy_policy.h"
 #include "cubeai/utils/torch_adaptor.h"
 #include "cubeai/maths/vector_math.h"
+#include "cubeai/data_structs/experience_buffer.h"
 #include "rlenvs/envs/grid_world/grid_world_env.h"
 
 #include <boost/log/trivial.hpp>
@@ -36,13 +41,12 @@ We will code the same model as is done in the <a href="https://www.manning.com/b
 #include <filesystem>
 #include <map>
 #include <vector>
+#include <tuple>
 
 namespace rl_example_12{
 
-const std::string EXPERIMENT_ID = "3";
-
-namespace F = torch::nn::functional;
-
+	namespace F = torch::nn::functional;
+	
 using cubeai::real_t;
 using cubeai::uint_t;
 using cubeai::float_t;
@@ -51,17 +55,23 @@ using cubeai::torch_tensor_t;
 using cubeai::rl::RLSerialAgentTrainer;
 using cubeai::rl::RLSerialTrainerConfig;
 using cubeai::rl::policies::EpsilonGreedyPolicy;
+using cubeai::containers::ExperienceBuffer;
 using rlenvs_cpp::envs::grid_world::Gridworld;
+
+	
+const std::string EXPERIMENT_ID = "1";
 
 const uint_t l1 = 64;
 const uint_t l2 = 150;
 const uint_t l3 = 100;
 const uint_t l4 = 4;
 const uint_t SEED = 42;
+const uint_t BATCH_SIZE = 200;
+const uint_t EXPERIENCE_BUFFER_SIZE = 1000;
 const uint_t TOTAL_EPOCHS = 1000;
 const uint_t TOTAL_ITRS_PER_EPOCH = 50;
 const real_t GAMMA = 0.9;
-const real_t EPSILON = 1.0;
+const real_t EPSILON = 0.3;
 const real_t LEARNING_RATE = 1.0e-3;
 
 
@@ -111,6 +121,11 @@ TORCH_MODULE(QNet);
 
 // 4x4 grid
 typedef Gridworld<4> env_type;
+typedef env_type::time_step_type time_step_type;
+
+typedef std::tuple<std::vector<float_t>, uint_t, real_t, std::vector<float_t>, bool> experience_tuple_type;
+
+typedef ExperienceBuffer<experience_tuple_type> experience_buffer_type;
 typedef env_type::state_type state_type;
 
 
@@ -131,12 +146,32 @@ flattened_observation(const state_type& state){
 	return data;
 }
 
+template<typename T, uint_t index>
+std::vector<T> 
+get(const std::vector<experience_tuple_type>& experience){
+	
+	std::vector<T> result;
+	result.reserve(experience.size());
+	
+	auto b = experience.begin();
+	auto e = experience.end();
+	
+	for(; b != e; ++b){
+		auto item = *b;
+		result.push_back(std::get<index>(item));
+	}
+	
+	return result;
+	
+}
+
 }
 
 
 int main(){
 
     using namespace rl_example_12;
+	using namespace cubeai;
 
     try{
 
@@ -155,8 +190,12 @@ int main(){
         // create a 4x4 grid
         auto env = env_type();
 
-        std::unordered_map<std::string, std::any> options;
-        env.make("v1", options);
+        
+		// initialize the environment using random mode
+		std::unordered_map<std::string, std::any> options;
+        options["mode"] = std::any(rlenvs_cpp::envs::grid_world::to_string(rlenvs_cpp::envs::grid_world::GridWorldInitType::RANDOM));
+
+        env.make("v0", options);
 
         BOOST_LOG_TRIVIAL(info)<<"Done...";
         BOOST_LOG_TRIVIAL(info)<<"Environment name: "<<env.name;
@@ -173,98 +212,153 @@ int main(){
         // we will use an epsilon-greedy policy
         EpsilonGreedyPolicy policy(	EPSILON, 
 									SEED, 
-									cubeai::rl::policies::EpsilonDecayOption::NONE);
+									rl::policies::EpsilonDecayOption::NONE);
 
         // the loss function to use
         auto loss_fn = torch::nn::MSELoss();
 
+		// track the average loss per epoch
         std::vector<real_t> losses;
         losses.reserve(TOTAL_EPOCHS);
+		
+		experience_buffer_type experience_buffer(EXPERIENCE_BUFFER_SIZE);
 
-        // loop over the epochs
+
+		// hold random values
+		std::vector<float_t> rand_vec(64, 0.0);
+		float_t a = 0.0;
+		float_t b = 1.0;
+        
+		// loop over the epochs
         for(uint_t epoch=0; epoch < TOTAL_EPOCHS; ++epoch){
 
             BOOST_LOG_TRIVIAL(info)<<"Starting epoch: "<<epoch<<std::endl;
 
             // for every new epoch we reset the environment
             auto time_step = env.reset();
-            auto done = false;
+            
 			uint_t step_counter = 0;
+			
+			
+			// the loss associated with the epoch
 			std::vector<real_t> epoch_loss;
-			std::vector<float_t> rand_vec(64, 0.0);
 			epoch_loss.reserve(TOTAL_ITRS_PER_EPOCH);
-            while(!done){
+            
+			auto done = false;
+			while(!done){
 
-				auto obs = flattened_observation(time_step.observation());
+				auto obs1 = flattened_observation(time_step.observation());
 				
-				float_t a = 0.0;
-				float_t b = 1.0;
 				rand_vec = cubeai::maths::randomize(rand_vec, a, b, 64);
-				rand_vec = cubeai::maths::divide(rand_vec, 10.0);
+				rand_vec = cubeai::maths::divide(rand_vec, 100.0);
 				
-				// randomize the flattened observation
-				obs = cubeai::maths::add(obs, rand_vec);
-				auto torch_state = cubeai::torch_utils::TorchAdaptor::to_torch(obs, cubeai::DeviceType::CPU);
+				// randomize the flattened observation by adding
+				// some noise
+				obs1 = maths::add(obs1, rand_vec);
+				auto torch_state_1 = torch_utils::TorchAdaptor::to_torch(obs1, 
+																		 DeviceType::CPU);
                 
                 // get the qvals
-                auto qvals = qnet(torch_state);
-                auto action_idx = policy(qvals, cubeai::torch_tensor_value_type<float_t>());
+                auto qvals = qnet(torch_state_1);
+                auto action_idx = policy(qvals, 
+				                         cubeai::torch_tensor_value_type<float_t>());
 				
 				BOOST_LOG_TRIVIAL(info)<<"Action selected: "<<action_idx<<std::endl;
 
 				// step in the environment
                 time_step = env.step(action_idx);
-                torch_state = state_to_torch_tensor(time_step.observation());
-
-                // tell the model that we don't use grad here
-                qnet->eval();
-                auto new_q_vals = qnet(torch_state);
+				auto reward = time_step.reward();
+				auto step_finished = time_step.done();
 				
-				// we are training again
-				qnet->train();
-
-                // find the maximum
-                auto max_q = torch::max(new_q_vals);
-                auto reward = time_step.reward();
+				auto obs2 = flattened_observation(time_step.observation());
+				rand_vec = cubeai::maths::randomize(rand_vec, a, b, 64);
+				rand_vec = cubeai::maths::divide(rand_vec, 100.0);
+				obs2 = maths::add(obs2, rand_vec);
 				
-				BOOST_LOG_TRIVIAL(info)<<"Reward: "<<reward;
+				auto torch_state_2 = torch_utils::TorchAdaptor::to_torch(obs2, 
+																		 DeviceType::CPU);
+																		 
+																		 
+				
+				experience_tuple_type exp = {obs1, action_idx, reward, obs2, step_finished}; 
+				
+				// put the observation into the buffer
+				experience_buffer.append(exp);
+				
+				// if we reach the batch size we will do
+				// a backward propagation
+				if(experience_buffer.size() >= BATCH_SIZE){
+					
+					std::vector<experience_tuple_type> batch_sample;
+					batch_sample.reserve(BATCH_SIZE);
+					
+					// sample from the experience 
+					experience_buffer.sample(BATCH_SIZE, batch_sample, SEED);
+					
+					// stack the experiences
+					auto state_1_batch = get<std::vector<float_t>, 0>(batch_sample);
+					auto action_batch  = get<int_t, 1>(batch_sample);
+					auto state_2_batch = get<std::vector<float_t>, 3>(batch_sample);
+					auto reward_batch  = get<real_t, 2>(batch_sample);
+					auto done_batch    = get<bool, 4>(batch_sample);
+					
+					auto state_1_batch_t = torch_utils::TorchAdaptor::stack(state_1_batch, 
+																			cubeai::DeviceType::CPU);
+					auto q1 = qnet(state_1_batch_t);
+					
+					// tell the model that we don't use grad here
+					qnet->eval();
+					
+					auto state_2_batch_t = torch_utils::TorchAdaptor::stack(state_2_batch, 
+																			cubeai::DeviceType::CPU);
+					auto q2 = qnet(state_2_batch_t);
+				
+					// we are training again
+					qnet->train();
+					
+					auto reward_batch_t = torch_utils::TorchAdaptor::to_torch(reward_batch, 
+																			  cubeai::DeviceType::CPU);
+					auto done_batch_t = torch_utils::TorchAdaptor::to_torch(done_batch, 
+																			  cubeai::DeviceType::CPU);
+					auto action_batch_t = torch_utils::TorchAdaptor::to_torch(action_batch, 
+																			  cubeai::DeviceType::CPU);
+															
+					auto state_max = torch::max(q2, 1);
+					auto state_max_val = std::get<0>(state_max);
+					auto Y = reward_batch_t + GAMMA * ((1-done_batch_t) * state_max_val);
+					auto X = q1.gather(1, action_batch_t.unsqueeze(1)).squeeze();
+					auto loss = loss_fn(X, Y.detach());
+					
+					optimizer_ptr -> zero_grad();
+					loss.backward();
+					optimizer_ptr -> step();
+					
+					BOOST_LOG_TRIVIAL(info)<<"Loss at epoch: "<<loss.item<real_t>();
+					epoch_loss.push_back(loss.item<real_t>());
+					
+				}
+				
+				step_counter += 1;
 				
 				// update done
 				done = time_step.done();
 				
-				if(done){ //#Q
+				if(done || step_counter > TOTAL_ITRS_PER_EPOCH){ //#Q
 					//done = true;
 					BOOST_LOG_TRIVIAL(info)<<"Reward: "<<reward;
 					BOOST_LOG_TRIVIAL(info)<<"Finishing epoch at step: "<<step_counter;
+					step_counter = 0;
 				}
-				
-					
-                auto y = torch::tensor({reward});
-                if(reward == -1.0){
-                    y +=  max_q * GAMMA;
-                }
-
-                // the target according to Qvals
-                auto X = torch::tensor({qvals.squeeze()[action_idx].item<float_t>()});
-				
-                // calculate the loss
-                auto loss = loss_fn(X, y); 
-                optimizer_ptr -> zero_grad();
-                optimizer_ptr -> step();
-
-                BOOST_LOG_TRIVIAL(info)<<"Loss at epoch: "<<loss.item<real_t>();
-                epoch_loss.push_back(loss.item<real_t>());
-				step_counter += 1;
             }
 
             BOOST_LOG_TRIVIAL(info)<<"Epoch finished...";
 			
 			// get the epsilon
-			auto eps = policy.eps_value();
+			/*auto eps = policy.eps_value();
 			if(eps > 0.1){
 				eps -= 1/static_cast<real_t>(TOTAL_EPOCHS);
 				policy.set_eps_value(eps);
-			}
+			}*/
 			
 			losses.push_back(cubeai::maths::mean(epoch_loss.begin(),
 													epoch_loss.end()));
@@ -305,43 +399,14 @@ int main(){
 }
 #endif
 
+
 ```
 
 Running the code above produces the following output:
 
 ```
-[2024-09-22 15:21:59.327047] [0x00007f1454f2f000] [info]    Starting agent training...
-[2024-09-22 15:21:59.327062] [0x00007f1454f2f000] [info]    Numebr of episodes to trina: 1000
-[2024-09-22 15:22:00.527724] [0x00007f1454f2f000] [info]    Creating the environment...
-[2024-09-22 15:22:00.528006] [0x00007f1454f2f000] [info]    Done...
-[2024-09-22 15:22:00.528012] [0x00007f1454f2f000] [info]    Environment name: Gridworld
-[2024-09-22 15:22:00.528018] [0x00007f1454f2f000] [info]    Number of actions available: 4
-[2024-09-22 15:22:00.528022] [0x00007f1454f2f000] [info]    Number of states available: 16
-[2024-09-22 15:22:00.554437] [0x00007f1454f2f000] [info]    Starting epoch: 0
 
-[2024-09-22 15:22:00.599219] [0x00007f1454f2f000] [info]    Action selected: 3
-
-[2024-09-22 15:22:00.601347] [0x00007f1454f2f000] [info]    Reward: -1
-[2024-09-22 15:22:00.607770] [0x00007f1454f2f000] [info]    Loss at epoch: 1.02671
-[2024-09-22 15:22:00.608588] [0x00007f1454f2f000] [info]    Action selected: 2
-
-[2024-09-22 15:22:00.608693] [0x00007f1454f2f000] [info]    Reward: -1
-[2024-09-22 15:22:00.608754] [0x00007f1454f2f000] [info]    Loss at epoch: 0.989844
-[2024-09-22 15:22:00.608844] [0x00007f1454f2f000] [info]    Action selected: 3
-
-[2024-09-22 15:22:00.608925] [0x00007f1454f2f000] [info]    Reward: -1
-[2024-09-22 15:22:00.608974] [0x00007f1454f2f000] [info]    Loss at epoch: 1.01939
-[2024-09-22 15:22:00.609058] [0x00007f1454f2f000] [info]    Action selected: 3
-
-[2024-09-22 15:22:00.609138] [0x00007f1454f2f000] [info]    Reward: -1
-[2024-09-22 15:22:00.609183] [0x00007f1454f2f000] [info]    Loss at epoch: 1.02671
-[2024-09-22 15:22:00.609268] [0x00007f1454f2f000] [info]    Action selected: 2
-...
 ```
 
 The average per epoch loss is shown in the figure below
-
-| ![average-per-epoch-loss](./average_loss.png) |
-|:--:|
-| **Figure: Average loss per epoch.**|
 

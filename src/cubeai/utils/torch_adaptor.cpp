@@ -8,7 +8,8 @@
 #include <vector>
 
 namespace cubeai{
-namespace torch_utils{
+namespace utils{
+namespace pytorch{
 
 	
 TorchAdaptor::value_type 
@@ -225,7 +226,7 @@ TorchAdaptor::to_vector(torch_tensor_t tensor){
 }
 
 }
-
+}
 }
 #endif
 

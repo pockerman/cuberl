@@ -156,8 +156,6 @@ INCLUDE_DIRECTORIES(include/)
 # collect the source files for the library
 FILE(GLOB SRCS src/cubeai/base/*.cpp
                src/cubeai/datasets/*.cpp
-               src/cubeai/ml/*.cpp
-			   src/cubeai/ml/*/*.cpp
                src/cubeai/rl/*.cpp
                src/cubeai/rl/*/*.cpp
                src/cubeai/io/*.cpp

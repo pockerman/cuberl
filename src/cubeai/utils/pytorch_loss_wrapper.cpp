@@ -1,4 +1,4 @@
-#include "cubeai/ml/pytorch_loss_wrapper.h"
+#include "cubeai/utils/pytorch_loss_wrapper.h"
 
 #ifdef USE_PYTORCH
 
@@ -9,10 +9,10 @@
 #endif
 
 namespace cubeai{
-namespace ml{
-namespace pytorch {
+namespace utils {
+	namespace pytorch{
 
-
+using namespace cubeai::utils;
 
 PyTorchLossWrapper::PyTorchLossWrapper(LossType type)
     :
@@ -50,5 +50,4 @@ PyTorchLossWrapper::calculate(torch_tensor_t output, torch_tensor_t target)const
 }
 }
 }
-
 #endif
