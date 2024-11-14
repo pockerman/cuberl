@@ -331,7 +331,7 @@ ReinforceSolver<EnvType, PolicyType, LossFuncType>::on_training_episode(env_type
 	auto done_batch    = monitor_.template get<bool, 4>(batch);
 	auto log_probs_batch  = monitor_.template get<real_t, 5>(batch);
 	
-	auto tensor_log_probs_batch = cubeai::torch_utils::TorchAdaptor::to_torch(log_probs_batch, 
+	auto tensor_log_probs_batch = cubeai::utils::pytorch::TorchAdaptor::to_torch(log_probs_batch, 
 														                      config_.device_type);
 	
 	
@@ -344,7 +344,7 @@ ReinforceSolver<EnvType, PolicyType, LossFuncType>::on_training_episode(env_type
 	}
 	
 	// TODO: These should be the discounted rewards
-	auto tensor_reward_batch = cubeai::torch_utils::TorchAdaptor::to_torch(discounted_returns, 
+	auto tensor_reward_batch = cubeai::utils::pytorch::TorchAdaptor::to_torch(discounted_returns, 
 													                       config_.device_type);
 	
 	// now that we have the batches
@@ -370,15 +370,7 @@ ReinforceSolver<EnvType, PolicyType, LossFuncType>::on_training_episode(env_type
 template<typename EnvType, typename PolicyType, typename LossFuncType>
 void
 ReinforceSolver<EnvType, PolicyType, LossFuncType>::actions_after_episode_ends(env_type&, uint_t /*episode_idx*/,
-                                                                               const EpisodeInfo& /*einfo*/){
-
-     /*policy_optimizer_ -> zero_grad();
-	 auto loss = loss_fn_(monitor_.policy_loss_values, monitor_.rewards);
-     loss.backward();
-     policy_optimizer_ -> step();*/
-
-
-}
+                                                                               const EpisodeInfo& /*einfo*/){}
 
 }
 }

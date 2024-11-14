@@ -13,7 +13,8 @@
 
 
 namespace cubeai {
-namespace torch_utils {
+namespace utils{
+namespace pytorch {
 	
 	using namespace cubeai::utils;
 
@@ -47,6 +48,7 @@ private:
 
 };
 
+}
 }
 }
 

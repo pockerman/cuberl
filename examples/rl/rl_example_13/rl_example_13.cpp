@@ -35,6 +35,7 @@ namespace F = torch::nn::functional;
 using cubeai::real_t;
 using cubeai::uint_t;
 using cubeai::torch_tensor_t;
+using cubeai::DeviceType;
 using cubeai::rl::algos::pg::ReinforceSolver;
 using cubeai::rl::algos::pg::ReinforceConfig;
 using cubeai::rl::RLSerialAgentTrainer;
@@ -54,9 +55,7 @@ class PolicyNetImpl: public torch::nn::Module
 {
 public:
 
-
     PolicyNetImpl();
-
     torch_tensor_t forward(torch_tensor_t state);
 
     template<typename StateTp>
@@ -66,7 +65,6 @@ private:
 
    torch::nn::Linear fc1_;
    torch::nn::Linear fc2_;
-
 };
 
 
@@ -79,20 +77,6 @@ PolicyNetImpl::PolicyNetImpl()
     register_module("fc2", fc2_);
 }
 
-/*template<typename LossValuesTp>
-void
-PolicyNetImpl::update_policy_loss(const LossValuesTp& vals){
-
-     torch_tensor_t torch_vals = torch::tensor(vals);
-
-     // specify that we require the gradient
-     loss_ = torch::cat(torch::tensor(vals, torch::requires_grad())).sum();
-}
-
-void
-PolicyNetImpl::step_backward_policy_loss(){
-    loss_.backward();
-}*/
 
 torch_tensor_t
 PolicyNetImpl::forward(torch_tensor_t x){
@@ -163,20 +147,21 @@ int main(){
 
         PolicyNet policy;
 
-        //auto optimizer_ptr = std::make_unique<torch::optim::Adam>(policy->parameters(),
-        //                                                          torch::optim::AdamOptions(1e-2));
-
+        
         // reinforce options
-        ReinforceConfig opts = {true, 1000, 100, 100, 100, 1.0e-2, 0.1, 195.0};
+        ReinforceConfig opts = {true, 1000, 100, 100, 
+		                        100, 1.0e-2, 0.1, 195.0,
+								DeviceType::CPU};
 
         std::map<std::string, std::any> opt_options;
         opt_options.insert(std::make_pair("lr", LEARNING_RATE));
 
-        auto pytorch_ops = cubeai::maths::optim::pytorch::build_pytorch_optimizer_options(cubeai::maths::optim::OptimzerType::ADAM,
-                                                                                          opt_options);
+		using namespace cubeai::maths;
+        auto pytorch_ops = optim::pytorch::build_pytorch_optimizer_options(optim::OptimzerType::ADAM,
+																		   opt_options);
 
-        auto policy_optimizer = cubeai::maths::optim::pytorch::build_pytorch_optimizer(cubeai::maths::optim::OptimzerType::ADAM,
-                                                                                       *policy, pytorch_ops);
+        auto policy_optimizer = optim::pytorch::build_pytorch_optimizer(optim::OptimzerType::ADAM,
+																		*policy, pytorch_ops);
 
 		loss_type loss;
         solver_type solver(opts, policy, loss, policy_optimizer);
@@ -204,9 +189,7 @@ int main(){
         // use it
         auto policy_model_filename = std::string("experiments/") + 
 		                             EXPERIMENT_ID + std::string("/reinforce_cartpole_policy.pth");
-        //torch::save(policy,policy_model_filename);
-        //auto model_scripted = torch::jit::scr //script(policy);
-        //model_scripted.save(policy_model_filename);
+        
         torch::serialize::OutputArchive archive;
         policy->save(archive);
         archive.save_to(policy_model_filename);

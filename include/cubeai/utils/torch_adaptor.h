@@ -11,7 +11,8 @@
 #include <vector>
 
 namespace cubeai{
-namespace torch_utils {
+namespace utils {
+namespace pytorch{
 
 
 ///
@@ -46,6 +47,6 @@ struct TorchAdaptor{
 
 }
 }
-
+}
 #endif
 #endif // TORCH_STATE_ADAPTOR_H

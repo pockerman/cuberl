@@ -9,7 +9,8 @@
 #endif
 
 namespace cubeai{
-namespace torch_utils {
+namespace utils {
+	namespace pytorch{
 
 using namespace cubeai::utils;
 
@@ -48,5 +49,5 @@ PyTorchLossWrapper::calculate(torch_tensor_t output, torch_tensor_t target)const
 
 }
 }
-
+}
 #endif
