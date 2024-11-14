@@ -6,26 +6,24 @@ on:
   pull_request:
     branches: [ "master" ]
 
-env:
-  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
-  BUILD_TYPE: Debug
-
 jobs:
   build:
     # The CMake configure and build commands are platform agnostic and should work equally well on Windows or Mac.
     # You can convert this to a matrix build if you need cross-platform coverage.
     # See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
     runs-on: ubuntu-latest
-
+	strategy:
+	  matrix:
+	      BUILD_TYPE: ["Release", "Debug"]
+	     
     steps:
+	- uses: actions/checkout@v4
 
-    - name: Set up boost
-	  shell: bash
+    - name: Install dependencies
 	  run: |
-		echo "Installing libboost-dev-all"
-		apt install libboost-dev-all
-		
-    - name: Checkout repository
+        sudo apt-get install -y g++ cmake libboost-program-options-dev libyaml-cpp-dev clang-tidy clang-format graphviz doxygen
+        pip3 install cvxpy matplotlib numpy
+    - name: Checkout Cmake
       uses: actions/checkout@v4
 
     - name: Configure CMake
@@ -34,13 +32,8 @@ jobs:
       run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
 
     - name: Build
-	  shell: bash
-	  run: |
-		mkdir build && cd build
-		cmake ..
-		make install
       # Build your program with the given configuration
-      #run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
+      run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
 
     - name: Test
       working-directory: ${{github.workspace}}/build
