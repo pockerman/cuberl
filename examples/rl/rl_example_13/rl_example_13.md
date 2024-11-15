@@ -1,7 +1,7 @@
 # Example 13: REINFORCE algorithm on CartPole
 
-The DQN algorithm we used in examples <a href="../rl_example_12/rl_example_12.md">EXample 12: DQN algorithm on Gridworld</a>
-and <a href="../rl_example_15/rl_example_15.md">EXample 15: DQN algorithm on Gridworld with experience replay</a> approximate a value function
+The DQN algorithm we used in examples <a href="../rl_example_12/rl_example_12.md">Example 12: DQN algorithm on Gridworld</a>
+and <a href="../rl_example_15/rl_example_15.md">Example 15: DQN algorithm on Gridworld with experience replay</a> approximate a value function
 and in particular the Q state-action value function. 
 However, in reinforcement learning we are more interested in policies since a policy dictates how 
 an agent behaves in a given state.
