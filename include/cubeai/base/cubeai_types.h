@@ -9,6 +9,7 @@
 
 //#include "blaze/Math.h"
 #include "Eigen/Core"
+#include "Eigen/Dense"
 #include <cstddef>
 #include <string>
 
