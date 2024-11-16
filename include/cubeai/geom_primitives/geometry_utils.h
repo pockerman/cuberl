@@ -13,7 +13,9 @@
 #include <tuple>
 
 namespace cubeai{
-namespace geom_primitives{
+namespace geom_utils{
+
+using namespace geom_primitives;
 
 const GeomPoint<3>
 cross_product(const GeomPoint<3>& o1, const GeomPoint<3>& o2);
@@ -54,68 +56,45 @@ get_point_with_min_distance(const GeomPoint<dim>& p,
 std::pair<bool, real_t>
 has_intersection(real_t discriminant, real_t b, real_t a);
 
-template<typename LineTp>
-const GeomPoint<LineTp::dimension>
-find_point_on_line_closest_to(const LineTp& element, const GeomPoint<LineTp::dimension>& p,
-                                 uint_t nsamples, real_t tol){
 
-    static_assert (LineTp::dimension == 2, "Line dimension is not 2");
+template<typename LineType>
+bool
+point_in_line_vertices(const LineType& line, const GeomPoint<2>& p){
+
+}
+
+///
+/// \brief compute_projection_of_point_on_line.
+/// Computes the projection of the given point
+/// on the given line segment. The algorithm used
+/// is described here:
+/// http://www.sunshine2k.de/coding/java/PointOnLine/PointOnLine.html
+///
+template<typename LineTp>
+const GeomPoint<2>
+compute_projection_of_point_on_line(const LineTp& line_segment,
+                                    const GeomPoint<2>& p){
+
+
     typedef GeomPoint<LineTp::dimension> point_t;
 
-    std::vector<point_t> points_on_segment(nsamples + 2);
+    // get the vertices of the line
+    auto v0 = line_segment.get_vertex(0);
+    auto v1 = line_segment.get_vertex(1);
 
-    auto v0 = element.get_vertex(0);
-    auto v1 = element.get_vertex(1);
+    // form the vectors
+    FloatVec e1{v1[0] - v0[0], v1[1] - v0[1]};
+    FloatVec e2{p[0] - v0[0], p[1] - v0[1]};
+    real_t dot = blaze::dot(e1 , e2);
 
-    real_t distance = v0.distance(v1);
+    auto len_line_e1 = std::sqrt(blaze::dot(e1, e1));
+    auto len_line_e2 = std::sqrt(blaze::dot(e2, e2));
 
-    ///...plus 2 because we also account for the end poinst
-    real_t h = distance/(real_t) (nsamples + 2);
+    auto cos = dot / (len_line_e1 * len_line_e2);
+    auto proj_len_of_line = cos * len_line_e2;
 
-    /// the first point is the staring vertex
-    points_on_segment[0] = v0;
 
-    /// the first point is the staring vertex
-    points_on_segment[0] = v0;
-
-    if(std::fabs(v1[0] - v0[0]) < tol){
-        /// we have line that is perpendicular to the
-        /// x-axis and we need to act differently to avoid infinity
-
-        for(uint_t sp = 1; sp <=nsamples; ++sp){
-
-            real_t xi = v0[0];
-            points_on_segment[sp] = point_t({xi, v0[0] + sp*h});
-        }
-    }
-    else if(std::fabs(v1[1] - v0[1]) < tol){
-        /// we have line that is parallel to the
-        /// x-axis and we need to act differently to avoid infinity
-
-        for(uint_t sp = 1; sp <=nsamples; ++sp){
-
-            real_t xi = v0[1];
-            points_on_segment[sp] = point_t({v0[0] + sp*h, xi});
-        }
-    }
-    else{
-
-        /// calculate the coefficients of the line
-        /// connecting the two vertices
-        real_t alpha = (v0[1] - v1[1])/(v0[0] - v1[0]);
-        real_t beta = ((v1[1]*v0[0] - v0[1]*v1[0]) )/(v0[0] - v1[0]);
-
-        for(uint_t sp = 1; sp <=nsamples; ++sp){
-
-            real_t xi = v0[0] + sp*h;
-            points_on_segment[sp] = point_t({xi, alpha*xi + beta});
-        }
-    }
-    /// add the ending vertex of the line segment
-    points_on_segment[nsamples + 1] = v1;
-
-    auto min_point = get_point_with_min_distance(p, points_on_segment);
-    return min_point;
+    return {v0[0] + (proj_len_of_line + e1[0]) / len_line_e1, v0[1] + (proj_len_of_line + e1[1]) / len_line_e1};
 }
 
 template<typename LineTp>

@@ -53,6 +53,11 @@ namespace cubeai
     using DynVec = Eigen::RowVectorX<T>;
 
     ///
+    ///
+    ///
+    using FloatVec = DynVec<real_t>;
+
+    ///
     /// \brief Null type. Simple placeholder
     ///
     struct Null{};

@@ -19,7 +19,7 @@ namespace policies {
     uint_t 
 	EpsilonGreedyPolicy::operator()(const torch_tensor_t& tensor, torch_tensor_value_type<real_t>)const{
 		
-		auto vec = cubeai::torch_utils::TorchAdaptor::to_vector<real_t>(tensor);
+		auto vec = cubeai::utils::pytorch::TorchAdaptor::to_vector<real_t>(tensor);
 
 		std::uniform_real_distribution<> real_dist_(0.0, 1.0);
 
@@ -35,7 +35,7 @@ namespace policies {
 	uint_t 
 	EpsilonGreedyPolicy::operator()(const torch_tensor_t& tensor, torch_tensor_value_type<float_t>)const{
 		
-		auto vec = cubeai::torch_utils::TorchAdaptor::to_vector<float_t>(tensor);
+		auto vec = cubeai::utils::pytorch::TorchAdaptor::to_vector<float_t>(tensor);
 
 		std::uniform_real_distribution<> real_dist_(0.0, 1.0);
 
@@ -51,7 +51,7 @@ namespace policies {
 	uint_t 
 	EpsilonGreedyPolicy::operator()(const torch_tensor_t& tensor, torch_tensor_value_type<int_t>)const{
 		
-		auto vec = cubeai::torch_utils::TorchAdaptor::to_vector<int_t>(tensor);
+		auto vec = cubeai::utils::pytorch::TorchAdaptor::to_vector<int_t>(tensor);
 
 		std::uniform_real_distribution<> real_dist_(0.0, 1.0);
 
@@ -66,7 +66,7 @@ namespace policies {
 	}
 	uint_t 
 	EpsilonGreedyPolicy::operator()(const torch_tensor_t& tensor, torch_tensor_value_type<lint_t>)const{
-		auto vec = cubeai::torch_utils::TorchAdaptor::to_vector<lint_t>(tensor);
+		auto vec = cubeai::utils::pytorch::TorchAdaptor::to_vector<lint_t>(tensor);
 
 		std::uniform_real_distribution<> real_dist_(0.0, 1.0);
 

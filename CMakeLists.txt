@@ -3,7 +3,7 @@ MESSAGE(STATUS "Using CMake ${CMAKE_VERSION}")
 
 SET(CUBEAILIB_VERSION_MAJOR 0)
 SET(CUBEAILIB_VERSION_MINOR 1)
-SET(CUBEAILIB_VERSION_PATCH 0)
+SET(CUBEAILIB_VERSION_PATCH 2)
 SET(CUBEAILIB_VERSION "${CUBEAILIB_VERSION_MAJOR}.${CUBEAILIB_VERSION_MINOR}.${CUBEAILIB_VERSION_PATCH}")
 
 # if PyTorch has been compiled with CUDA support
@@ -156,8 +156,6 @@ INCLUDE_DIRECTORIES(include/)
 # collect the source files for the library
 FILE(GLOB SRCS src/cubeai/base/*.cpp
                src/cubeai/datasets/*.cpp
-               src/cubeai/ml/*.cpp
-			   src/cubeai/ml/*/*.cpp
                src/cubeai/rl/*.cpp
                src/cubeai/rl/*/*.cpp
                src/cubeai/io/*.cpp
@@ -170,6 +168,7 @@ FILE(GLOB SRCS src/cubeai/base/*.cpp
                src/cubeai/planning/*.cpp
                src/cubeai/pytorch_utils/*.cpp
 	)
+
 
 
 ADD_LIBRARY(cubeailib SHARED ${SRCS})

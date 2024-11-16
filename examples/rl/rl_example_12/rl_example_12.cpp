@@ -60,12 +60,9 @@ class QNetImpl: public torch::nn::Module
 {
 public:
 
-
     QNetImpl();
-
     torch_tensor_t forward(torch_tensor_t);
 
-    
 private:
 
    torch::nn::Linear fc1_;
@@ -194,7 +191,7 @@ int main(){
 				
 				// randomize the flattened observation
 				obs = cubeai::maths::add(obs, rand_vec);
-				auto torch_state = cubeai::torch_utils::TorchAdaptor::to_torch(obs, cubeai::DeviceType::CPU);
+				auto torch_state = cubeai::utils::pytorch::TorchAdaptor::to_torch(obs, cubeai::DeviceType::CPU);
                 
                 // get the qvals
                 auto qvals = qnet(torch_state);
@@ -208,7 +205,7 @@ int main(){
 				// randomize the flattened observation
 				obs = cubeai::maths::add(obs, rand_vec);
 				
-                torch_state = cubeai::torch_utils::TorchAdaptor::to_torch(obs, cubeai::DeviceType::CPU);
+                torch_state = cubeai::utils::pytorch::TorchAdaptor::to_torch(obs, cubeai::DeviceType::CPU);
 
                 // tell the model that we don't use grad here
                 qnet->eval();

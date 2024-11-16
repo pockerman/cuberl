@@ -26,6 +26,8 @@ template<typename ExperienceType>
 class ExperienceBuffer: private boost::noncopyable{
 
 public:
+	
+	static const uint_t DEFAULT_CAPACITY = 100;
 
     typedef ExperienceType value_type ;
     typedef ExperienceType experience_type;
@@ -35,6 +37,11 @@ public:
     typedef typename boost::circular_buffer<ExperienceType>::const_iterator const_iterator;
     typedef typename boost::circular_buffer<ExperienceType>::reverse_iterator reverse_iterator;
     typedef typename boost::circular_buffer<ExperienceType>::const_reverse_iterator const_reverse_iterator;
+	
+	///
+    /// \brief ExperienceBuffer
+    ///
+    ExperienceBuffer();
 
     ///
     /// \brief ExperienceBuffer
@@ -89,6 +96,18 @@ public:
     ///
     template<typename BatchTp>
     void sample(uint_t batch_size, BatchTp& batch, uint_t seed=42)const;
+	
+	///
+	/// \brief Copy the contents of the buffer to the given container
+	///
+	template<typename ContainerType>
+	void get(ContainerType& container)const;
+	
+	///
+	/// \brief Copy the contents of the buffer to the given container
+	///
+	template<typename ContainerType>
+	ContainerType get()const;
 
     iterator begin(){return buffer_.begin();}
     iterator end(){return buffer_.end();}
@@ -110,6 +129,12 @@ private:
    boost::circular_buffer<ExperienceType> buffer_;
 
 };
+
+template<typename ExperienceTp>
+ExperienceBuffer<ExperienceTp>::ExperienceBuffer()
+    :
+      buffer_(ExperienceBuffer<ExperienceTp>::DEFAULT_CAPACITY)
+{}
 
 template<typename ExperienceTp>
 ExperienceBuffer<ExperienceTp>::ExperienceBuffer(uint_t max_size)
@@ -154,6 +179,30 @@ ExperienceBuffer<ExperienceTp>::sample(uint_t batch_size,
 		batch.push_back(buffer_[idx]);
 	}
     
+}
+
+template<typename ExperienceType>
+template<typename ContainerType>
+void 
+ExperienceBuffer<ExperienceType>::get(ContainerType& container)const{
+	
+	for(auto val: buffer_){
+		container.push_back(val);
+	}
+}
+
+template<typename ExperienceType>
+template<typename ContainerType>
+ContainerType
+ExperienceBuffer<ExperienceType>::get()const{
+	
+	ContainerType container_;
+	container_.reserve(size());
+	for(auto val: buffer_){
+		container_.push_back(val);
+	}
+	
+	return container_;
 }
 
 }

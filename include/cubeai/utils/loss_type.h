@@ -5,12 +5,13 @@
 #include <string>
 
 namespace cubeai{
-namespace ml{
+namespace utils{
 
 ///
 /// \brief The RenderModeType enum
 ///
-BETTER_ENUM(LossType, char, INVALID_TYPE=-1, CROSS_ENTROPY=0, MSE);
+BETTER_ENUM(LossType, char, INVALID_TYPE=-1, 
+                            CROSS_ENTROPY=0, MSE);
 
 ///
 /// \brief to_string.  Returns the RenderModeType to its stringrepresentation

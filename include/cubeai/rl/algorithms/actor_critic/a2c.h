@@ -189,7 +189,8 @@ public:
     ///
     /// \brief actions_after_training_episode
     ///
-    virtual void actions_after_episode_ends(env_type&, uint_t /*episode_idx*/, const EpisodeInfo& info);
+    virtual void actions_after_episode_ends(env_type&, uint_t /*episode_idx*/, 
+	                                        const EpisodeInfo& info);
 
     ///
     /// \brief on_episode Do one on_episode of the algorithm
@@ -328,7 +329,7 @@ A2CSolver<EnvType, PolicyType, CriticType>::do_train_on_episode_(env_type& env, 
     auto episode_score = 0.0;
 
     //typedef torch_utils::TorchAdaptor::state_type state_type;
-    typedef torch_utils::TorchAdaptor::value_type value_type;
+    typedef cubeai::utils::pytorch::TorchAdaptor::value_type value_type;
     typedef typename EnvType::time_step_type time_step_type;
 
     typedef std::tuple<value_type,
@@ -344,7 +345,7 @@ A2CSolver<EnvType, PolicyType, CriticType>::do_train_on_episode_(env_type& env, 
 
     // helper class to convert from std::vector to torch_tensor_t
     // and vice versa
-    torch_utils::TorchAdaptor torch_adaptor;
+    cubeai::utils::pytorch::TorchAdaptor torch_adaptor;
 
     // loop over the iterations
     uint_t itrs = 0;
@@ -353,7 +354,7 @@ A2CSolver<EnvType, PolicyType, CriticType>::do_train_on_episode_(env_type& env, 
         auto torch_state = torch_adaptor(state);
         auto action_result = act_on_episode_iteration_(torch_state);
 
-        auto action = torch_utils::TorchAdaptor::to_vector<uint_t>(action_result.actions)[0];
+        auto action = cubeai::utils::pytorch::TorchAdaptor::to_vector<uint_t>(action_result.actions)[0];
         auto next_time_step = env.step(action);
 
         auto next_state = next_time_step.observation();

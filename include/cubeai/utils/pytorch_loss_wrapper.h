@@ -6,15 +6,17 @@
 #ifdef USE_PYTORCH
 
 #include "cubeai/base/cubeai_types.h"
-#include "cubeai/ml/loss_type.h"
+#include "cubeai/utils/loss_type.h"
 #include <torch/torch.h>
 
 
 
 
 namespace cubeai {
-namespace ml {
+namespace utils{
 namespace pytorch {
+	
+	using namespace cubeai::utils;
 
 ///
 /// \brief The PyTorchLossWrapper class
