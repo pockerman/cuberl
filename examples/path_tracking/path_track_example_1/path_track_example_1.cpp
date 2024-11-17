@@ -1,4 +1,4 @@
-#include "cubeai/base/cubeai_types.h"
+/*#include "cubeai/base/cubeai_types.h"
 #include "cubeai/control/pure_pursuit_path_tracker.h"
 #include "cubeai/geom_primitives/waypoint_path.h"
 #include "cubeai/robots/diff_drive_robot.h"
@@ -94,10 +94,11 @@ Agent::step(const path_type& path){
 
 }
 
-}
+}*/
 
 int main() {
 
+	/*
     using namespace path_track_example_1;
 
     // build the path
@@ -111,7 +112,7 @@ int main() {
     }
 
 
-
+*/
 
    return 0;
 }

@@ -85,10 +85,10 @@ compute_projection_of_point_on_line(const LineTp& line_segment,
     // form the vectors
     FloatVec e1{v1[0] - v0[0], v1[1] - v0[1]};
     FloatVec e2{p[0] - v0[0], p[1] - v0[1]};
-    real_t dot = blaze::dot(e1 , e2);
+    real_t dot = e1.dot(e2);
 
-    auto len_line_e1 = std::sqrt(blaze::dot(e1, e1));
-    auto len_line_e2 = std::sqrt(blaze::dot(e2, e2));
+    auto len_line_e1 = std::sqrt(e1.dot(e1));
+    auto len_line_e2 = std::sqrt(e2.dot(e2));
 
     auto cos = dot / (len_line_e1 * len_line_e2);
     auto proj_len_of_line = cos * len_line_e2;

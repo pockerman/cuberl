@@ -193,7 +193,7 @@ RLSerialAgentTrainer<EnvType, AgentType>::train(env_type& env){
         this->actions_after_episode_ends(env, episode_counter, episode_info);
 
         if(episode_info.stop_training){
-            BOOST_LOG_TRIVIAL(info)<<" Stopping training at index="<<episode_counter; //<<std::endl;
+            BOOST_LOG_TRIVIAL(info)<<" Stopping training at index="<<episode_counter;
             break;
         }
         episode_counter += 1;
