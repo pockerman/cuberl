@@ -360,8 +360,6 @@ template<typename T>
 std::vector<uint_t>
 max_indices(const DynVec<T>& vec){
 
-    throw std::runtime_error("Function not implemented");
-
     // find max value
     auto max_val = vec.maxCoeff();
 
