@@ -46,6 +46,7 @@ struct KalmanFilterConfig
 /// \brief Linear Kalman Filter implementation.
 /// See: An Introduction to the Kalman Filter, TR 95-041
 /// by Greg Welch1 and Gary Bishop
+/// https://www.cs.unc.edu/~welch/media/pdf/kalman_intro.pdf
 ///
 /// The algorithm is implemented as follows:
 ///
