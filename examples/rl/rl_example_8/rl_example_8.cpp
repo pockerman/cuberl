@@ -17,6 +17,7 @@ namespace rl_example_8
 {
 
 const std::string SERVER_URL = "http://0.0.0.0:8001/api";
+const std::string SOLUTION_FILE = "value_iteration_frozen_lake_v1.csv";
 
 using cubeai::real_t;
 using cubeai::uint_t;
@@ -38,18 +39,19 @@ typedef  ValueIteration<env_type,
 
 int main() {
 
+	BOOST_LOG_TRIVIAL(info)<<"Starting agent training";
+	
     using namespace rl_example_8;
 
     // create the environment
     env_type env(SERVER_URL);
 
-    std::cout<<"Environment URL: "<<env.get_url()<<std::endl;
+    BOOST_LOG_TRIVIAL(info)<<"Creating environment...";
     std::unordered_map<std::string, std::any> options;
 
-    std::cout<<"Creating the environment..."<<std::endl;
     env.make("v1", options);
     env.reset();
-    std::cout<<"Done..."<<std::endl;
+    BOOST_LOG_TRIVIAL(info)<<"Done...";
 
     // start with a uniform random policy i.e.
     // the agnet knows nothing about the environment
@@ -70,9 +72,12 @@ int main() {
     auto info = trainer.train(env);
     std::cout<<info<<std::endl;
 
-    // save the value function into a csv file
-    algorithm.save("value_iteration_frozen_lake_v0.csv");
+	BOOST_LOG_TRIVIAL(info)<<"Saving solution to "<<SOLUTION_FILE;
 
+    // save the value function into a csv file
+    algorithm.save(SOLUTION_FILE);
+
+	BOOST_LOG_TRIVIAL(info)<<"Finished agent training";
     return 0;
 }
 
