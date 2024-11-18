@@ -6,12 +6,7 @@
 
 #include "rlenvs/envs/gymnasium/toy_text/frozen_lake_env.h"
 
-#include <cmath>
-#include <utility>
-#include <tuple>
-#include <iostream>
-#include <random>
-#include <algorithm>
+#include <boost/log/trivial.hpp>
 
 namespace rl_example_8
 {
@@ -57,7 +52,9 @@ int main() {
     // the agnet knows nothing about the environment
     UniformDiscretePolicy policy(env.n_states(), env.n_actions());
 
-    StochasticAdaptorPolicy<UniformDiscretePolicy> policy_adaptor(env.n_states(), env.n_actions(), policy);
+    StochasticAdaptorPolicy<UniformDiscretePolicy> policy_adaptor(env.n_states(), 
+	                                                              env.n_actions(), 
+																  policy);
 
     ValueIterationConfig config;
     config.gamma = 1.0;
@@ -69,9 +66,8 @@ int main() {
 
     RLSerialAgentTrainer<env_type, solver_type> trainer(trainer_config, algorithm);
 
-    auto info = trainer.train(env);
-    std::cout<<info<<std::endl;
-
+    auto info_ = trainer.train(env);
+	BOOST_LOG_TRIVIAL(info)<<info_;
 	BOOST_LOG_TRIVIAL(info)<<"Saving solution to "<<SOLUTION_FILE;
 
     // save the value function into a csv file
