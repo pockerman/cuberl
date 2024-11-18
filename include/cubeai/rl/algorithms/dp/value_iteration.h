@@ -134,6 +134,7 @@ template<typename EnvType, typename PolicyType, typename PolicyAdaptorType>
 void
 ValueIteration<EnvType, PolicyType, PolicyAdaptorType>::actions_before_training_begins(env_type& env){
 
+	v_ = DynVec<real_t>::Zero(env.n_states());	
     policy_imp_.actions_before_training_begins(env);
 }
 
@@ -141,6 +142,9 @@ template<typename EnvType, typename PolicyType, typename PolicyAdaptorType>
 EpisodeInfo
 ValueIteration<EnvType, PolicyType, PolicyAdaptorType>::on_training_episode(env_type& env, uint_t episode_idx){
 
+	// start timing the training
+    auto start = std::chrono::steady_clock::now();
+	
     EpisodeInfo info;
     auto delta = 0.0;
     for(uint_t s=0; s< env.n_states(); ++s){
@@ -158,8 +162,14 @@ ValueIteration<EnvType, PolicyType, PolicyAdaptorType>::on_training_episode(env_
     if(delta < config_.tolerance){
         info.stop_training = true;
     }
+	
+	auto end = std::chrono::steady_clock::now();
+    std::chrono::duration<real_t> elapsed_seconds = end-start;
 
     info.episode_index = episode_idx;
+	info.episode_iterations = env.n_states();
+	info.total_time = elapsed_seconds;
+	
     return info;
 }
 
