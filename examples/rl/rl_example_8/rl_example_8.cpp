@@ -6,17 +6,13 @@
 
 #include "rlenvs/envs/gymnasium/toy_text/frozen_lake_env.h"
 
-#include <cmath>
-#include <utility>
-#include <tuple>
-#include <iostream>
-#include <random>
-#include <algorithm>
+#include <boost/log/trivial.hpp>
 
 namespace rl_example_8
 {
 
 const std::string SERVER_URL = "http://0.0.0.0:8001/api";
+const std::string SOLUTION_FILE = "value_iteration_frozen_lake_v1.csv";
 
 using cubeai::real_t;
 using cubeai::uint_t;
@@ -38,24 +34,27 @@ typedef  ValueIteration<env_type,
 
 int main() {
 
+	BOOST_LOG_TRIVIAL(info)<<"Starting agent training";
+	
     using namespace rl_example_8;
 
     // create the environment
     env_type env(SERVER_URL);
 
-    std::cout<<"Environment URL: "<<env.get_url()<<std::endl;
+    BOOST_LOG_TRIVIAL(info)<<"Creating environment...";
     std::unordered_map<std::string, std::any> options;
 
-    std::cout<<"Creating the environment..."<<std::endl;
     env.make("v1", options);
     env.reset();
-    std::cout<<"Done..."<<std::endl;
+    BOOST_LOG_TRIVIAL(info)<<"Done...";
 
     // start with a uniform random policy i.e.
     // the agnet knows nothing about the environment
     UniformDiscretePolicy policy(env.n_states(), env.n_actions());
 
-    StochasticAdaptorPolicy<UniformDiscretePolicy> policy_adaptor(env.n_states(), env.n_actions(), policy);
+    StochasticAdaptorPolicy<UniformDiscretePolicy> policy_adaptor(env.n_states(), 
+	                                                              env.n_actions(), 
+																  policy);
 
     ValueIterationConfig config;
     config.gamma = 1.0;
@@ -67,12 +66,14 @@ int main() {
 
     RLSerialAgentTrainer<env_type, solver_type> trainer(trainer_config, algorithm);
 
-    auto info = trainer.train(env);
-    std::cout<<info<<std::endl;
+    auto info_ = trainer.train(env);
+	BOOST_LOG_TRIVIAL(info)<<info_;
+	BOOST_LOG_TRIVIAL(info)<<"Saving solution to "<<SOLUTION_FILE;
 
     // save the value function into a csv file
-    algorithm.save("value_iteration_frozen_lake_v0.csv");
+    algorithm.save(SOLUTION_FILE);
 
+	BOOST_LOG_TRIVIAL(info)<<"Finished agent training";
     return 0;
 }
 

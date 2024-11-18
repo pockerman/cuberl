@@ -48,7 +48,7 @@ int main() {
 	
     env.make("v1", options);
     env.reset();
-    std::cout<<"Done..."<<std::endl;
+    BOOST_LOG_TRIVIAL(info)<<"Done...";
 
     UniformDiscretePolicy policy(env.n_states(), env.n_actions());
     StochasticAdaptorPolicy<UniformDiscretePolicy> policy_adaptor(env.n_states(), env.n_actions(), policy);
@@ -73,7 +73,6 @@ int main() {
     
 	BOOST_LOG_TRIVIAL(info)<<"Saving solution to "<<SOLUTION_FILE;
 	
-
     // save the value function into a csv file
     solver.save(SOLUTION_FILE);
 
