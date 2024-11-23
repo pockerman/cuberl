@@ -37,8 +37,9 @@ struct TorchAdaptor{
 
     torch_tensor_t operator()(real_t value)const;
     torch_tensor_t operator()(const std::vector<real_t>& data)const;
+	torch_tensor_t operator()(const std::vector<float_t>& data)const;
     torch_tensor_t operator()(const std::vector<int>& data)const;
-
+	
     value_type stack(const std::vector<value_type>& values, DeviceType type=DeviceType::CPU)const;
 
 

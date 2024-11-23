@@ -139,6 +139,7 @@ typedef  rlenvs_cpp::envs::gymnasium::CartPole env_type;
 
 int main(){
 
+	BOOST_LOG_TRIVIAL(info)<<"Starting agent training";
     using namespace rl_example_11;
 
     try{
@@ -146,17 +147,16 @@ int main(){
         // create the environment
         env_type env(SERVER_URL);
 
-        std::cout<<"Environment URL: "<<env.get_url()<<std::endl;
+		BOOST_LOG_TRIVIAL(info)<<"Creating environment...";
         std::unordered_map<std::string, std::any> options;
 
-        std::cout<<"Creating the environment..."<<std::endl;
         env.make("v1", options);
         env.reset();
-        std::cout<<"Done..."<<std::endl;
-        std::cout<<"Number of actions="<<env.n_actions()<<std::endl;
-
-
+        BOOST_LOG_TRIVIAL(info)<<"Done...";
+		BOOST_LOG_TRIVIAL(info)<<"Number of actions="<<env.n_actions();
+        
         A2CConfig a2c_config;
+		a2c_config.n_iterations_per_episode = 2;
         ActorNet policy(4, env.n_actions());
         CriticNet critic(4);
 
@@ -179,8 +179,12 @@ int main(){
                            policy_optimizer, critic_optimizer);
 
         RLSerialTrainerConfig config;
+		config.n_episodes = 100;
         RLSerialAgentTrainer<env_type, solver_type> trainer(config, solver);
-        trainer.train(env);
+        auto info = trainer.train(env);
+		
+		BOOST_LOG_TRIVIAL(info)<<"Training info..."<<info;
+		BOOST_LOG_TRIVIAL(info)<<"Finished agent training";
 
     }
     catch(std::exception& e){

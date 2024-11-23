@@ -20,6 +20,7 @@
 #include "cubeai/utils/cubeai_concepts.h"
 #include "cubeai/utils/torch_adaptor.h"
 #include "cubeai/data_structs/experience_buffer.h"
+#include "cubeai/maths/vector_math.h"
 
 #ifdef CUBEAI_DEBUG
 #include <cassert>
@@ -32,6 +33,7 @@
 #include <memory>
 #include <tuple>
 #include <string>
+#include <exception>
 
 namespace cubeai{
 namespace rl{
@@ -49,18 +51,61 @@ torch_tensor_t
 stack_values(const cubeai::containers::ExperienceBuffer<ExperienceType>& buffer,
              const std::string& prop_name ){
 
-    std::vector<torch_tensor_t> vals;
-    vals.reserve(buffer.size());
-
-    for(const auto& item: buffer){
-        auto& info = std::get<4>(item);
-
-        auto value_itr = info.find(prop_name);
-        auto values = std::any_cast<torch_tensor_t>(value_itr -> second);
-        vals.push_back(values);
+	if(prop_name == "log_probs"){
+		
+		std::vector<float_t> vals;
+		vals.reserve(buffer.size());
+		
+		for(const auto& item: buffer){
+			auto& info = std::get<4>(item);
+			auto value_itr = info.find("log_probs");
+			
+			if(value_itr == info.end()){
+				std::string msg = "Could not find property name: " + prop_name;
+				throw std::logic_error(msg);
+			}
+		
+			auto values = std::any_cast<torch_tensor_t>(value_itr -> second);
+			auto val = values.item();
+			vals.push_back(val.template to<float_t>());
+		}
+		
+		return cubeai::utils::pytorch::TorchAdaptor()(vals);
     }
+	else if(prop_name == "rewards"){
+		
+		std::vector<float_t> vals;
+		vals.reserve(buffer.size());
+		
+		for(const auto& item: buffer){
+			auto val_t = std::get<2>(item);
+			auto val = std::any_cast<real_t>(val_t);
+			vals.push_back(val);
+		}
+		
+		return cubeai::utils::pytorch::TorchAdaptor()(vals);
+		
+	}
+	else{
+		
+		std::vector<torch_tensor_t> vals;
+		vals.reserve(buffer.size());
+		
+		for(const auto& item: buffer){
+			auto& info = std::get<4>(item);
+			auto value_itr = info.find(prop_name);
+		
+			if(value_itr == info.end()){
+				std::string msg = "Could not find property name: " + prop_name;
+				throw std::logic_error(msg);
+			}
+		
+			auto values = std::any_cast<torch_tensor_t>(value_itr -> second);
+			vals.push_back(values);
+		}
 
-    return torch::cat(vals);
+		return torch::cat(vals);
+	}	
 }
 
 }
@@ -255,16 +300,6 @@ private:
     ///
     action_result act_on_episode_iteration_(torch_tensor_t& state);
 
-    ///
-    /// \brief optimize_model_
-    /// \param logprobs
-    /// \param entropies
-    /// \param values
-    /// \param rewards
-    ///
-    //torch_tensor_t compute_loss_(torch_tensor_t logprobs, torch_tensor_t entropies,
-    //                             torch_tensor_t values, torch_tensor_t rewards);
-
 };
 
 template<typename EnvType, typename PolicyType, typename CriticType>
@@ -308,9 +343,25 @@ A2CSolver<EnvType, PolicyType, CriticType>::on_training_episode(env_type& env, u
 
     auto start = std::chrono::steady_clock::now();
 
-    auto R = 0.0;
+    
     auto eps_info = do_train_on_episode_(env, episode_idx);
+	
+	
+	auto rewards_itr = eps_info.info.find("rewards");
+	
+	
+	auto rewards_tensor = std::any_cast<torch_tensor_t>(rewards_itr -> second);
+	auto rewards = cubeai::maths::exponentiate<std::vector<float_t>>(rewards_tensor, config_.gamma);
 
+	auto R = cubeai::maths::sum(rewards.begin(), rewards.end(), true);
+
+
+	auto logprobs_itr = eps_info.info.find("log_probs");
+	auto values_itr = eps_info.info.find("values");
+        
+	auto logprobs = std::any_cast<torch_tensor_t>(logprobs_itr -> second);
+	auto values = std::any_cast<torch_tensor_t>(values_itr -> second);
+	
     auto end = std::chrono::steady_clock::now();
     std::chrono::duration<real_t> elapsed_seconds = end - start;
 
@@ -319,6 +370,9 @@ A2CSolver<EnvType, PolicyType, CriticType>::on_training_episode(env_type& env, u
     info.episode_reward = R;
     info.episode_iterations = eps_info.episode_iterations;
     info.total_time = elapsed_seconds;
+	info.info["log_probs"] = logprobs;
+	info.info["rewards"] = rewards_tensor;
+	info.info["values"] = values;
     return info;
 }
 
@@ -328,7 +382,6 @@ A2CSolver<EnvType, PolicyType, CriticType>::do_train_on_episode_(env_type& env, 
 
     auto episode_score = 0.0;
 
-    //typedef torch_utils::TorchAdaptor::state_type state_type;
     typedef cubeai::utils::pytorch::TorchAdaptor::value_type value_type;
     typedef typename EnvType::time_step_type time_step_type;
 
@@ -349,18 +402,19 @@ A2CSolver<EnvType, PolicyType, CriticType>::do_train_on_episode_(env_type& env, 
 
     // loop over the iterations
     uint_t itrs = 0;
-    for(; itrs < config_.n_iterations_per_episode; ++ itrs){
+    for(; itrs < config_.n_iterations_per_episode; ++itrs){
 
         auto torch_state = torch_adaptor(state);
         auto action_result = act_on_episode_iteration_(torch_state);
 
         auto action = cubeai::utils::pytorch::TorchAdaptor::to_vector<uint_t>(action_result.actions)[0];
         auto next_time_step = env.step(action);
-
+		
         auto next_state = next_time_step.observation();
         auto reward = next_time_step.reward();
 
         std::map<std::string, std::any> info;
+		
         info["log_probs"] = action_result.log_probs;
         info["values"] = action_result.values;
 
@@ -381,16 +435,16 @@ A2CSolver<EnvType, PolicyType, CriticType>::do_train_on_episode_(env_type& env, 
         }
     }
 
-    // optimize the model check the actions_after_episode_ends
-    // function for this
+   
+	auto log_probs =  stack_values(buffer, "log_probs");
 
     EpisodeInfo info;
     info.episode_index = episode_idx;
     info.episode_reward = episode_score;
     info.episode_iterations = itrs;
-    info.info["log_probs"] = stack_values(buffer, "log_probs"); //stack_log_probs(buffer);
+    info.info["log_probs"] = log_probs;
     info.info["values"] = stack_values(buffer, "values");
-    info.info["rewards"] = stack_values(buffer, "rewards"); //stack_rewards(buffer);
+    info.info["rewards"] = stack_values(buffer, "rewards"); 
     return info;
 }
 

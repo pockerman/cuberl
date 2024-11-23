@@ -163,14 +163,14 @@ TorchAdaptor::operator()(const std::vector<real_t>& data)const{
 }
 
 torch_tensor_t
+TorchAdaptor::operator()(const std::vector<float_t>& data)const{
+    return torch::tensor(data);
+}
+
+torch_tensor_t
 TorchAdaptor::operator()(const std::vector<int>& data)const{
     return torch::tensor(data);
 };
-
-
-
-
-
 
 TorchAdaptor::value_type
 TorchAdaptor::stack(const std::vector<value_type>& values, DeviceType dtype)const{
@@ -178,7 +178,6 @@ TorchAdaptor::stack(const std::vector<value_type>& values, DeviceType dtype)cons
 	auto device_ =  dtype != DeviceType::CPU ? torch::kCUDA : torch::kCPU;
     return torch::stack(values, 0).to(device_);
 }
-
 
 template<>
 std::vector<int>
