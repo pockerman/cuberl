@@ -7,13 +7,15 @@
 #include "cubeai/rl/policies/epsilon_greedy_policy.h"
 #include "cubeai/rl/trainers/rl_serial_agent_trainer.h"
 
-
 #include "rlenvs/envs/gymnasium/toy_text/cliff_world_env.h"
+
+#include <boost/log/trivial.hpp>
 #include <iostream>
 
 namespace rl_example_9{
 
 const std::string SERVER_URL = "http://0.0.0.0:8001/api";
+const std::string SOLUTION_FILE = "sarsa_cliff_walking_v1.csv";
 
 using cubeai::real_t;
 using cubeai::uint_t;
@@ -77,6 +79,7 @@ ActionSelector::operator()(const MapType& q_map, uint_t state)const{
 
 int main(){
 
+	BOOST_LOG_TRIVIAL(info)<<"Starting agent training";
     using namespace rl_example_9;
 
     try{
@@ -84,16 +87,14 @@ int main(){
         // create the environment
         env_type env(SERVER_URL);
 
-        std::cout<<"Environment URL: "<<env.get_url()<<std::endl;
+        BOOST_LOG_TRIVIAL(info)<<"Creating environment...";
         std::unordered_map<std::string, std::any> options;
-
-        std::cout<<"Creating the environment..."<<std::endl;
-        env.make("v1", options);
+        env.make("v0", options);
         env.reset();
-        std::cout<<"Done..."<<std::endl;
+        BOOST_LOG_TRIVIAL(info)<<"Done...";
 
-        std::cout<<"Number of states="<<env.n_states()<<std::endl;
-        std::cout<<"Number of actions="<<env.n_actions()<<std::endl;
+        BOOST_LOG_TRIVIAL(info)<<"Number of states="<<env.n_states();
+        BOOST_LOG_TRIVIAL(info)<<"Number of actions="<<env.n_actions();
 
         ActionSelector policy(1.0, env.n_actions()); //, EpsilonDecayOption::INVERSE_STEP);
 
@@ -102,18 +103,19 @@ int main(){
         sarsa_config.eta = 0.01;
         sarsa_config.tolerance = 1.0e-8;
         sarsa_config.max_num_iterations_per_episode = 1000;
-        sarsa_config.path = "sarsa_cliff_walking_v0.csv";
+        sarsa_config.path = SOLUTION_FILE;
 
         SarsaSolver<env_type, ActionSelector> algorithm(sarsa_config, policy);
 
-        RLSerialTrainerConfig trainer_config = {10, 10000, 1.0e-8};
+        RLSerialTrainerConfig trainer_config = {10, 500, 1.0e-8};
 
         RLSerialAgentTrainer<env_type,
                              SarsaSolver<env_type,
                              ActionSelector>> trainer(trainer_config, algorithm);
 
         auto info = trainer.train(env);
-        std::cout<<info<<std::endl;
+        BOOST_LOG_TRIVIAL(info)<<"Training info..."<<info;
+		BOOST_LOG_TRIVIAL(info)<<"Finished agent training";
 
     }
     catch(std::exception& e){
