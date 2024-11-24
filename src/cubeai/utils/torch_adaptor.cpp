@@ -13,10 +13,13 @@ namespace pytorch{
 
 	
 TorchAdaptor::value_type 
-TorchAdaptor::to_torch(const std::vector<bool>& data, DeviceType dtype){
+TorchAdaptor::to_torch(const std::vector<bool>& data, DeviceType dtype, bool requires_grad){
 	
 	auto device_ =  dtype != DeviceType::CPU ? torch::kCUDA : torch::kCPU;
-	auto options = torch::TensorOptions().dtype(torch::kBool).device(device_);
+	auto options = torch::TensorOptions()
+	                      .dtype(torch::kBool)
+						  .device(device_)
+						  .requires_grad(requires_grad);
 	
 	torch::Tensor d = torch::zeros(static_cast<long int>(data.size()), options);
 	
@@ -28,18 +31,26 @@ TorchAdaptor::to_torch(const std::vector<bool>& data, DeviceType dtype){
 }
 
 TorchAdaptor::value_type 
-TorchAdaptor::to_torch(const std::vector<real_t>& data, DeviceType dtype){
+TorchAdaptor::to_torch(const std::vector<real_t>& data, 
+                       DeviceType dtype, bool requires_grad){
 	auto device_ =  dtype != DeviceType::CPU ? torch::kCUDA : torch::kCPU;
-	auto options = torch::TensorOptions().dtype(torch::kFloat64).device(device_);
+	auto options = torch::TensorOptions()
+	                      .dtype(torch::kFloat64)
+						  .device(device_)
+						  .requires_grad(requires_grad);
     torch::Tensor d = torch::from_blob(	const_cast<real_t*>(data.data()),
 										{static_cast<long int>(data.size())}, options).clone(); 
 	return d;
 }
 
 TorchAdaptor::value_type 
-TorchAdaptor::to_torch(const std::vector<float_t>& data, DeviceType dtype){
+TorchAdaptor::to_torch(const std::vector<float_t>& data, 
+                       DeviceType dtype, bool requires_grad){
 	auto device_ =  dtype != DeviceType::CPU ? torch::kCUDA : torch::kCPU;
-	auto options = torch::TensorOptions().dtype(torch::kFloat).device(device_);
+	auto options = torch::TensorOptions()
+	                      .dtype(torch::kFloat)
+						  .device(device_)
+						  .requires_grad(requires_grad);
     torch::Tensor d = torch::from_blob(	const_cast<float_t*>(data.data()),
 										{static_cast<long int>(data.size())}, options).clone(); 
 	return d;
@@ -47,9 +58,13 @@ TorchAdaptor::to_torch(const std::vector<float_t>& data, DeviceType dtype){
 
  
 TorchAdaptor::value_type 
-TorchAdaptor::to_torch(const std::vector<int_t>& data, DeviceType dtype){
+TorchAdaptor::to_torch(const std::vector<int_t>& data, 
+                       DeviceType dtype, bool requires_grad){
 	auto device_ =  dtype != DeviceType::CPU ? torch::kCUDA : torch::kCPU;
-	auto options = torch::TensorOptions().dtype(torch::kInt).device(device_);
+	auto options = torch::TensorOptions()
+	                      .dtype(torch::kInt)
+						  .device(device_)
+						  .requires_grad(requires_grad);
     torch::Tensor d = torch::from_blob(	const_cast<int_t*>(data.data()),
 										{static_cast<long int>(data.size())}, options).clone(); 
 	return d;
@@ -57,9 +72,13 @@ TorchAdaptor::to_torch(const std::vector<int_t>& data, DeviceType dtype){
 
  
 TorchAdaptor::value_type 
-TorchAdaptor::to_torch(const std::vector<lint_t>& data, DeviceType dtype){
+TorchAdaptor::to_torch(const std::vector<lint_t>& data, 
+                       DeviceType dtype, bool requires_grad){
 	auto device_ =  dtype != DeviceType::CPU ? torch::kCUDA : torch::kCPU;
-	auto options = torch::TensorOptions().dtype(torch::kLong).device(device_);
+	auto options = torch::TensorOptions()
+	                      .dtype(torch::kLong)
+						  .device(device_)
+						  .requires_grad(requires_grad);
     torch::Tensor d = torch::from_blob(	const_cast<lint_t*>(data.data()),
 										{static_cast<long int>(data.size())}, options).clone(); 
 	return d;
@@ -163,14 +182,14 @@ TorchAdaptor::operator()(const std::vector<real_t>& data)const{
 }
 
 torch_tensor_t
+TorchAdaptor::operator()(const std::vector<float_t>& data)const{
+    return torch::tensor(data);
+}
+
+torch_tensor_t
 TorchAdaptor::operator()(const std::vector<int>& data)const{
     return torch::tensor(data);
 };
-
-
-
-
-
 
 TorchAdaptor::value_type
 TorchAdaptor::stack(const std::vector<value_type>& values, DeviceType dtype)const{
@@ -178,7 +197,6 @@ TorchAdaptor::stack(const std::vector<value_type>& values, DeviceType dtype)cons
 	auto device_ =  dtype != DeviceType::CPU ? torch::kCUDA : torch::kCPU;
     return torch::stack(values, 0).to(device_);
 }
-
 
 template<>
 std::vector<int>
