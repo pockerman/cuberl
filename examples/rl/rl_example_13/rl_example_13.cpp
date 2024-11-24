@@ -15,6 +15,8 @@
 #include "cubeai/maths/statistics/distributions/torch_categorical.h"
 
 #include "rlenvs/envs/gymnasium/classic_control/cart_pole_env.h"
+#include <boost/log/trivial.hpp>
+
 #include <torch/torch.h>
 
 #include <unordered_map>
@@ -123,6 +125,7 @@ typedef ReinforceSolver<env_type, PolicyNet, loss_type> solver_type;
 
 int main(){
 
+	BOOST_LOG_TRIVIAL(info)<<"Starting agent training";
     using namespace rl_example_13;
 
     try{
@@ -132,18 +135,17 @@ int main(){
         std::filesystem::create_directories("experiments/" + EXPERIMENT_ID);
         torch::manual_seed(42);
 
+		BOOST_LOG_TRIVIAL(info)<<"Creating environment...";
         auto env = CartPole(SERVER_URL);
-        std::cout<<"Environment URL: "<<env.get_url()<<std::endl;
-
-        std::cout<<"Creating the environment..."<<std::endl;
+	
         std::unordered_map<std::string, std::any> options;
 
         // with Gymnasium v0 is not working
         env.make("v1", options);
         env.reset();
 
-        std::cout<<"Done..."<<std::endl;
-        std::cout<<"Number of actions="<<env.n_actions()<<std::endl;
+        BOOST_LOG_TRIVIAL(info)<<"Done...";
+		BOOST_LOG_TRIVIAL(info)<<"Number of actions="<<env.n_actions();
 
         PolicyNet policy;
 
@@ -168,13 +170,14 @@ int main(){
 
 
         RLSerialTrainerConfig config;
-        config.n_episodes = 10;
+        config.n_episodes = 100;
         config.output_msg_frequency = 10;
         RLSerialAgentTrainer<env_type, solver_type> trainer(config, solver);
         trainer.train(env);
 
         auto info = trainer.train(env);
-        std::cout<<"Trainer info: "<<info<<std::endl;
+        BOOST_LOG_TRIVIAL(info)<<"Training info...";
+		BOOST_LOG_TRIVIAL(info)<<info;
 
         // save the rewards per episode for visualization
         // purposes
@@ -193,6 +196,9 @@ int main(){
         torch::serialize::OutputArchive archive;
         policy->save(archive);
         archive.save_to(policy_model_filename);
+		
+		
+		BOOST_LOG_TRIVIAL(info)<<"Finished agent training";
 
     }
     catch(std::exception& e){

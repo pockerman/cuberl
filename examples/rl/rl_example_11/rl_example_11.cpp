@@ -10,6 +10,8 @@
 #include "cubeai/maths/optimization/pytorch_optimizer_factory.h"
 #include "rlenvs/envs/gymnasium/classic_control/cart_pole_env.h"
 
+#include <boost/log/trivial.hpp>
+
 #include <iostream>
 #include <iostream>
 #include <unordered_map>
@@ -114,7 +116,7 @@ linear2_(nullptr),
 linear3_(nullptr)
 {
    linear1_ = register_module("linear1_", torch::nn::Linear(state_size, 128));
-   linear2_ = register_module("linea2_", torch::nn::Linear(128, 256));
+   linear2_ = register_module("linear2_", torch::nn::Linear(128, 256));
    linear3_ = register_module("linear3_", torch::nn::Linear(256, 1));
 }
 
