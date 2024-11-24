@@ -41,8 +41,9 @@ int main() {
   auto val = t.item();
   
   // use c10::Sclar.to<T>() to get the actual value
-  std::cout << "Tensor is: "<<val.to<float>() << std::endl;
-  
+  // T is the actual type we want
+  std::cout<< "Tensor t is: "<<val.to<float>() << std::endl;
+  std::cout<<" Dimension of tensor: "<<t.dim()<<std::endl;
   
   // various methods to create a tensor
   torch::Tensor tensor = torch::eye(3);
@@ -55,7 +56,7 @@ int main() {
   std::cout<<"Dimension of tensor: "<<tensor_from_data_1.dim()<<std::endl;
   
   // loop over the values of the tensor
-  for(uint_t i=0; i< tensor_from_data_1.size(0); ++i){
+  for(uint_t i=0; i< static_cast<uint_t>(tensor_from_data_1.size(0)); ++i){
 	  std::cout<<tensor_from_data_1[i]<<std::endl;
   }
   

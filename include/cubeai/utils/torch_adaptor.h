@@ -23,11 +23,16 @@ struct TorchAdaptor{
 
     typedef torch_tensor_t value_type;
 	
-	static value_type to_torch(const std::vector<real_t>& data, DeviceType dtype=DeviceType::CPU);
-	static value_type to_torch(const std::vector<float_t>& data, DeviceType dtype=DeviceType::CPU);
-	static value_type to_torch(const std::vector<int_t>& data, DeviceType dtype=DeviceType::CPU);
-	static value_type to_torch(const std::vector<lint_t>& data, DeviceType dtype=DeviceType::CPU);
-	static value_type to_torch(const std::vector<bool>& data, DeviceType dtype=DeviceType::CPU);
+	static value_type to_torch(const std::vector<real_t>& data, 
+	                           DeviceType dtype=DeviceType::CPU, bool requires_grad=false);
+	static value_type to_torch(const std::vector<float_t>& data, 
+	                           DeviceType dtype=DeviceType::CPU, bool requires_grad=false);
+	static value_type to_torch(const std::vector<int_t>& data, 
+	                           DeviceType dtype=DeviceType::CPU, bool requires_grad=false);
+	static value_type to_torch(const std::vector<lint_t>& data, 
+	                           DeviceType dtype=DeviceType::CPU, bool requires_grad=false);
+	static value_type to_torch(const std::vector<bool>& data, 
+	                           DeviceType dtype=DeviceType::CPU, bool requires_grad=false);
 	
 	template<typename T>
 	static value_type stack(const std::vector<T>& values, DeviceType type=DeviceType::CPU);

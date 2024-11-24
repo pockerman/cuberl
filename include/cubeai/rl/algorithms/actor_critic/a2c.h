@@ -143,9 +143,14 @@ struct A2CConfig
     real_t value_loss_weight{1.0};
 
     ///
+    /// \brief The value to clip the gradient for the policy
     ///
-    ///
-    real_t max_grad_norm{1.0};
+    real_t max_grad_norm_policy{1.0};
+	
+	///
+	/// \brief The value to clip the gradient for the actor
+	///
+	real_t max_grad_norm_critic{1.0};
 
     ///
     ///
@@ -170,7 +175,7 @@ struct A2CConfig
     ///
     ///
     ///
-    std::string device{"cpu"};
+    DeviceType device_type{DeviceType::CPU};
 
     ///
     ///
@@ -489,13 +494,17 @@ A2CSolver<EnvType, PolicyType, CriticType>::actions_after_episode_ends(env_type&
 
         auto advantage = rewards - values;
 
-        auto policy_loss = -(logprobs * advantage.detach()).mean();
+		// because of the way we treat the values
+		// we loose the requires_grad so we need to set it
+		using namespace cubeai::utils::pytorch;
+		auto tmp_policy_loss = -(logprobs * advantage.detach()); //.mean();
+		auto policy_loss_with_grad = TorchAdaptor::to_vector<float_t>(tmp_policy_loss);
+        auto policy_loss = TorchAdaptor::to_torch(policy_loss_with_grad, config_.device_type, true).mean();
         auto critic_loss = advantage.pow(2).mean();
-
-        // compute the loss we have two networks so two losses
-        // auto loss = compute_loss_(std::any_cast<torch_tensor_t>(logprobs->second), torch_tensor_t(),
-        //                          std::any_cast<torch_tensor_t>(values->second),
-        //                          std::any_cast<torch_tensor_t>(rewards->second));
+		
+		// clip the grad if needed
+        torch::nn::utils::clip_grad_norm_(policy_->parameters(), config_.max_grad_norm_policy);
+		torch::nn::utils::clip_grad_norm_(critic_->parameters(), config_.max_grad_norm_critic);
 
         // Backward pass and optimize
         policy_optimizer_->zero_grad();

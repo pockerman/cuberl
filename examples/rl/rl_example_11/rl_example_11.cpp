@@ -130,9 +130,7 @@ CriticNetImpl::forward(torch_tensor_t state){
 TORCH_MODULE(ActorNet);
 TORCH_MODULE(CriticNet);
 
-
 typedef  rlenvs_cpp::envs::gymnasium::CartPole env_type;
-
 
 }
 
@@ -156,7 +154,7 @@ int main(){
 		BOOST_LOG_TRIVIAL(info)<<"Number of actions="<<env.n_actions();
         
         A2CConfig a2c_config;
-		a2c_config.n_iterations_per_episode = 2;
+		a2c_config.n_iterations_per_episode = 20;
         ActorNet policy(4, env.n_actions());
         CriticNet critic(4);
 
@@ -164,13 +162,16 @@ int main(){
         std::map<std::string, std::any> opt_options;
         opt_options.insert(std::make_pair("lr", 0.001));
 
-        auto pytorch_ops = cubeai::maths::optim::pytorch::build_pytorch_optimizer_options(cubeai::maths::optim::OptimzerType::ADAM,
+
+		using namespace cubeai::maths::optim::pytorch;
+
+        auto pytorch_ops = build_pytorch_optimizer_options(cubeai::maths::optim::OptimzerType::ADAM,
                                                                                           opt_options);
 
-        auto policy_optimizer = cubeai::maths::optim::pytorch::build_pytorch_optimizer(cubeai::maths::optim::OptimzerType::ADAM,
+        auto policy_optimizer = build_pytorch_optimizer(cubeai::maths::optim::OptimzerType::ADAM,
                                                                                        *policy, pytorch_ops);
 
-        auto critic_optimizer = cubeai::maths::optim::pytorch::build_pytorch_optimizer(cubeai::maths::optim::OptimzerType::ADAM,
+        auto critic_optimizer = build_pytorch_optimizer(cubeai::maths::optim::OptimzerType::ADAM,
                                                                                        *critic, pytorch_ops);
 
         typedef A2CSolver<env_type, ActorNet, CriticNet> solver_type;
@@ -183,7 +184,8 @@ int main(){
         RLSerialAgentTrainer<env_type, solver_type> trainer(config, solver);
         auto info = trainer.train(env);
 		
-		BOOST_LOG_TRIVIAL(info)<<"Training info..."<<info;
+		BOOST_LOG_TRIVIAL(info)<<"Training info...";
+		BOOST_LOG_TRIVIAL(info)<<info;
 		BOOST_LOG_TRIVIAL(info)<<"Finished agent training";
 
     }
