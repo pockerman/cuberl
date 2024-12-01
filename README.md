@@ -41,7 +41,6 @@ The following is an indicative list of examples.
 - <a href="examples/filtering/filtering_example_1/filtering_example_1.md">Kalman filtering</a>
 
 
-
 ### Path planning
 
 - <a href="#">Path planning with rapidly-exploring random trees (TODO)</a>
