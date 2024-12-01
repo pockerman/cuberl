@@ -42,6 +42,8 @@ ENDIF()
  
 ADD_SUBDIRECTORY(intro)
 ADD_SUBDIRECTORY(rl)
+ADD_SUBDIRECTORY(filtering)
 ADD_SUBDIRECTORY(path_tracking)
+
 
 

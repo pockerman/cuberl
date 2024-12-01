@@ -36,6 +36,11 @@ The following is an indicative list of examples.
 - <a href="examples/rl/rl_example_18.cpp">Double Q-learning on  ```CartPole-v0``` </a>
 - <a href="examples/rl/rl_example_19/rl_example_19.cpp">First visit Monte Carlo on ```FrozenLake-v0```</a>
 
+### Filtering
+
+- <a href="examples/filtering/filtering_example_1/filtering_example_1.md">Kalman filtering</a>
+
+
 
 ### Path planning
 

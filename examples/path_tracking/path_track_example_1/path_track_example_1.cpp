@@ -98,8 +98,7 @@ Agent::step(const path_type& path){
 
 int main() {
 
-	/*
-    using namespace path_track_example_1;
+    /*using namespace path_track_example_1;
 
     // build the path
     auto path = build_path();
@@ -109,10 +108,7 @@ int main() {
     for(uint_t itr=0; itr<N_STEPS; ++itr){
 
         agent.step(path);
-    }
-
-
-*/
+    }*/
 
    return 0;
 }
