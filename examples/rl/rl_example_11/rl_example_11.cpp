@@ -10,6 +10,8 @@
 #include "cubeai/maths/optimization/pytorch_optimizer_factory.h"
 #include "rlenvs/envs/gymnasium/classic_control/cart_pole_env.h"
 
+#include <boost/log/trivial.hpp>
+
 #include <iostream>
 #include <iostream>
 #include <unordered_map>
@@ -114,7 +116,7 @@ linear2_(nullptr),
 linear3_(nullptr)
 {
    linear1_ = register_module("linear1_", torch::nn::Linear(state_size, 128));
-   linear2_ = register_module("linea2_", torch::nn::Linear(128, 256));
+   linear2_ = register_module("linear2_", torch::nn::Linear(128, 256));
    linear3_ = register_module("linear3_", torch::nn::Linear(256, 1));
 }
 
@@ -130,15 +132,14 @@ CriticNetImpl::forward(torch_tensor_t state){
 TORCH_MODULE(ActorNet);
 TORCH_MODULE(CriticNet);
 
-
 typedef  rlenvs_cpp::envs::gymnasium::CartPole env_type;
-
 
 }
 
 
 int main(){
 
+	BOOST_LOG_TRIVIAL(info)<<"Starting agent training";
     using namespace rl_example_11;
 
     try{
@@ -146,17 +147,16 @@ int main(){
         // create the environment
         env_type env(SERVER_URL);
 
-        std::cout<<"Environment URL: "<<env.get_url()<<std::endl;
+		BOOST_LOG_TRIVIAL(info)<<"Creating environment...";
         std::unordered_map<std::string, std::any> options;
 
-        std::cout<<"Creating the environment..."<<std::endl;
         env.make("v1", options);
         env.reset();
-        std::cout<<"Done..."<<std::endl;
-        std::cout<<"Number of actions="<<env.n_actions()<<std::endl;
-
-
+        BOOST_LOG_TRIVIAL(info)<<"Done...";
+		BOOST_LOG_TRIVIAL(info)<<"Number of actions="<<env.n_actions();
+        
         A2CConfig a2c_config;
+		a2c_config.n_iterations_per_episode = 20;
         ActorNet policy(4, env.n_actions());
         CriticNet critic(4);
 
@@ -164,13 +164,16 @@ int main(){
         std::map<std::string, std::any> opt_options;
         opt_options.insert(std::make_pair("lr", 0.001));
 
-        auto pytorch_ops = cubeai::maths::optim::pytorch::build_pytorch_optimizer_options(cubeai::maths::optim::OptimzerType::ADAM,
+
+		using namespace cubeai::maths::optim::pytorch;
+
+        auto pytorch_ops = build_pytorch_optimizer_options(cubeai::maths::optim::OptimzerType::ADAM,
                                                                                           opt_options);
 
-        auto policy_optimizer = cubeai::maths::optim::pytorch::build_pytorch_optimizer(cubeai::maths::optim::OptimzerType::ADAM,
+        auto policy_optimizer = build_pytorch_optimizer(cubeai::maths::optim::OptimzerType::ADAM,
                                                                                        *policy, pytorch_ops);
 
-        auto critic_optimizer = cubeai::maths::optim::pytorch::build_pytorch_optimizer(cubeai::maths::optim::OptimzerType::ADAM,
+        auto critic_optimizer = build_pytorch_optimizer(cubeai::maths::optim::OptimzerType::ADAM,
                                                                                        *critic, pytorch_ops);
 
         typedef A2CSolver<env_type, ActorNet, CriticNet> solver_type;
@@ -179,8 +182,13 @@ int main(){
                            policy_optimizer, critic_optimizer);
 
         RLSerialTrainerConfig config;
+		config.n_episodes = 100;
         RLSerialAgentTrainer<env_type, solver_type> trainer(config, solver);
-        trainer.train(env);
+        auto info = trainer.train(env);
+		
+		BOOST_LOG_TRIVIAL(info)<<"Training info...";
+		BOOST_LOG_TRIVIAL(info)<<info;
+		BOOST_LOG_TRIVIAL(info)<<"Finished agent training";
 
     }
     catch(std::exception& e){

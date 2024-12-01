@@ -11,6 +11,7 @@
 #include <string>
 #include <vector>
 #include <iostream>
+#include <typeinfo>
 
 namespace example2{
 	
@@ -32,15 +33,33 @@ int main() {
   else{
   	std::cout<<"CUDA is not available on this machine"<<std::endl;
   }
-
+  
+  // create a torch::Tensor from a scalar value
+  torch::Tensor t = torch::tensor(2.0);
+  
+  // the return value is c10::Scalar
+  auto val = t.item();
+  
+  // use c10::Sclar.to<T>() to get the actual value
+  // T is the actual type we want
+  std::cout<< "Tensor t is: "<<val.to<float>() << std::endl;
+  std::cout<<" Dimension of tensor: "<<t.dim()<<std::endl;
+  
   // various methods to create a tensor
   torch::Tensor tensor = torch::eye(3);
-  std::cout << tensor << std::endl;
+  std::cout << "Tensor is: "<<tensor << std::endl;
   
   // floating point tensor
   std::vector<real_t> data(3, 2.0);
   auto tensor_from_data_1 = torch::tensor(data);
-  std::cout << tensor_from_data_1 << std::endl; 
+  
+  std::cout<<"Dimension of tensor: "<<tensor_from_data_1.dim()<<std::endl;
+  
+  // loop over the values of the tensor
+  for(uint_t i=0; i< static_cast<uint_t>(tensor_from_data_1.size(0)); ++i){
+	  std::cout<<tensor_from_data_1[i]<<std::endl;
+  }
+  
   
   data[0] = data[1] = data[2] = 1.0;
   auto tensor_from_data_2 = torch::tensor(data);

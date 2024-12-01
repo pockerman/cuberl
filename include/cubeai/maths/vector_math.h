@@ -4,6 +4,7 @@
   * Implements basic statistical computations on arrays
   */
 
+#include "cubeai/base/cubeai_config.h"
 #include "cubeai/base/cubeai_types.h"
 #include "cubeai/utils/cubeai_concepts.h"
 #include "cubeai/base/cubeai_consts.h"
@@ -15,6 +16,10 @@
 #include <iterator>
 #include <iostream>
 #include <stdexcept>
+
+#ifdef CUBEAI_DEBUG
+#include <cassert>
+#endif
 	
 
 namespace cubeai{
@@ -107,7 +112,6 @@ sum(IteratorType begin, IteratorType end, bool parallel=true){
     }
 
     return sum_; 
-
 }
 
 /**
@@ -262,6 +266,37 @@ exponentiate(const VectorType& vec, typename VectorType::value_type v){
 }
 
 
+#ifdef USE_PYTORCH
+template<utils::concepts::float_or_integral_vector VectorType>
+VectorType
+exponentiate(const torch_tensor_t tensor, typename VectorType::value_type v){
+	
+#ifdef CUBEAI_DEBUG
+	assert(tensor.dim() == 1 && "Invalid tensor dimension. Should be 1");
+#endif
+	
+    VectorType vec_exp(tensor.size(0));
+    uint_t counter = 0;
+	
+	for(uint_t i=0; i < static_cast<uint_t>(tensor.size(0)); ++i){
+		
+		auto val = tensor[i].item();
+		vec_exp[i] = val.template to<typename VectorType::value_type>();
+		
+	}
+	
+    static auto func = [&counter, v](auto& val){
+		auto expo = std::pow(v, counter++);
+        return val*expo;
+    };
+	
+    std::for_each(vec_exp.begin(), vec_exp.end(),func);
+    return vec_exp;
+}
+#endif
+
+
+
 /**
  * @brief applies softmax operation to the elements of the vector
  * and returns a vector with the result
@@ -359,8 +394,6 @@ arg_min(const VectorType& vec) {
 template<typename T>
 std::vector<uint_t>
 max_indices(const DynVec<T>& vec){
-
-    throw std::runtime_error("Function not implemented");
 
     // find max value
     auto max_val = vec.maxCoeff();

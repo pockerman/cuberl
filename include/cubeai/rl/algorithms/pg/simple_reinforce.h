@@ -297,7 +297,8 @@ ReinforceSolver<EnvType, PolicyType, LossFuncType>::do_step_(env_type& env){
 	  old_timestep = new_timestep;
     }
 
-    return itr;
+	// because we start from zero
+    return itr + 1;
 }
 
 template<typename EnvType, typename PolicyType, typename LossFuncType>
@@ -332,7 +333,8 @@ ReinforceSolver<EnvType, PolicyType, LossFuncType>::on_training_episode(env_type
 	auto log_probs_batch  = monitor_.template get<real_t, 5>(batch);
 	
 	auto tensor_log_probs_batch = cubeai::utils::pytorch::TorchAdaptor::to_torch(log_probs_batch, 
-														                      config_.device_type);
+														                      config_.device_type,
+																			  true);
 	
 	
 	auto discounted_coeffs = cubeai::maths::exponentiate(reward_batch, config_.gamma);
@@ -345,7 +347,7 @@ ReinforceSolver<EnvType, PolicyType, LossFuncType>::on_training_episode(env_type
 	
 	// TODO: These should be the discounted rewards
 	auto tensor_reward_batch = cubeai::utils::pytorch::TorchAdaptor::to_torch(discounted_returns, 
-													                       config_.device_type);
+													                       config_.device_type, true);
 	
 	// now that we have the batches
 	policy_optimizer_ -> zero_grad();

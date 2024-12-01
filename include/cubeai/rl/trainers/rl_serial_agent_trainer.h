@@ -171,6 +171,8 @@ template<typename EnvType, typename AgentType>
 IterativeAlgorithmResult
 RLSerialAgentTrainer<EnvType, AgentType>::train(env_type& env){
 
+	BOOST_LOG_TRIVIAL(info)<<" Start training on environment..."; //<<env.name;
+	
     // start timing the training
     auto start = std::chrono::steady_clock::now();
 
@@ -193,15 +195,19 @@ RLSerialAgentTrainer<EnvType, AgentType>::train(env_type& env){
         this->actions_after_episode_ends(env, episode_counter, episode_info);
 
         if(episode_info.stop_training){
-            BOOST_LOG_TRIVIAL(info)<<" Stopping training at index="<<episode_counter; //<<std::endl;
+            BOOST_LOG_TRIVIAL(info)<<" Stopping training at index="<<episode_counter;
             break;
         }
         episode_counter += 1;
     }
 
     this->actions_after_training_ends(env);
-    auto end = std::chrono::steady_clock::now();
+	auto end = std::chrono::steady_clock::now();
     std::chrono::duration<real_t> elapsed_seconds = end-start;
+	
+	BOOST_LOG_TRIVIAL(info)<<" Done... ";
+	//BOOST_LOG_TRIVIAL(info)<<" Total training time..."<<elapsed_seconds;
+    
 
     auto state = itr_ctrl_.get_state();
     state.total_time = elapsed_seconds;

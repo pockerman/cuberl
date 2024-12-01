@@ -164,7 +164,7 @@ PolicyIterationSolver<EnvType, PolicyType, PolicyAdaptorType>::on_training_episo
     policy_imp_.set_value_function( policy_eval_.get_value_function());
 
     // improve the policy
-    policy_imp_.on_training_episode(env, episode_idx);
+    auto policy_imp_info = policy_imp_.on_training_episode(env, episode_idx);
 
     // get the improved policy
     const auto& new_policy = policy_imp_.policy();
@@ -182,6 +182,7 @@ PolicyIterationSolver<EnvType, PolicyType, PolicyAdaptorType>::on_training_episo
 
     info.episode_index = episode_idx;
     info.episode_reward = episode_rewards;
+	info.episode_iterations = config_.n_policy_eval_steps + policy_imp_info.episode_iterations;
     info.total_time = elapsed_seconds;
     return info;
 }
