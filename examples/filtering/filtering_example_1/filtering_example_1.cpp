@@ -1,7 +1,7 @@
 /**
-  * KalmanFilter example. This example is mainly taken from
-  * https://github.com/AtsushiSakai/PythonRobotics/blob/master/Localization/extended_kalman_filter/extended_kalman_filter.py
-  *
+  * KalmanFilter example. The example is taken from the 
+  * paper <a href="https://www.cs.unc.edu/~welch/media/pdf/kalman_intro.pdf">An Introduction to the Kalman Filter</a> by
+  * Greg Welch and Gary Bishop
   * */
 
 #include "cubeai/base/cubeai_types.h"
@@ -15,6 +15,7 @@
 #include <unordered_map>
 #include <any>
 #include <vector>
+#include <random>
 
 namespace example_1
 {
@@ -31,20 +32,20 @@ using cubeai::utils::IterationCounter;
 using cubeai::io::CSVWriter;
 
 
-real_t DT = 0.1;
+real_t DT = 1.0;
 real_t SIM_TIME = 50.0;
 
 struct Cmd
 {
 	// v: [m/s] omega: [rad/s]
-	static DynVec<real_t> cmd(real_t v = 1.0, real_t omega = 0.1);
+	static DynVec<real_t> cmd();
 };
 
 DynVec<real_t> 
-Cmd::cmd(real_t v, real_t omega){
+Cmd::cmd(){
 	
-	DynVec<real_t> u(2);
-	u << v, omega;
+	DynVec<real_t> u(1);
+	u << 0.0;
     return u;
 }
 
@@ -55,7 +56,7 @@ struct MotionModel: public KFMotionModelBase<DynMat<real_t>, DynVec<real_t>>
 	
 };
 
-const uint_t MotionModel::VEC_SIZE = 4;
+const uint_t MotionModel::VEC_SIZE = 1;
 
 // simple struct that describes the Observation model
 struct ObservationModel: public KFModelBase<DynMat<real_t>>
@@ -64,12 +65,18 @@ struct ObservationModel: public KFModelBase<DynMat<real_t>>
 	static DynVec<real_t> sensors();
 };
 
-const uint_t ObservationModel::VEC_SIZE = 3;
+const uint_t ObservationModel::VEC_SIZE = 1;
+
+const real_t STD = 0.1;
+const real_t MU = -0.37727;
 
 DynVec<real_t> 
 ObservationModel::sensors(){ 
-	DynVec<real_t> all_sensors(3);
-	//all_sensors << 0.0, 0.0, 0.0;
+	DynVec<real_t> all_sensors(1);
+	
+	std::normal_distribution<real_t> d{MU , STD};
+	std::mt19937 generator; //(42);
+	all_sensors << d(generator);
 	return all_sensors;
 }
 
@@ -86,15 +93,22 @@ int main() {
 		
 		typedef motion_model_type::state_type state_type;
 		obs_motion_type obs;
+		DynMat<real_t> H(ObservationModel::VEC_SIZE, MotionModel::VEC_SIZE);
+		H << 1.0;
+		
+		obs.add_matrix("H", H);
+		
+		// the motion model
 		motion_model_type motion;
 		
-		DynVec<real_t> x_init(4);
-		x_init << 0.0, 0.0, 0.0, 0.0;
+		// set the initial state
+		DynVec<real_t> x_init(MotionModel::VEC_SIZE);
+		x_init << 0;
 		motion.set_state(x_init);
 		
-		// add the matrices describing the motion
+		//...and  the matrix describing the motion dynamics
 		DynMat<real_t> F(MotionModel::VEC_SIZE, MotionModel::VEC_SIZE);
-		F << 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0;
+		F << 1.0;
 		
 		motion.add_matrix("F", F);
 		
@@ -107,41 +121,21 @@ int main() {
 		
 		// set up the matrices
 		DynMat<real_t> P(MotionModel::VEC_SIZE, MotionModel::VEC_SIZE);
-		P << 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0;
-		
-		kf.set_matrix("P", P);
+		P << 1.0;
 		
 		DynMat<real_t> Q(MotionModel::VEC_SIZE, MotionModel::VEC_SIZE);
-		
-		// variance of location on x-axis 0.1
-		auto x_axis_var = 0.1;
-		
-		// variance of location on y-axis 0.1
-		auto y_axis_var = 0.1;
-		
-		// variance of yaw angle
-		auto yaw_angle_var = 0.1;
-		
-		// variance of velocity
-		auto v_var = 1.0;
-		Q << x_axis_var, 0.0, 0.0, 0.0, 
-		     0.0, y_axis_var, 0.0, 0.0,
-			 0.0, 0.0, yaw_angle_var, 0.0,
-			 0.0, 0.0, 0.0, v_var;
+		Q << 1.0e-5;
 			 
-		Q = Q*Q;
-		kf.set_matrix("Q", Q);
+		DynMat<real_t> R(ObservationModel::VEC_SIZE, ObservationModel::VEC_SIZE);
+		R << STD*STD;
 		
-		DynMat<real_t> R(ObservationModel::VEC_SIZE - 1, ObservationModel::VEC_SIZE -1 );
-		R << 1.0, 0.0,
-		     0.0, 1.0;
-		kf.set_matrix("R", R);
+		DynMat<real_t> B(MotionModel::VEC_SIZE, MotionModel::VEC_SIZE);
+		B << 0.0;
 		
-		
-		DynMat<real_t> B(MotionModel::VEC_SIZE, 2 );
-		B << 1.0, 0.0, 0.0, 0.0,
-		     0.0, 1.0, 0.0, 0.0;
-		kf.set_matrix("B", B);
+		kf.with_matrix("P", P)
+		  .with_matrix("Q", Q)
+		  .with_matrix("R", R)
+		  .with_matrix("B", B);
 		
 		
 		// the input to the filter
@@ -156,10 +150,9 @@ int main() {
 		auto current_time = 0.0;
 		while(current_time <= SIM_TIME){
 			
-			BOOST_LOG_TRIVIAL(info)<<"Time: "<<current_time;
-			
 			auto u = Cmd::cmd();
 			auto w = DynVec<real_t>(u.size());
+			w << 0.0;
 			auto z = ObservationModel::sensors();
 			
 			kf_input["u"] = u;
@@ -168,10 +161,12 @@ int main() {
 			
 			auto& state_vec = kf.estimate(kf_input);
 			
+			BOOST_LOG_TRIVIAL(info)<<"Time: "<<current_time<<" solution "<<state_vec[0];
+			
 			state_type row(1 + state_vec.size());
 			row[0] = current_time;
 			
-			for(auto i =0; i < state_vec.size(); ++i){
+			for(uint_t i =0; i < static_cast<uint_t>(state_vec.size()); ++i){
 				row[i + 1] = state_vec[i];
 			}
 			

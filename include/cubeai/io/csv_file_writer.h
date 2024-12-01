@@ -123,11 +123,11 @@ CSVWriter::write_row(const DynVec<T>& vals){
     }
 
     auto& f =  this-> get_file_stream();
-    for(uint_t c=0; c<vals.size(); ++c){
+    for(uint_t c=0; c < static_cast<uint_t>(vals.size()); ++c){
 
         f<<vals[c];
 
-        if(c == vals.size()-1){
+        if(c == static_cast<uint_t>(vals.size())-1){
             f<<std::endl;
         }
         else{

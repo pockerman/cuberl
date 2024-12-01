@@ -150,6 +150,11 @@ public:
     /// \brief Set the observation model
     void set_observation_model(const observation_model_type& observation_model)
     {observation_model_ptr_ = &observation_model;}
+	
+	///
+	/// \brief Set the matrix and return *this
+	///
+	KalmanFilter& with_matrix(const std::string& name, const matrix_type& mat);
 
     ///
     /// \brief Set the matrix used by the filter
@@ -248,6 +253,15 @@ KalmanFilter<MotionModelType,ObservationModelType>::operator[](const std::string
 }
 
 template<typename MotionModelType, typename ObservationModelType>
+KalmanFilter<MotionModelType, ObservationModelType>&
+KalmanFilter<MotionModelType, 
+             ObservationModelType>::with_matrix(const std::string& name, const matrix_type& mat){
+
+		set_matrix(name, mat);
+		return *this;
+}
+
+template<typename MotionModelType, typename ObservationModelType>
 void
 KalmanFilter<MotionModelType, 
              ObservationModelType>::set_matrix(const std::string& name,
@@ -279,7 +293,7 @@ typename KalmanFilter<MotionModelType, ObservationModelType>::state_type&
 KalmanFilter<MotionModelType,
                      ObservationModelType>::estimate(const input_type& input ){
     predict(input);
-    //update(input);
+    update(input);
 	
 	return get_state();
 }
@@ -299,8 +313,7 @@ KalmanFilter<MotionModelType,
     // make a state predicion using the
     // motion model
     auto& x = motion_model_ptr_->get_state();
-    //auto x = state.as_vector();
-
+    
     // get the matrix that describes the dynamics
     // of the system
     auto& F = motion_model_ptr_->get_matrix("F");
@@ -332,7 +345,6 @@ KalmanFilter<MotionModelType,
     }
 
     auto& x = motion_model_ptr_->get_state();
-    //auto x = state.as_vector();
     auto& P = (*this)["P"];
     auto& R = (*this)["R"];
 
@@ -344,6 +356,7 @@ KalmanFilter<MotionModelType,
       auto S = H*P*H_T + R;
       auto S_inv = S.inverse(); //inv(S);
 
+	  // compute the gain matrix
       if(has_matrix("K")){
           auto& K = matrices_["K"];
           K = P*H_T*S_inv;
@@ -369,7 +382,7 @@ KalmanFilter<MotionModelType,
 
 	  auto I = matrix_type::Identity(x.size(), x.size());
       
-      // update covariance matrix
+      // update the error covariance matrix
       P = (I - K*H)*P;
     }
     catch(...){
