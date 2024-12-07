@@ -1,13 +1,58 @@
 # Example 7:  Importance sampling
 
-The vanialla Monte Carlo method . 
+The vanilla Monte Carlo method we saw in example <a href="../intro_example_1/intro_example_1.md">Monte Carlo intergration</a>
+requires that we sample from a known distribution $f$. However, there may be cases  where it is difficult to sample from it.
+
 In this example we will look at <a href="https://astrostatistics.psu.edu/su14/lectures/cisewski_is.pdf">imporatnce sampling</a> which 
 allows us to overcome the dificculty of sampling from a difficult distribution.
 
 ## Importance sampling
 
+Let us consider once again the integral 
+$$I=\int_a^b h(x) dx$$
 
-The first example we will consider is taken from [1]. We want to estimate the 
+and rewrite it as 
+
+$$I=\int_a^b \omega(x)f(x)$$
+
+Importance sampling introduces a new probability distribution $g$, also known as the proposal distribution [2], 
+that it is easier to  sample from. Thus we rewrite the integral as
+
+$$I=\int_a^b \frac{\omega(x)f(x)}{g(x)}g(x)dx=E_g \left[Y \right]$$
+
+where $Y$ is the random variable defined by
+
+$$Y=\frac{\omega(x)f(x)}{g(x)}$$
+
+We can now sample from $g$ and estimate $I$ as
+
+$$\hat{I}=\frac{1}{N}\sum_i Y_i$$
+
+Just like we did in the Monte Carlo integration section, we can use the law of 
+large numbers and show that $\hat{I}\rightarrow I$ in probability.
+
+In importance sampling we draw samples from $g$ and re-weight the integral using importance weights so
+that the correct distribution is targeted [2]. However, $g$ in general has to have a similar shape with $f$. 
+Moreover, it has to  have thicker  tails than $f$ otherwise the integral may become infinite [1]. 
+Indeed, consider the second moment of $Y$:
+
+$$E_g\left[ Y^2 \right]=\int Y^2g(x)dx=\int \frac{\omega^2(x)f^2(x)}{g(x)}dx $$
+
+Thinner tails for $g$ means that it goes fatser to zero than what $f$ does. 
+
+All in all, a good choice for $g$ is a distribution that is similar to $f$ but with thicker tails. In fact, the optimal choice for $g$ is given by the following theorem [1]
+
+----
+**Theorem**
+
+The choice of $g$ that minimizes the variance of $\hat{I}$ is
+
+$$g(x)=\frac{|h(x)|f(x)}{\int |h(s)|f(s)ds}$$
+
+----
+
+
+The example we will consider is taken from [1]. We want to estimate the 
 following probability; $P(Z > 3)$ where $Z\sim N(0,1)$ This is just the integral:
 
 $$P(Z > 3) = \int_{3}^{+\infty}f(x)dx = \int_{-\infty}^{+\infty}h(x)f(x)dx$$
@@ -20,7 +65,10 @@ The driver code for this tutorial is shown below.
 
 ```cpp
 #include "cubeai/base/cubeai_types.h"
-
+#include "cubeai/utils/iteration_counter.h"
+#include "cubeai/maths/statistics/distributions/normal_dist.h"
+#include "cubeai/maths/vector_math.h"
+#include <boost/log/trivial.hpp>
 
 #include <cmath>
 #include <utility>
@@ -29,113 +77,94 @@ The driver code for this tutorial is shown below.
 #include <random>
 #include <algorithm>
 
-namespace exe
+namespace intro_example_7
 {
 
 using cubeai::real_t;
 using cubeai::uint_t;
 using cubeai::DynMat;
 using cubeai::DynVec;
+using cubeai::maths::stats::NormalDist;
+using cubeai::utils::IterationCounter;
 
-// create transition matrix
-DynMat<real_t> create_transition_matrix(){
-    return DynMat<real_t>({{0.9, 0.1}, {0.5, 0.5}});
-}
+// we will sample from the normal distribution
+// with mu = 4.0 and std = 1.0
+const real_t MU = 4.0;
+const real_t STD = 1.0;
 
-// create transition matrix
-DynMat<real_t>
-compute_matrix_power(const DynMat<real_t>& mat, uint_t power ){
+// sample size we draw per iteration
+const uint_t N = 100;
 
-    auto result = mat;
+// how many iterations to run
+const uint_t ITERATIONS = 1000;
 
-    for(uint i=0; i<power - 1; ++i){
-        result *= mat;
-    }
+const uint_t SEED = 42;
 
-    return result;
-}
 
-void print_matrix(const DynMat<real_t>& mat){
-    std::cout<<"["<<mat(0, 0)<<" , "<<mat(0, 1)<<"]"<<std::endl;
-    std::cout<<"["<<mat(1, 0)<<" , "<<mat(1, 1)<<"]"<<std::endl;
+// simple function that computes the
+// value of h at a given point
+real_t h(real_t x){
+    return 1.0 ? x > 3.0: 0.0;
 }
 
 }
 
 int main() {
 
-    using namespace exe;
+    using namespace intro_example_7;
 
-    auto transition = create_transition_matrix();
-
-    std::cout<<"After 3 steps..."<<std::endl;
-    // after 3 steps
-    auto t_3 = compute_matrix_power(transition, 3 );
-    print_matrix(t_3);
-
-    std::cout<<"After 50 steps..."<<std::endl;
-    // after 3 steps
-    auto t_50 = compute_matrix_power(transition, 50 );
-    print_matrix(t_50);
-
-    std::cout<<"After 100 steps..."<<std::endl;
-
-    // after 3 steps
-    auto t_100 = compute_matrix_power(transition, 100 );
-    print_matrix(t_100);
-
-    // initial vector
-    auto v1 = DynVec<real_t>(2);
-    v1[0] = 1.0;
-    v1[1] = 0.0;
-
-    // We can calculate the probability of being
-    // in a specific state after k iterations multiplying
-    // the initial distribution and the transition matrix: v⋅Tk.
-
-    std::cout<<"v_3="<<v1.transpose() * t_3<<std::endl;
-    std::cout<<"v_50="<<v1.transpose() * t_50<<std::endl;
-    std::cout<<"v_100="<<v1.transpose() * t_100<<std::endl;
-
-    // initial vector
-    v1[0] = 0.5;
-    v1[1] = 0.5;
-
-    std::cout<<"v_3="<<v1.transpose() * t_3<<std::endl;
-    std::cout<<"v_50="<<v1.transpose() * t_50<<std::endl;
-    std::cout<<"v_100="<<v1.transpose() * t_100<<std::endl;
+    BOOST_LOG_TRIVIAL(info)<<"Starting example...";
+	
+	// simple object to control iterations
+	IterationCounter counter(ITERATIONS);
+	NormalDist dist(MU, STD);
+	NormalDist proposal_dist(0.0, 1.0);
+	
+	std::vector<real_t> intergals;
+	intergals.reserve(ITERATIONS);
+	
+	while(counter.continue_iterations()){
+		
+		real_t integral = 0.0;
+		
+		// sample from the distribution
+		auto sample = dist.sample_many(N, SEED);
+		
+		// for every point in the sample compue
+		// the PDF value
+		for(auto p: sample){
+			auto nom = h(p) * proposal_dist.pdf(p);
+			auto denom = dist.pdf(p);
+			auto val = nom / denom;
+			integral += val;
+		}
+		
+		intergals.push_back(integral / static_cast<real_t>(N));
+		
+	}
+	
+	auto E_I = cubeai::maths::mean(intergals.begin(), intergals.end(), true);
+	auto V_I = cubeai::maths::variance(intergals.begin(), intergals.end(), true);
+	BOOST_LOG_TRIVIAL(info)<<"E[I]="<<E_I;
+	BOOST_LOG_TRIVIAL(info)<<"V[I]="<<V_I;
+	BOOST_LOG_TRIVIAL(info)<<"Finished example...";
     return 0;
 }
 
-```
 
-Running the driver code above produces the following output
-
-```bash
-After 3 steps...
-[0.844 , 0.156]
-[0.78 , 0.22]
-After 50 steps...
-[0.833333 , 0.166667]
-[0.833333 , 0.166667]
-After 100 steps...
-[0.833333 , 0.166667]
-[0.833333 , 0.166667]
-v_3=0.844 0.156
-    0     0
-v_50=0.833333 0.166667
-       0        0
-v_100=0.833333 0.166667
-       0        0
-v_3=0.422 0.078
-0.422 0.078
-v_50= 0.416667 0.0833333
- 0.416667 0.0833333
-v_100= 0.416667 0.0833333
- 0.416667 0.0833333
 
 ```
 
+
+Running the driver code produces the following
+
+```
+[2024-12-07 11:21:45.653601] [0x00007fdf0c05d000] [info]    Starting example...
+[2024-12-07 11:21:45.674922] [0x00007fdf0c05d000] [info]    E[I]=0.00146478
+[2024-12-07 11:21:45.674941] [0x00007fdf0c05d000] [info]    V[I]=3.72444e-34
+[2024-12-07 11:21:45.674954] [0x00007fdf0c05d000] [info]    Finished example...
+
+```
 
 ## References
 
