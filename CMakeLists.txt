@@ -3,20 +3,26 @@ MESSAGE(STATUS "Using CMake ${CMAKE_VERSION}")
 
 SET(CUBEAILIB_VERSION_MAJOR 0)
 SET(CUBEAILIB_VERSION_MINOR 1)
-SET(CUBEAILIB_VERSION_PATCH 5)
+SET(CUBEAILIB_VERSION_PATCH 8)
 SET(CUBEAILIB_VERSION "${CUBEAILIB_VERSION_MAJOR}.${CUBEAILIB_VERSION_MINOR}.${CUBEAILIB_VERSION_PATCH}")
+
+
+MESSAGE(STATUS "CubeAI lib Version ${CUBEAILIB_VERSION}")
+
 
 # if PyTorch has been compiled with CUDA support
 # then we need to enable this flag
-SET(USE_CUDA ON)
+SET(USE_CUDA OFF)
 
 IF(USE_CUDA)
 	PROJECT(cubeai VERSION ${CUBEAILIB_VERSION} LANGUAGES CXX C CUDA)
+	MESSAGE(STATUS "Compiling with CUDA support")
+
 ELSE()
 	PROJECT(cubeai VERSION ${CUBEAILIB_VERSION} LANGUAGES CXX C)
+	MESSAGE(STATUS "Compiling without CUDA support")
 ENDIF()
 
-MESSAGE(STATUS "CubeAI lib Version ${CUBEAILIB_VERSION}")
 
 # -----------------------------------------------------------------------------
 # Prevent in-source builds.
@@ -62,6 +68,13 @@ SET(EIGEN_INCLUDE_DIRS "${PROJECT_SOURCE_DIR}/external/eigen")
 IF(USE_CUDA)
 	# The CUDA compiler. You may need to set this manually
 	SET(CMAKE_CUDA_COMPILER "/usr/bin/nvcc")
+	
+	# we need to be careful here as PyTorch may not
+	# accept what we set here. PyTorch version ?
+	# needs at least C++17 to work
+	SET(CMAKE_CUDA_STANDARD 17)
+	SET(CMAKE_CUDA_FLAGS ${CMAKE_CUDA_FLAGS}; "-O3 ${ARCH_FLAGS}")
+	
 ENDIF()
 
 # if we use PyTorch set up the path for libtorch

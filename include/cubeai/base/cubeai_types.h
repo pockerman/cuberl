@@ -9,6 +9,7 @@
 
 //#include "blaze/Math.h"
 #include "Eigen/Core"
+#include "Eigen/Dense"
 #include <cstddef>
 #include <string>
 
@@ -31,13 +32,13 @@ namespace cubeai
 	typedef long int lint_t;
 
     ///
-    /// \brief Configure the double precision type
+    /// \brief The float precision type
     ///
     
 	typedef float float_t;
     
 	///
-    /// \brief Configure the double precision type
+    /// \brief The double precision type
     ///
 	typedef double real_t;
     

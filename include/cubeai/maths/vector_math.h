@@ -147,6 +147,26 @@ mean(const DynVec<T>& vector, bool parallel=true){
     return mean(vector.begin(), vector.end(), parallel);
 }
 
+
+template<typename IteratorType>
+typename std::iterator_traits<IteratorType>::value_type
+variance(IteratorType begin, IteratorType end, bool parallel=true){
+	
+	typedef typename std::iterator_traits<IteratorType>::value_type value_type;
+	auto mean_val = mean(begin, end, parallel);
+	auto size = std::distance(begin, end);
+	
+	std::vector<value_type> diff(size);
+	std::transform(begin, end, diff.begin(), 
+	               [mean_val](value_type x) { return x - mean_val; });
+				   
+	value_type sq_sum = std::inner_product(diff.begin(), 
+	                                       diff.end(), 
+										   diff.begin(), 0.0);
+	return sq_sum / static_cast<value_type>(std::distance(begin, end));
+	
+}
+
 ///
 /// \brief choice. Implements similar functionality
 /// to numpy.choice function

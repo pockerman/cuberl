@@ -33,7 +33,8 @@ int main() {
     using namespace intro_example_1;
 
     try{
-
+		
+		BOOST_LOG_TRIVIAL(info)<<"Running example...";
         BOOST_LOG_TRIVIAL(info)<<"Reading configuration file...";
 
         JSONFileReader json_reader(CONFIG);
