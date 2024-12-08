@@ -1,9 +1,60 @@
-# Example 1: _CubeRl_ Basics
+# Example 1: Monte Carlo intergration
 
 In this first example we explore some of the basic elements of _cuberl_. In particular,
 we will see how to read a json file, how to use boost logging, various types exposed by the library.
-We will do so by using a simple Monte Carlo integration example.
+We will do so by using a simple <a href="https://en.wikipedia.org/wiki/Monte_Carlo_integration">Monte Carlo integration</a> example.
 
+
+## Monte Carl intergration
+
+Frequently in applications we need to evaluate integrals for which no analytical solution exists. 
+Numerical methods can help us overcome this. Monte Carlo is just one of these methods. 
+The method works due to the <a href="https://en.wikipedia.org/wiki/Law_of_large_numbers">law of large numbers</a>. 
+Compared to a standard numerical method, the method may not be especially efficient in one dimension, 
+but it becomes increasingly efficient as the dimensionality of the integral grows.
+
+Let's assume that we want to evaluate the integral
+
+$$I=\int_a^b h(x) dx$$
+
+If $f$ is a polynomial or a trigonometric function, then this integral can be calculated in closed form. 
+However, in many cases there may not be  a closed for solution for $I$. Numerical techniques, such as <a href="https://en.wikipedia.org/wiki/Gaussian_quadrature">Gaussian quadrature</a> or the the <a href="https://en.wikipedia.org/wiki/Trapezoidal_rule">trapezoid rule</a> can  be 
+employed in order to evaluate $I$. Monte Carlo integration is yet another techinque for evaluating complex integrals that is
+notable for its simplicity and generality [1].
+
+Let's begine by rewriting $I$ as follows
+
+$$I=\int_a^b \omega(x)f(x) dx$$
+
+where $\omega=h(x)(b-a)$ and $f(x) = 1/(b-a)$ and $f$ is the probability density for a uniform random variable over $(a,b)$ [1]. 
+Recall that the expectation for a continuous variable $X$ is given by
+
+$$E\left[X\right]=\int xf(x)dx$$
+
+Hence, 
+
+$$I=E\left[\omega(X)\right]$$
+
+This is the basic Monte Carlo integration method [1]. In order to evaluate the integral $I$, we evaluate the following expression
+
+$$\hat{I} = \frac{1}{n}\sum_{i=1}^{N}\omega(x_i)$$
+
+where $x \sim U(a,b)$. By the 
+<a href="https://en.wikipedia.org/wiki/Law_of_large_numbers">law of large numbers</a> it follows, [1],
+
+$$\hat{I}\rightarrow E\left[\omega(X)\right] = I$$
+
+Notice that the law of large numbers, see @sec-limit-theorems-clt, provides us with probability convergence. Hence $\hat{I}$ will converge in probability to $I$. The standard error, $\hat{se}$, for the estimate is [1]
+
+$$\hat{se} = \frac{s}{\sqrt{n}}$$
+
+where
+
+$$s^2  = \frac{\sum_{i}^{N}(\omega(x_i) - \hat{I} )^2}{n - 1}$$
+
+A $1-\alpha$ confidence interval for the estimate is given from, [1], 
+
+$$\hat{I} \pm z_{\alpha/2}\hat{se}$$
 
 ## The driver code
 
@@ -118,3 +169,7 @@ Running the code above produces the following output
 [2024-05-30 17:51:47.258226] [0x00007fe2bbb7b540] [info]    Circle area: 3.14159
 ```
 
+
+## References
+
+1. Larry Wasserman, _All of Statistics. A Concise Course in Statistical Inference_, Springer 2003.

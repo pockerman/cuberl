@@ -1,127 +1,149 @@
-# Example 6:  Toy Markov chain
+# Example 8:  Working with CUDA 
 
-This example uses to toy Markov chain model to introduce some operations on the
-main linear algebra backend that _cuberl_ is using namely <a href="https://eigen.tuxfamily.org/index.php?title=Main_Page">Eigen</a>.
+Deep learning methods often require excesive training times due to the amount of data that they have to process.
+One way to speed up such applications is to move aspects of the computation into GPU devices. _CubeRL_ can be configured
+to use any available GPU devices by utilising the <a href="https://developer.nvidia.com/cuda-toolkit">CUDA</a> framework.
+This of course means that you need to have a CUDA capable device.
+
+In this example we will set up as small vector addition operation  in order to show you how to use CUDA and how to
+transfer computation on a GPU device. In general, programming GPUs is not necessarilly easy and it involves a lot
+of boilerplate code. Frameworks such as <a href="https://github.com/kokkos/kokkos">Kokkos</a> and  
+<a href="https://github.com/LLNL/RAJA">RAJA</a> attempt to provide functionality for prompting the performance we gain from the GPU
+to various platforms as seamlessly as possible.
+
+
+Note that this example requires that you have configured _CubeRL_ with ```USE_CUDA=ON```.
+Note also that the integration with CUDA is highly experimental at the moment of writing this example.
 
 ## The driver code
 
 The driver code for this tutorial is shown below.
 
 ```cpp
+#include <stdio.h>
+#include <cuda.h>
+
+#include "cubeai/base/cubeai_config.h"
+
+#ifdef USE_CUDA
+
 #include "cubeai/base/cubeai_types.h"
 
-
-#include <cmath>
-#include <utility>
-#include <tuple>
+#include <boost/log/trivial.hpp>
 #include <iostream>
-#include <random>
-#include <algorithm>
 
-namespace exe
-{
+namespace exe{
+	
+	using cubeai::float_t;
 
-using cubeai::real_t;
-using cubeai::uint_t;
-using cubeai::DynMat;
-using cubeai::DynVec;
+__global__ void sum(float_t* v1, float_t* v2, float_t* v3){
 
-// create transition matrix
-DynMat<real_t> create_transition_matrix(){
-    return DynMat<real_t>({{0.9, 0.1}, {0.5, 0.5}});
-}
+	// the thread id we use to correctly
+	// access the vector prosition we
+	// are interested in
+	int idx = threadIdx.x;
+	float_t f1 = v1[idx];
+	float_t f2 = v2[idx];
+	float_t f3 = f1 + f2;
+	v3[idx] = f3;
 
-// create transition matrix
-DynMat<real_t>
-compute_matrix_power(const DynMat<real_t>& mat, uint_t power ){
-
-    auto result = mat;
-
-    for(uint i=0; i<power - 1; ++i){
-        result *= mat;
-    }
-
-    return result;
-}
-
-void print_matrix(const DynMat<real_t>& mat){
-    std::cout<<"["<<mat(0, 0)<<" , "<<mat(0, 1)<<"]"<<std::endl;
-    std::cout<<"["<<mat(1, 0)<<" , "<<mat(1, 1)<<"]"<<std::endl;
 }
 
 }
 
 int main() {
+	
+	using namespace exe;
+	
+	BOOST_LOG_TRIVIAL(info)<<"Running example...";
+    
+	const int ARRAY_SIZE = 64;
+	const int ARRAY_BYTES = ARRAY_SIZE * sizeof(float_t);
 
-    using namespace exe;
+	// host arrays
+	float_t h_v1[ARRAY_SIZE];
+	float_t h_v2[ARRAY_SIZE];
+	float_t h_v3[ARRAY_SIZE];
+	
+	for(int i=0; i<ARRAY_SIZE; ++i){
+	   h_v1[i] = float_t(i);
+	   h_v2[i] = float_t(i);
+	   h_v3[i] = 0.0f;
+	}
 
-    auto transition = create_transition_matrix();
+	// device arrays
+	float_t* d_v1 = nullptr;
+	float_t* d_v2 = nullptr;
+	float_t* d_v3 = nullptr;
 
-    std::cout<<"After 3 steps..."<<std::endl;
-    // after 3 steps
-    auto t_3 = compute_matrix_power(transition, 3 );
-    print_matrix(t_3);
+	// allocate GPU memory for the device arrays
+	cudaMalloc((void **) &d_v1, ARRAY_BYTES);
+	cudaMalloc((void **) &d_v2, ARRAY_BYTES);
+	cudaMalloc((void **) &d_v3, ARRAY_BYTES);
 
-    std::cout<<"After 50 steps..."<<std::endl;
-    // after 3 steps
-    auto t_50 = compute_matrix_power(transition, 50 );
-    print_matrix(t_50);
+	// transfer array to GPU 
+	cudaMemcpy(d_v1, h_v1, ARRAY_BYTES, cudaMemcpyHostToDevice);
+	cudaMemcpy(d_v2, h_v2, ARRAY_BYTES, cudaMemcpyHostToDevice);
+	cudaMemcpy(d_v3, h_v3, ARRAY_BYTES, cudaMemcpyHostToDevice);
 
-    std::cout<<"After 100 steps..."<<std::endl;
+	// launch kernel
+	sum<<<1, ARRAY_SIZE>>>(d_v1, d_v2, d_v3);
 
-    // after 3 steps
-    auto t_100 = compute_matrix_power(transition, 100 );
-    print_matrix(t_100);
+	// copy the output from the GPU to host
+	cudaMemcpy(h_v3, d_v3, ARRAY_BYTES, cudaMemcpyDeviceToHost);
 
-    // initial vector
-    auto v1 = DynVec<real_t>(2);
-    v1[0] = 1.0;
-    v1[1] = 0.0;
 
-    // We can calculate the probability of being
-    // in a specific state after k iterations multiplying
-    // the initial distribution and the transition matrix: v⋅Tk.
+	for(int i=0; i<ARRAY_SIZE; ++i){
+		std::cout<<h_v1[i]<<"+"<<h_v2[i]<<"="<<h_v3[i]<<std::endl;
+	}
 
-    std::cout<<"v_3="<<v1.transpose() * t_3<<std::endl;
-    std::cout<<"v_50="<<v1.transpose() * t_50<<std::endl;
-    std::cout<<"v_100="<<v1.transpose() * t_100<<std::endl;
-
-    // initial vector
-    v1[0] = 0.5;
-    v1[1] = 0.5;
-
-    std::cout<<"v_3="<<v1.transpose() * t_3<<std::endl;
-    std::cout<<"v_50="<<v1.transpose() * t_50<<std::endl;
-    std::cout<<"v_100="<<v1.transpose() * t_100<<std::endl;
+	// free memory
+	cudaFree(d_v1);
+	cudaFree(d_v2);
+	cudaFree(d_v3);
+		
+    cudaDeviceReset();
+	
+	BOOST_LOG_TRIVIAL(info)<<"Done...";
     return 0;
 }
 
+#else
+#include <iostream>
+int main() {
+	std::cout<<"This example requires CUDA support enabled. Reconfigure CubeRL and set USE_CUDA=ON"<<std::endl;
+	return 1;
+}
+#endif
+
 ```
 
-Running the driver code above produces the following output
+Running the code above produces the following:
 
-```bash
-After 3 steps...
-[0.844 , 0.156]
-[0.78 , 0.22]
-After 50 steps...
-[0.833333 , 0.166667]
-[0.833333 , 0.166667]
-After 100 steps...
-[0.833333 , 0.166667]
-[0.833333 , 0.166667]
-v_3=0.844 0.156
-    0     0
-v_50=0.833333 0.166667
-       0        0
-v_100=0.833333 0.166667
-       0        0
-v_3=0.422 0.078
-0.422 0.078
-v_50= 0.416667 0.0833333
- 0.416667 0.0833333
-v_100= 0.416667 0.0833333
- 0.416667 0.0833333
+```
+Running example...
+0+0=0
+1+1=2
+2+2=4
+3+3=6
+4+4=8
+5+5=10
+6+6=12
+7+7=14
+8+8=16
+9+9=18
+10+10=20
+11+11=22
+12+12=24
+13+13=26
+14+14=28
+15+15=30
+16+16=32
+17+17=34
+18+18=36
+19+19=38
+...
+Done...
 
 ```
 

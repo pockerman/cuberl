@@ -8,12 +8,14 @@ The following is an indicative list of examples.
 
 ### Introductory
 
-- <a href="examples/intro/intro_example_1/intro_example_1.md">_CubeRl_ Basics</a>
+- <a href="examples/intro/intro_example_1/intro_example_1.md">Monte Carlo integration</a>
 - <a href="examples/intro/intro_example_2/intro_example_2.md">Using PyTorch C++ API Part 1</a>
 - <a href="examples/intro/intro_example_3/intro_example_3.md">Using PyTorch C++ API Part 2</a>
 - <a href="examples/intro/intro_example_4/intro_example_4.md">Using PyTorch C++ API Part 3</a>
 - <a href="examples/intro/intro_example_5/intro_example_5.md">Using ```TensorboardServer``` class</a>
 - <a href="examples/intro/intro_example_6/intro_example_6.md">Toy Markov chain</a>
+- <a href="examples/intro/intro_example_7/intro_example_7.md">Importance sampling</a>
+- <a href="examples/intro/intro_example_8/intro_example_8.md">Vector addition with CUDA</a>
 
 ### Reinforcement learning
 
