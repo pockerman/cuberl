@@ -15,6 +15,7 @@ The following is an indicative list of examples.
 - <a href="examples/intro/intro_example_5/intro_example_5.md">Using ```TensorboardServer``` class</a>
 - <a href="examples/intro/intro_example_6/intro_example_6.md">Toy Markov chain</a>
 - <a href="examples/intro/intro_example_7/intro_example_7.md">Importance sampling</a>
+- <a href="examples/intro/intro_example_8/intro_example_8.md">Vector addition with CUDA</a>
 
 ### Reinforcement learning
 
