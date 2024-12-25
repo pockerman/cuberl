@@ -23,7 +23,7 @@ using cubeai::rl::algos::dp::ValueIterationConfig;
 using cubeai::rl::RLSerialAgentTrainer;
 using cubeai::rl::RLSerialTrainerConfig;
 
-using rlenvs_cpp::envs::gymnasium::FrozenLake;
+using rlenvscpp::envs::gymnasium::FrozenLake;
 typedef FrozenLake<4> env_type;
 
 typedef  ValueIteration<env_type,

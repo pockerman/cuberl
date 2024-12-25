@@ -28,7 +28,6 @@ using cubeai::rl::algos::ac::A2CConfig;
 using cubeai::rl::algos::ac::A2CSolver;
 using cubeai::rl::RLSerialAgentTrainer;
 using cubeai::rl::RLSerialTrainerConfig;
-using rlenvs_cpp::envs::gymnasium::CartPoleActionsEnum;
 
 
 // create the Action and the Critic networks
@@ -132,7 +131,7 @@ CriticNetImpl::forward(torch_tensor_t state){
 TORCH_MODULE(ActorNet);
 TORCH_MODULE(CriticNet);
 
-typedef  rlenvs_cpp::envs::gymnasium::CartPole env_type;
+typedef  rlenvscpp::envs::gymnasium::CartPole env_type;
 
 }
 

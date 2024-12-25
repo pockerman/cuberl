@@ -42,7 +42,7 @@ using cubeai::rl::RLSerialAgentTrainer;
 using cubeai::rl::RLSerialTrainerConfig;
 using cubeai::rl::policies::EpsilonGreedyPolicy;
 using cubeai::containers::ExperienceBuffer;
-using rlenvs_cpp::envs::grid_world::Gridworld;
+using rlenvscpp::envs::grid_world::Gridworld;
 
 	
 const std::string EXPERIMENT_ID = "1";
