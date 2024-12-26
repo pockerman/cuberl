@@ -42,7 +42,7 @@ using cubeai::rl::RLSerialAgentTrainer;
 using cubeai::rl::RLSerialTrainerConfig;
 using cubeai::rl::policies::EpsilonGreedyPolicy;
 using cubeai::containers::ExperienceBuffer;
-using rlenvs_cpp::envs::grid_world::Gridworld;
+using rlenvscpp::envs::grid_world::Gridworld;
 
 	
 const std::string EXPERIMENT_ID = "1";
@@ -176,7 +176,7 @@ int main(){
         
 		// initialize the environment using random mode
 		std::unordered_map<std::string, std::any> options;
-        options["mode"] = std::any(rlenvs_cpp::envs::grid_world::to_string(rlenvs_cpp::envs::grid_world::GridWorldInitType::RANDOM));
+        options["mode"] = std::any(rlenvscpp::envs::grid_world::to_string(rlenvscpp::envs::grid_world::GridWorldInitType::RANDOM));
 
         env.make("v0", options);
 

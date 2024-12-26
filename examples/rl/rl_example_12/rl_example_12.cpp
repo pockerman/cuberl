@@ -41,7 +41,7 @@ using cubeai::torch_tensor_t;
 using cubeai::rl::RLSerialAgentTrainer;
 using cubeai::rl::RLSerialTrainerConfig;
 using cubeai::rl::policies::EpsilonGreedyPolicy;
-using rlenvs_cpp::envs::grid_world::Gridworld;
+using rlenvscpp::envs::grid_world::Gridworld;
 
 const uint_t l1 = 64;
 const uint_t l2 = 150;

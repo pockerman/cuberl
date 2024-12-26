@@ -25,8 +25,8 @@ using cubeai::rl::algos::td::SarsaConfig;
 using cubeai::rl::policies::EpsilonDecayOption;
 using cubeai::rl::RLSerialAgentTrainer;
 using cubeai::rl::RLSerialTrainerConfig;
-using rlenvs_cpp::envs::gymnasium::CliffWorldActionsEnum;
-typedef  rlenvs_cpp::envs::gymnasium::CliffWorld env_type;
+using rlenvscpp::envs::gymnasium::CliffWorldActionsEnum;
+typedef  rlenvscpp::envs::gymnasium::CliffWorld env_type;
 
 // ActionSelector. This is a simple wrapper to
 // EpsilonGreedyPolicy class in order to adapt the

@@ -25,7 +25,7 @@ using cubeai::rl::algos::dp::IterativePolicyEvalutationSolver;
 using cubeai::rl::algos::dp::IterativePolicyEvalConfig;
 using cubeai::rl::RLSerialAgentTrainer;
 using cubeai::rl::RLSerialTrainerConfig;
-using rlenvs_cpp::envs::gymnasium::FrozenLake;
+using rlenvscpp::envs::gymnasium::FrozenLake;
 typedef FrozenLake<4> env_type;
 
 }

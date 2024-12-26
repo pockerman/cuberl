@@ -43,7 +43,7 @@ using cubeai::rl::algos::pg::ReinforceConfig;
 using cubeai::rl::RLSerialAgentTrainer;
 using cubeai::rl::RLSerialTrainerConfig;
 using cubeai::maths::stats::TorchCategorical;
-using rlenvs_cpp::envs::gymnasium::CartPole;
+using rlenvscpp::envs::gymnasium::CartPole;
 
 
 const uint_t L1 = 4;

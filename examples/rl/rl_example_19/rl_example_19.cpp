@@ -29,8 +29,8 @@ using cubeai::rl::algos::mc::FirstVisitMCSolver;
 using cubeai::rl::algos::mc::FirstVisitMCSolverConfig;
 using cubeai::rl::RLSerialAgentTrainer;
 using cubeai::rl::RLSerialTrainerConfig;
-using rlenvs_cpp::envs::gymnasium::FrozenLake;
-using rlenvs_cpp::envs::gymnasium::FrozenLakeActionsEnum;
+using rlenvscpp::envs::gymnasium::FrozenLake;
+using rlenvscpp::envs::gymnasium::FrozenLakeActionsEnum;
 
 const std::string SERVER_URL = "http://0.0.0.0:8001/api";
 const uint_t SEED = 42;
@@ -78,7 +78,7 @@ std::vector<FrozenLake<4>::time_step_type>
 TrajectoryGenerator::operator()(FrozenLake<4>& env, uint_t max_steps){
 
     RandomActionSelector action_selector;
-    return rlenvs_cpp::envs::create_trajectory(env, action_selector, max_steps );
+    return rlenvscpp::envs::create_trajectory(env, action_selector, max_steps );
 }
 
 

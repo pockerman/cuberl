@@ -34,13 +34,14 @@ The following is an indicative list of examples.
 - <a href="examples/rl/rl_example_13/rl_example_13.md">REINFORCE algorithm on ```CartPole-v0```</a>
 - <a href="examples/rl/rl_example_14/rl_example_14.cpp">Expected SARSA on ```CliffWalking-v0```</a>
 - <a href="examples/example_15/example_15.cpp">Approximate Monte Carlo on ```MountainCar-v0```</a>
-- <a href="examples/example_16/example_16.cpp">Monte Carlo tree search on ```Taxi-v3```</a>
+- <a href="examples/rl_example_16/rl_example_16.md">Monte Carlo tree search on ```Taxi-v3```</a>
 - <a href="examples/rl/rl_example_18.cpp">Double Q-learning on  ```CartPole-v0``` </a>
 - <a href="examples/rl/rl_example_19/rl_example_19.cpp">First visit Monte Carlo on ```FrozenLake-v0```</a>
 
 ### Filtering
 
 - <a href="examples/filtering/filtering_example_1/filtering_example_1.md">Kalman filtering</a>
+- <a href="examples/filtering/filtering_example_2/filtering_example_2.md">Extended Kalman filter for diff-drive system</a>
 
 
 ### Path planning

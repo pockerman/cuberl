@@ -25,8 +25,8 @@ using cubeai::rl::algos::td::QLearningConfig;
 using cubeai::rl::policies::EpsilonDecayOption;
 using cubeai::rl::RLSerialAgentTrainer;
 using cubeai::rl::RLSerialTrainerConfig;
-using rlenvs_cpp::envs::gymnasium::CliffWorldActionsEnum;
-typedef  rlenvs_cpp::envs::gymnasium::CliffWorld env_type;
+
+typedef  rlenvscpp::envs::gymnasium::CliffWorld env_type;
 
 }
 

@@ -8,15 +8,9 @@
 
 
 #include "cubeai/base/cubeai_types.h"
-#include "cubeai/rl/algorithms/mc/mc_tree_search_base.h"
-#include "cubeai/utils/array_utils.h"
+//#include "cubeai/rl/algorithms/mc/mc_tree_search_solver.h"
 
-#include "gymfcpp/gymfcpp_types.h"
-#include "gymfcpp/taxi_env.h"
-#include "gymfcpp/time_step.h"
-#include "gymfcpp/gymfcpp_consts.h"
-
-#include <boost/python.hpp>
+#include "rlenvs/envs/connect2/connect2_env.h"
 
 #include <vector>
 #include <iostream>
@@ -28,12 +22,13 @@
 
 namespace example{
 
+	/*
 using cubeai::real_t;
 using cubeai::uint_t;
 using cubeai::rl::algos::MCTreeSearchBase;
 using cubeai::rl::algos::MCTreeSearchConfig;
 
-using gymfcpp::Taxi;
+using rlenvscpp::envs::connect2::Connect2;
 
 typedef Taxi::time_step_type time_step_type;
 
@@ -43,10 +38,7 @@ const uint_t N_EPISODES = 20000;
 const uint_t N_ITRS_PER_EPISODE = 2000;
 const real_t TOL = 1.0e-8;
 
-/**
- * Implementation of Monte Carlo tree serach for the OpenAI-Gym
- * environment.
- */
+
 template<typename Env>
 class TaxiMCTreeSearch: public MCTreeSearchBase<Env>
 {
@@ -115,7 +107,8 @@ TaxiMCTreeSearch<Env>::simulate_node(std::shared_ptr<node_type> node, env_type& 
 
     return time_step;
 }
-
+*/
+/*
 template<typename Env>
 void
 TaxiMCTreeSearch<Env>::on_episode(){
@@ -188,7 +181,9 @@ TaxiMCTreeSearch<Env>::on_episode(){
 
     best_rewards_.push_back(sum_reward_);
 }
+*/
 
+/*
 template<typename Env>
 void
 TaxiMCTreeSearch<Env>::expand_node(std::shared_ptr<node_type> node, env_type& env){
@@ -214,6 +209,7 @@ TaxiMCTreeSearch<Env>::backprop(std::shared_ptr<node_type> node){
 
 }
 
+ */ 
 }
 
 
@@ -223,23 +219,8 @@ int main(){
 
     try{
 
-        Py_Initialize();
-        auto main_module = boost::python::import("__main__");
-        auto main_namespace = main_module.attr("__dict__");
+        
 
-        Taxi env("v0", main_namespace, false);
-        env.make();
-
-        MCTreeSearchConfig config;
-        config.max_tree_depth = 512;
-        config.temperature = 1.0;
-        TaxiMCTreeSearch<Taxi> agent(config, env);
-        agent.train();
-
-    }
-    catch(const boost::python::error_already_set&)
-    {
-            PyErr_Print();
     }
     catch(std::exception& e){
         std::cout<<e.what()<<std::endl;

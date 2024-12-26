@@ -60,10 +60,9 @@ public:
     template<typename T>
     void write_row(const DynVec<T>& vals);
 
-    /**
-     *
-     * @brief Write the given vector as a column
-     */
+    ///
+	/// \brief Write the given vector as a column
+	///
     template<typename T>
     void write_column_vector(const std::vector<T>& vals);
 
