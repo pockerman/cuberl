@@ -8,8 +8,7 @@
 
 
 #include "cubeai/base/cubeai_types.h"
-#include "cubeai/rl/algorithms/mc/mc_tree_search_base.h"
-#include "cubeai/utils/array_utils.h"
+//#include "cubeai/rl/algorithms/mc/mc_tree_search_solver.h"
 
 #include "rlenvs/envs/connect2/connect2_env.h"
 
@@ -23,12 +22,13 @@
 
 namespace example{
 
+	/*
 using cubeai::real_t;
 using cubeai::uint_t;
 using cubeai::rl::algos::MCTreeSearchBase;
 using cubeai::rl::algos::MCTreeSearchConfig;
 
-using rlenvs_cpp::envs::connect2::Connect2;
+using rlenvscpp::envs::connect2::Connect2;
 
 typedef Taxi::time_step_type time_step_type;
 
@@ -38,10 +38,7 @@ const uint_t N_EPISODES = 20000;
 const uint_t N_ITRS_PER_EPISODE = 2000;
 const real_t TOL = 1.0e-8;
 
-/**
- * Implementation of Monte Carlo tree serach for the OpenAI-Gym
- * environment.
- */
+
 template<typename Env>
 class TaxiMCTreeSearch: public MCTreeSearchBase<Env>
 {
@@ -110,7 +107,7 @@ TaxiMCTreeSearch<Env>::simulate_node(std::shared_ptr<node_type> node, env_type& 
 
     return time_step;
 }
-
+*/
 /*
 template<typename Env>
 void
@@ -186,7 +183,7 @@ TaxiMCTreeSearch<Env>::on_episode(){
 }
 */
 
-
+/*
 template<typename Env>
 void
 TaxiMCTreeSearch<Env>::expand_node(std::shared_ptr<node_type> node, env_type& env){
@@ -212,6 +209,7 @@ TaxiMCTreeSearch<Env>::backprop(std::shared_ptr<node_type> node){
 
 }
 
+ */ 
 }
 
 

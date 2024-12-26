@@ -176,7 +176,7 @@ int main(){
         
 		// initialize the environment using random mode
 		std::unordered_map<std::string, std::any> options;
-        options["mode"] = std::any(rlenvs_cpp::envs::grid_world::to_string(rlenvs_cpp::envs::grid_world::GridWorldInitType::RANDOM));
+        options["mode"] = std::any(rlenvscpp::envs::grid_world::to_string(rlenvscpp::envs::grid_world::GridWorldInitType::RANDOM));
 
         env.make("v0", options);
 

@@ -41,6 +41,7 @@ The following is an indicative list of examples.
 ### Filtering
 
 - <a href="examples/filtering/filtering_example_1/filtering_example_1.md">Kalman filtering</a>
+- <a href="examples/filtering/filtering_example_2/filtering_example_2.md">Extended Kalman filter for diff-drive system</a>
 
 
 ### Path planning

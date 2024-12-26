@@ -40,7 +40,7 @@ using cubeai::rl::RLSerialAgentTrainer;
 using cubeai::rl::RLSerialTrainerConfig;
 using cubeai::rl::agents::DummyAgent;
 using cubeai::utils::IterationCounter;
-using rlenvs_cpp::envs::gymnasium::MountainCar;
+using rlenvscpp::envs::gymnasium::MountainCar;
 
 
 template<cubeai::utils::concepts::float_or_integral_vector PolicyValuesType, typename StateType>

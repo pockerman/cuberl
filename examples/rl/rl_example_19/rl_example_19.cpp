@@ -78,7 +78,7 @@ std::vector<FrozenLake<4>::time_step_type>
 TrajectoryGenerator::operator()(FrozenLake<4>& env, uint_t max_steps){
 
     RandomActionSelector action_selector;
-    return rlenvs_cpp::envs::create_trajectory(env, action_selector, max_steps );
+    return rlenvscpp::envs::create_trajectory(env, action_selector, max_steps );
 }
 
 

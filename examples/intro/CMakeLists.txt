@@ -5,4 +5,8 @@ ADD_SUBDIRECTORY(intro_example_4)
 ADD_SUBDIRECTORY(intro_example_5)
 ADD_SUBDIRECTORY(intro_example_6)
 ADD_SUBDIRECTORY(intro_example_7)
-ADD_SUBDIRECTORY(intro_example_8)
+
+# we need CUDA for this to work
+IF(USE_CUDA)
+	ADD_SUBDIRECTORY(intro_example_8)
+ENDIF()
