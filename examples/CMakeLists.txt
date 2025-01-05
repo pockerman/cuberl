@@ -20,26 +20,20 @@ IF( USE_PYTORCH )
 ENDIF()
 
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/include) 
+INCLUDE_DIRECTORIES(${RLENVS_CPP_INCLUDE_DIRS})
 
-IF(USE_RLENVS_CPP)
-    INCLUDE_DIRECTORIES(${RLENVS_CPP_INCLUDE_DIRS})
-ENDIF()
 
 # libraries to link against this should be conditional
 # to the specified configuration
 # see also: # see https://cmake.org/cmake/help/latest/command/link_directories.html
 LINK_DIRECTORIES(${CMAKE_INSTALL_PREFIX})
 LINK_DIRECTORIES(${Boost_LIBRARY_DIRS})
-
+LINK_DIRECTORIES(${RLENVS_CPP_LIB_PATH})
 
 IF( USE_PYTORCH )
     LINK_DIRECTORIES("/home/alex/MySoftware/libtorch/lib")
 ENDIF()
 
-IF(USE_RLENVS_CPP)
-    LINK_DIRECTORIES(${RLENVS_CPP_LIB_PATH})
-ENDIF()
- 
 ADD_SUBDIRECTORY(intro)
 ADD_SUBDIRECTORY(rl)
 ADD_SUBDIRECTORY(filtering)

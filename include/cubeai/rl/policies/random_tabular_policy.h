@@ -1,13 +1,10 @@
-// SPDX-FileCopyrightText: 2024 <copyright holder> <email>
-// SPDX-License-Identifier: Apache-2.0
-
 #ifndef RANDOM_TABULAR_POLICY_H
 #define RANDOM_TABULAR_POLICY_H
 
 #include "cubeai/base/cubeai_types.h"
-#include "cubeai/base/cubeai_consts.h"
 #include "cubeai/base/cubeai_config.h"
 #include "cubeai/utils/torch_adaptor.h"
+
 
 #ifdef USE_PYTORCH
 #include <torch/torch.h>
@@ -15,7 +12,7 @@
 
 #include <random>
 
-namespace cubeai {
+namespace cuberl {
 namespace rl {
 namespace policies {
 

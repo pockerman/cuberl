@@ -8,9 +8,6 @@
 #include <torch/torch.h>
 #endif
 
-//#include "blaze/Math.h"
-#include "Eigen/Core"
-#include "Eigen/Dense"
 #include <cstddef>
 #include <string>
 
@@ -48,7 +45,7 @@ namespace cuberl
 	///
 	/// \brief General row vector
 	///
-    using rlenvscpp::DynVec = Eigen::RowVectorX<T>;
+    using rlenvscpp::DynVec;
 
     ///
     /// Float type vector
@@ -63,7 +60,7 @@ namespace cuberl
     ///
     /// \brief Null type. Simple placeholder
     ///
-    using rlenvscpp::Null{};
+    using rlenvscpp::Null;
 	
 	///
 	/// \brief Device type

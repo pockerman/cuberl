@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: 2024 <copyright holder> <email>
-// SPDX-License-Identifier: Apache-2.0
-
 #ifndef SOFTMAX_POLICY_H
 #define SOFTMAX_POLICY_H
 
@@ -10,7 +7,7 @@
 #include "cubeai/maths/vector_math.h"
 
 
-namespace cubeai {
+namespace cuberl {
 namespace rl {
 namespace policies {
 

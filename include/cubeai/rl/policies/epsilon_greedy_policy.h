@@ -13,7 +13,7 @@
 #include <random>
 #include <cmath>
 
-namespace cubeai {
+namespace cuberl {
 namespace rl {
 namespace policies {
 
@@ -34,22 +34,21 @@ public:
     constexpr static real_t MAX_EPS = 1.0;
     constexpr static real_t EPSILON_DECAY_FACTOR = 0.01;
 
-
-    /**
-     * @brief Constructor. Creates an epsilon-greedy tabular policy
-     * */
+    ///
+	/// \brief Constructor. Creates an epsilon-greedy tabular policy
+	///
     EpsilonGreedyPolicy(real_t eps);
 
-    /**
-     * @brief Constructor. Creates an epsilon-greedy tabular policy
-     * */
+    ////
+    ///	\brief Constructor. Creates an epsilon-greedy tabular policy
+    ///
     explicit EpsilonGreedyPolicy(real_t eps, uint_t seed);
 
 
-    /**
-     * @brief Constructor Creates an epsilon greedy policy with an
-     * epsilon decay strategy
-     * */
+    ///
+	/// \brief Constructor Creates an epsilon greedy policy with an
+	///epsilon decay strategy
+	///
     explicit EpsilonGreedyPolicy(real_t eps, uint_t seed, EpsilonDecayOption decay_op,
                                  real_t min_eps = MIN_EPS,
                                  real_t max_eps=MAX_EPS,

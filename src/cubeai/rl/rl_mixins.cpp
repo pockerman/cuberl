@@ -1,7 +1,7 @@
 #include "cubeai/rl/rl_mixins.h"
 #include <cmath>
 
-namespace cubeai::rl{
+namespace cuberl::rl{
 
 real_t
 with_decay_epsilon_option_mixin::decay_eps(uint_t episode_index){

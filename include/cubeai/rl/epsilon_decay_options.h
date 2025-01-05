@@ -4,7 +4,7 @@
 #include "cubeai/extern/enum.h"
 #include <string>
 
-namespace cubeai {
+namespace cuberl {
 namespace rl {
 
 ///

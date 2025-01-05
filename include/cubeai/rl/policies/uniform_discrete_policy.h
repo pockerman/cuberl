@@ -2,19 +2,18 @@
 #define UNIFORM_DISCRETE_POLICY_H
 
 #include "cubeai/base/cubeai_types.h"
-//#include "cubeai/rl/policies/discrete_policy_base.h"
 
 #include <vector>
 #include <utility>
 
-namespace cubeai{
+namespace cuberl{
 namespace rl {
 namespace policies {
 
 ///
 /// \brief The UniformDiscretePolicy class
 ///
-class UniformDiscretePolicy final //: public DiscretePolicyBase
+class UniformDiscretePolicy final 
 {
 public:
 

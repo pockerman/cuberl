@@ -94,13 +94,13 @@ ELSEIF(CMAKE_BUILD_TYPE STREQUAL "Release")
     SET(BOOST_LOG_DYN_LINK ON)
 ENDIF()
 
-IF(USE_RLENVS_CPP)
-	IF(CMAKE_BUILD_TYPE MATCHES "Debug")
-		SET(RLENVS_CPP_LIB_PATH "${PROJECT_SOURCE_DIR}/external/rlenvs_cpp/install/dbg")
-	ELSE()
-		SET(RLENVS_CPP_LIB_PATH "${PROJECT_SOURCE_DIR}/external/rlenvs_cpp/install/opt")
-	ENDIF()
+
+IF(CMAKE_BUILD_TYPE MATCHES "Debug")
+	SET(RLENVS_CPP_LIB_PATH "${PROJECT_SOURCE_DIR}/external/rlenvs_cpp/install/dbg")
+ELSE()
+	SET(RLENVS_CPP_LIB_PATH "${PROJECT_SOURCE_DIR}/external/rlenvs_cpp/install/opt")
 ENDIF()
+
 
 # if tests are enabled try to
 # find GTest
