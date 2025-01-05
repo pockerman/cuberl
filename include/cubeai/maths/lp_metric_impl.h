@@ -3,7 +3,7 @@
 
 #include <cmath>
 
-namespace cubeai{
+namespace cuberl{
 namespace maths {
 
 template<int P, bool TTakeRoot>

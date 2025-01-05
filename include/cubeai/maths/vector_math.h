@@ -22,7 +22,7 @@
 #endif
 	
 
-namespace cubeai{
+namespace cuberl{
 namespace maths{
 	
 namespace detail_{

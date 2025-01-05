@@ -4,7 +4,7 @@
 
 #include <boost/noncopyable.hpp>
 
-namespace cubeai {
+namespace cuberl {
 namespace rl {
 namespace agents {
 

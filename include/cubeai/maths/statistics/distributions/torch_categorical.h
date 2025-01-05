@@ -15,7 +15,7 @@
 #include <torch/torch.h>
 
 
-namespace cubeai {
+namespace cuberl {
 namespace maths {
 namespace stats {
 

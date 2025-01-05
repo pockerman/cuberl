@@ -11,9 +11,8 @@
 #include <cmath>
 #include <memory>
 
-namespace cubeai{
+namespace cuberl{
 namespace rl{
-
 namespace algos {
 namespace dp {
 

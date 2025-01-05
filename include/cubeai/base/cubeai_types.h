@@ -1,6 +1,7 @@
 #ifndef CUBEAI_TYPES_H
 #define CUBEAI_TYPES_H
 
+#include "rlenvs/rlenvs_types_v2.h"
 #include "cubeai/base/cubeai_config.h"
 
 #ifdef USE_PYTORCH
@@ -14,59 +15,60 @@
 #include <string>
 
 
-namespace cubeai
+namespace cuberl
 {
-    ///
-    /// \brief unsigned int type
-    ///
-    typedef std::size_t uint_t;
+	
+	using namespace rlenvscpp;
 	
 	///
 	/// \brief int type
 	///
-	typedef int int_t;
+	using rlenvscpp::int_t;
 	
 	///
 	/// \brief long int type
 	///
-	typedef long int lint_t;
+	using rlenvscpp::lint_t;
 
     ///
     /// \brief The float precision type
     ///
-    
-	typedef float float_t;
+	using rlenvscpp::float_t;
     
 	///
     /// \brief The double precision type
     ///
-	typedef double real_t;
+	using rlenvscpp::real_t;
     
-
     ///
     /// \brief General matrix type
     ///
-    template<typename T>
-    using DynMat = Eigen::MatrixX<T>;
+    using rlenvscpp::DynMat; 
 
-
-    template<typename T>
-    using DynVec = Eigen::RowVectorX<T>;
+	///
+	/// \brief General row vector
+	///
+    using rlenvscpp::DynVec = Eigen::RowVectorX<T>;
 
     ///
     /// Float type vector
     ///
-    using FloatVec = DynVec<float_t>;
+    using rlenvscpp::FloatVec;
 	
 	///
 	/// Real type vector
 	///
-	using RealVec = DynVec<real_t>;
+	using rlenvscpp::RealVec;
 
     ///
     /// \brief Null type. Simple placeholder
     ///
-    struct Null{};
+    using rlenvscpp::Null{};
+	
+	///
+	/// \brief Device type
+	///
+	using rlenvscpp::DeviceType;
     
 #ifdef USE_PYTORCH
    ///
@@ -91,10 +93,7 @@ namespace cubeai
 	};
 #endif
 
-	///
-	/// \brief Device type
-	///
-	enum class DeviceType {INVALID_TYPE=0, CPU=1, GPU=2} ;
+	
 
 }
 

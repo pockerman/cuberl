@@ -10,7 +10,7 @@
 #include <string>
 #include <type_traits>
 
-namespace cubeai {
+namespace cuberl {
 namespace rl {
 namespace algos {
 namespace dp {

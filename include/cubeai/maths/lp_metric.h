@@ -4,7 +4,7 @@
 #include "cubeai/base/cubeai_types.h"
 #include <vector>
 
-namespace cubeai{
+namespace cuberl{
 namespace maths {
 
 

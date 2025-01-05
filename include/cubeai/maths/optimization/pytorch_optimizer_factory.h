@@ -13,11 +13,11 @@
 #include <any>
 #include <string>
 
-#ifdef CUBEAI_DEBUG
+#ifdef CUBERL_DEBUG
 #include <cassert>
 #endif
 
-namespace cubeai {
+namespace cuberl {
 namespace maths{
 namespace optim {
 namespace pytorch {

@@ -2,10 +2,10 @@
 #define CONFIG_H
 
 /*DEBUG*/
-#cmakedefine CUBEAI_DEBUG
+#cmakedefine CUBERL_DEBUG
 
 /* Print debug messages */
-#cmakedefine CUBEAI_PRINT_DBG_MSGS
+#cmakedefine CUBERL_PRINT_DBG_MSGS
 
 /*Use log */
 #cmakedefine USE_LOG
@@ -27,9 +27,6 @@
 
 /*Use OpenCV */
 #cmakedefine USE_OPENCV
-
-/*Use OpenCV */
-#cmakedefine USE_RLENVS_CPP
 
 /*Use CUDA */
 #cmakedefine USE_CUDA

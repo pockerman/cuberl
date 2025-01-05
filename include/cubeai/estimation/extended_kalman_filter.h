@@ -8,7 +8,7 @@
 #include <string>
 #include <iostream>
 
-namespace cubeai{
+namespace cuberl{
 namespace estimation{
 	
 ///

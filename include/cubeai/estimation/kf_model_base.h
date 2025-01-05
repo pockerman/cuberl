@@ -5,7 +5,7 @@
 #include <string>
 #include <stdexcept> //for std::invalid_argument
 
-namespace cubeai{
+namespace cuberl{
 namespace estimation{
 	
 template<typename MatrixType>

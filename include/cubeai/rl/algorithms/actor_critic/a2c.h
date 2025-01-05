@@ -35,7 +35,7 @@
 #include <string>
 #include <exception>
 
-namespace cubeai{
+namespace cuberl{
 namespace rl{
 namespace algos {
 namespace ac {

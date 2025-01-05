@@ -3,7 +3,7 @@
 
 #include "cubeai/base/cubeai_types.h"
 
-namespace cubeai{
+namespace cuberl{
 namespace rl{
 namespace algos{
 

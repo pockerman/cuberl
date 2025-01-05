@@ -15,7 +15,7 @@
 #include <string>
 
 
-namespace cubeai{
+namespace cuberl{
 namespace rl {
 namespace algos {
 namespace dp {
