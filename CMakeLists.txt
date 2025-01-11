@@ -175,7 +175,6 @@ FILE(GLOB SRCS src/cubeai/base/*.cpp
                src/cubeai/maths/statistics/distributions/*.cpp
                src/cubeai/maths/optimization/*.cpp
                #src/cubeai/planning/*.cpp
-               #src/cubeai/pytorch_utils/*.cpp
 	)
 
 
