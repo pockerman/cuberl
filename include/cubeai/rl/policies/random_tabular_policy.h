@@ -77,7 +77,7 @@ inline
 uint_t
 RandomTabularPolicy::operator()(const torch_tensor_t& vec)const{
 
-    auto vector = cubeai::utils::pytorch::TorchAdaptor::to_vector<real_t>(vec);
+    auto vector = cuberl::utils::pytorch::TorchAdaptor::to_vector<real_t>(vec);
     std::discrete_distribution<int> distribution(vector.begin(), vector.end());
     return distribution(generator_);
 

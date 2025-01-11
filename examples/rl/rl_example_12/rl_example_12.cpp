@@ -7,13 +7,15 @@
 #ifdef USE_PYTORCH
 
 #include "cubeai/base/cubeai_types.h"
-#include "cubeai/io/csv_file_writer.h"
+
 #include "cubeai/rl/trainers/rl_serial_agent_trainer.h"
 #include "cubeai/maths/optimization/optimizer_type.h"
 #include "cubeai/maths/optimization/pytorch_optimizer_factory.h"
 #include "cubeai/rl/policies/epsilon_greedy_policy.h"
 #include "cubeai/utils/torch_adaptor.h"
 #include "cubeai/maths/vector_math.h"
+
+#include "rlenvs/utils/io/csv_file_writer.h"
 #include "rlenvs/envs/grid_world/grid_world_env.h"
 
 #include <boost/log/trivial.hpp>
@@ -33,14 +35,13 @@ const std::string EXPERIMENT_ID = "3";
 
 namespace F = torch::nn::functional;
 
-using cubeai::real_t;
-using cubeai::uint_t;
-using cubeai::float_t;
-using cubeai::torch_tensor_t;
-
-using cubeai::rl::RLSerialAgentTrainer;
-using cubeai::rl::RLSerialTrainerConfig;
-using cubeai::rl::policies::EpsilonGreedyPolicy;
+using cuberl::real_t;
+using cuberl::uint_t;
+using cuberl::float_t;
+using cuberl::torch_tensor_t;
+using cuberl::rl::RLSerialAgentTrainer;
+using cuberl::rl::RLSerialTrainerConfig;
+using cuberl::rl::policies::EpsilonGreedyPolicy;
 using rlenvscpp::envs::grid_world::Gridworld;
 
 const uint_t l1 = 64;
@@ -186,16 +187,17 @@ int main(){
 				
 				float_t a = 0.0;
 				float_t b = 1.0;
-				rand_vec = cubeai::maths::randomize(rand_vec, a, b, 64);
-				rand_vec = cubeai::maths::divide(rand_vec, 10.0);
+				rand_vec = cuberl::maths::randomize(rand_vec, a, b, 64);
+				rand_vec = cuberl::maths::divide(rand_vec, 10.0);
 				
 				// randomize the flattened observation
-				obs = cubeai::maths::add(obs, rand_vec);
-				auto torch_state = cuberl::utils::pytorch::TorchAdaptor::to_torch(obs, cubeai::DeviceType::CPU);
+				obs = cuberl::maths::add(obs, rand_vec);
+				auto torch_state = cuberl::utils::pytorch::TorchAdaptor::to_torch(obs, 
+				                                                                  cuberl::DeviceType::CPU);
                 
                 // get the qvals
                 auto qvals = qnet(torch_state);
-                auto action_idx = policy(qvals, cubeai::torch_tensor_value_type<float_t>());
+                auto action_idx = policy(qvals, cuberl::torch_tensor_value_type<float_t>());
 				
 				BOOST_LOG_TRIVIAL(info)<<"Action selected: "<<action_idx<<std::endl;
 
@@ -203,9 +205,10 @@ int main(){
                 time_step = env.step(action_idx);
 				obs = flattened_observation(time_step.observation());
 				// randomize the flattened observation
-				obs = cubeai::maths::add(obs, rand_vec);
+				obs = cuberl::maths::add(obs, rand_vec);
 				
-                torch_state = cubeai::utils::pytorch::TorchAdaptor::to_torch(obs, cubeai::DeviceType::CPU);
+                torch_state = cuberl::utils::pytorch::TorchAdaptor::to_torch(obs, 
+				                                                             cuberl::DeviceType::CPU);
 
                 // tell the model that we don't use grad here
                 qnet->eval();
@@ -260,7 +263,7 @@ int main(){
 				policy.set_eps_value(eps);
 			}
 			
-			losses.push_back(cubeai::maths::mean(epoch_loss.begin(),
+			losses.push_back(cuberl::maths::mean(epoch_loss.begin(),
 													epoch_loss.end()));
         }
 
@@ -268,7 +271,8 @@ int main(){
         // purposes
         auto filename = std::string("experiments/") + EXPERIMENT_ID;
         filename += "/dqn_grid_world_policy_rewards.csv";
-        cubeai::io::CSVWriter csv_writer(filename, cubeai::io::CSVWriter::default_delimiter());
+        rlenvscpp::utils::io::CSVWriter csv_writer(filename, 
+		                                           rlenvscpp::utils::io::CSVWriter::default_delimiter());
         csv_writer.open();
 		csv_writer.write_column_vector(losses);
         
@@ -293,8 +297,8 @@ int main(){
 #include <iostream>
 int main(){
 
-	std::cout<<"This example requires PyTorch and rlenvscpplib."<<std::endl;
-	std::cout<<"Reconfigure cuberl with USE_PYTORCH and USE_RLENVS_CPP flags turned ON."<<std::endl;
+	std::cout<<"This example requires PyTorch"<<std::endl;
+	std::cout<<"Reconfigure cuberl with USE_PYTORCH flag turned ON."<<std::endl;
     return 0;
 }
 #endif

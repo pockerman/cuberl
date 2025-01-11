@@ -5,7 +5,7 @@
 
 #include <vector>
 
-namespace cubeai{
+namespace cuberl{
 namespace utils{
 
 template<typename VecType>

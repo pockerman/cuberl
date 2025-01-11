@@ -255,11 +255,11 @@ int main(){
 				auto step_finished = time_step.done();
 				
 				auto obs2 = flattened_observation(time_step.observation());
-				rand_vec = cubeai::maths::randomize(rand_vec, a, b, 64);
-				rand_vec = cubeai::maths::divide(rand_vec, 100.0);
+				rand_vec = cuberl::maths::randomize(rand_vec, a, b, 64);
+				rand_vec = cuberl::maths::divide(rand_vec, 100.0);
 				obs2 = maths::add(obs2, rand_vec);
 				
-				auto torch_state_2 = cubeai::utils::pytorch::TorchAdaptor::to_torch(obs2, 
+				auto torch_state_2 = cuberl::utils::pytorch::TorchAdaptor::to_torch(obs2, 
 																		 DeviceType::CPU);
 																		 
 																		 
@@ -301,9 +301,9 @@ int main(){
 					qnet->train();
 					
 					auto reward_batch_t = cuberl::utils::pytorch::TorchAdaptor::to_torch(reward_batch, 
-												lr						cuberl::DeviceType::CPU);
+																		cuberl::DeviceType::CPU);
 					auto done_batch_t =   cuberl::utils::pytorch::TorchAdaptor::to_torch(done_batch, 
-												lr						cuberl::DeviceType::CPU);
+																		cuberl::DeviceType::CPU);
 					auto action_batch_t = cuberl::utils::pytorch::TorchAdaptor::to_torch(action_batch, 
 																			  cuberl::DeviceType::CPU);
 															
@@ -344,7 +344,7 @@ int main(){
 				policy.set_eps_value(eps);
 			}*/
 			
-			losses.push_back(cubeai::maths::mean(epoch_loss.begin(),
+			losses.push_back(cuberl::maths::mean(epoch_loss.begin(),
 													epoch_loss.end()));
         }
 

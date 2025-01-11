@@ -7,7 +7,6 @@
 #ifdef USE_PYTORCH
 
 #include "cubeai/base/cubeai_types.h"
-
 #include "cubeai/rl/algorithms/pg/simple_reinforce.h"
 #include "cubeai/rl/trainers/rl_serial_agent_trainer.h"
 #include "cubeai/maths/optimization/optimizer_type.h"
@@ -46,6 +45,7 @@ using cuberl::rl::algos::pg::ReinforceConfig;
 using cuberl::rl::RLSerialAgentTrainer;
 using cuberl::rl::RLSerialTrainerConfig;
 using cuberl::maths::stats::TorchCategorical;
+using  rlenvscpp::envs::RESTApiServerWrapper;	
 using rlenvscpp::envs::gymnasium::CartPole;
 
 
@@ -190,7 +190,7 @@ int main(){
         // purposes
         auto filename = std::string("experiments/") + EXPERIMENT_ID;
         filename += "/reinforce_rewards.csv";
-        rlenvscpp::utils::::io::CSVWriter csv_writer(filename, 
+        rlenvscpp::utils::io::CSVWriter csv_writer(filename, 
 		                                             rlenvscpp::utils::io::CSVWriter::default_delimiter());
         csv_writer.open();
         csv_writer.write_column_vector(trainer.episodes_total_rewards());

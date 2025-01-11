@@ -22,7 +22,7 @@
 #include "cubeai/data_structs/experience_buffer.h"
 #include "cubeai/maths/vector_math.h"
 
-#ifdef CUBEAI_DEBUG
+#ifdef CUBERL_DEBUG
 #include <cassert>
 #endif
 
@@ -48,7 +48,7 @@ namespace  {
 // TODO: maybe we need to guard against the prop_name
 template<typename ExperienceType>
 torch_tensor_t
-stack_values(const cubeai::containers::ExperienceBuffer<ExperienceType>& buffer,
+stack_values(const containers::ExperienceBuffer<ExperienceType>& buffer,
              const std::string& prop_name ){
 
 	if(prop_name == "log_probs"){
@@ -70,7 +70,7 @@ stack_values(const cubeai::containers::ExperienceBuffer<ExperienceType>& buffer,
 			vals.push_back(val.template to<float_t>());
 		}
 		
-		return cubeai::utils::pytorch::TorchAdaptor()(vals);
+		return cuberl::utils::pytorch::TorchAdaptor()(vals);
     }
 	else if(prop_name == "rewards"){
 		
@@ -83,7 +83,7 @@ stack_values(const cubeai::containers::ExperienceBuffer<ExperienceType>& buffer,
 			vals.push_back(val);
 		}
 		
-		return cubeai::utils::pytorch::TorchAdaptor()(vals);
+		return cuberl::utils::pytorch::TorchAdaptor()(vals);
 		
 	}
 	else{
@@ -356,9 +356,9 @@ A2CSolver<EnvType, PolicyType, CriticType>::on_training_episode(env_type& env, u
 	
 	
 	auto rewards_tensor = std::any_cast<torch_tensor_t>(rewards_itr -> second);
-	auto rewards = cubeai::maths::exponentiate<std::vector<float_t>>(rewards_tensor, config_.gamma);
+	auto rewards = cuberl::maths::exponentiate<std::vector<float_t>>(rewards_tensor, config_.gamma);
 
-	auto R = cubeai::maths::sum(rewards.begin(), rewards.end(), true);
+	auto R = cuberl::maths::sum(rewards.begin(), rewards.end(), true);
 
 
 	auto logprobs_itr = eps_info.info.find("log_probs");
@@ -387,7 +387,7 @@ A2CSolver<EnvType, PolicyType, CriticType>::do_train_on_episode_(env_type& env, 
 
     auto episode_score = 0.0;
 
-    typedef cubeai::utils::pytorch::TorchAdaptor::value_type value_type;
+    typedef cuberl::utils::pytorch::TorchAdaptor::value_type value_type;
     typedef typename EnvType::time_step_type time_step_type;
 
     typedef std::tuple<value_type,
@@ -397,13 +397,13 @@ A2CSolver<EnvType, PolicyType, CriticType>::do_train_on_episode_(env_type& env, 
                        std::map<std::string, std::any>> experience_type;
 
     // create a buffer for experience accummulation
-    cubeai::containers::ExperienceBuffer<experience_type> buffer(config_.buffer_size);
+    cuberl::containers::ExperienceBuffer<experience_type> buffer(config_.buffer_size);
     auto time_step = env.reset();
     auto state = time_step.observation();
 
     // helper class to convert from std::vector to torch_tensor_t
     // and vice versa
-    cubeai::utils::pytorch::TorchAdaptor torch_adaptor;
+    cuberl::utils::pytorch::TorchAdaptor torch_adaptor;
 
     // loop over the iterations
     uint_t itrs = 0;
@@ -412,7 +412,7 @@ A2CSolver<EnvType, PolicyType, CriticType>::do_train_on_episode_(env_type& env, 
         auto torch_state = torch_adaptor(state);
         auto action_result = act_on_episode_iteration_(torch_state);
 
-        auto action = cubeai::utils::pytorch::TorchAdaptor::to_vector<uint_t>(action_result.actions)[0];
+        auto action = cuberl::utils::pytorch::TorchAdaptor::to_vector<uint_t>(action_result.actions)[0];
         auto next_time_step = env.step(action);
 		
         auto next_state = next_time_step.observation();
@@ -496,7 +496,7 @@ A2CSolver<EnvType, PolicyType, CriticType>::actions_after_episode_ends(env_type&
 
 		// because of the way we treat the values
 		// we loose the requires_grad so we need to set it
-		using namespace cubeai::utils::pytorch;
+		using namespace cuberl::utils::pytorch;
 		auto tmp_policy_loss = -(logprobs * advantage.detach()); //.mean();
 		auto policy_loss_with_grad = TorchAdaptor::to_vector<float_t>(tmp_policy_loss);
         auto policy_loss = TorchAdaptor::to_torch(policy_loss_with_grad, config_.device_type, true).mean();

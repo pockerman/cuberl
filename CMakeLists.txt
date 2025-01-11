@@ -52,8 +52,7 @@ SET(CMAKE_LINKER_FLAGS "-pthread")
 
 SET(USE_OPENMP ON)
 SET(USE_LOG ON)
-SET(USE_PYTORCH OFF)
-
+SET(USE_PYTORCH ON)
 SET(USE_OPENCV OFF)
 SET(RLENVS_CPP_INCLUDE_DIRS "${PROJECT_SOURCE_DIR}/external/rlenvs_cpp/src") # required
 
@@ -170,12 +169,11 @@ INCLUDE_DIRECTORIES(include/)
 FILE(GLOB SRCS src/cubeai/base/*.cpp
                src/cubeai/rl/*.cpp
                src/cubeai/rl/*/*.cpp
-               #src/cubeai/geom_primitives/*.cpp
                src/cubeai/utils/*.cpp
                src/cubeai/maths/*.cpp
-               #src/cubeai/maths/statistics/*.cpp
-               #src/cubeai/maths/statistics/distributions/*.cpp
-               #src/cubeai/maths/optimization/*.cpp
+               src/cubeai/maths/statistics/*.cpp
+               src/cubeai/maths/statistics/distributions/*.cpp
+               src/cubeai/maths/optimization/*.cpp
                #src/cubeai/planning/*.cpp
                #src/cubeai/pytorch_utils/*.cpp
 	)

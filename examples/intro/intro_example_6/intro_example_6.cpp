@@ -1,6 +1,5 @@
 #include "cubeai/base/cubeai_types.h"
 
-
 #include <cmath>
 #include <utility>
 #include <tuple>

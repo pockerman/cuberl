@@ -23,7 +23,7 @@
 #include <tuple>
 #include <string>
 
-namespace cubeai {
+namespace cuberl {
 namespace rl {
 namespace algos {
 namespace pg {
@@ -69,7 +69,7 @@ struct ReinforceMonitor
 	                   real_t, state_type, bool,
 					   real_t> experience_tuple_type;
 
-	typedef cubeai::containers::ExperienceBuffer<experience_tuple_type> experience_buffer_type;
+	typedef cuberl::containers::ExperienceBuffer<experience_tuple_type> experience_buffer_type;
 	
 	/// monitor 
     std::vector<real_t> scores;
@@ -332,21 +332,21 @@ ReinforceSolver<EnvType, PolicyType, LossFuncType>::on_training_episode(env_type
 	auto done_batch    = monitor_.template get<bool, 4>(batch);
 	auto log_probs_batch  = monitor_.template get<real_t, 5>(batch);
 	
-	auto tensor_log_probs_batch = cubeai::utils::pytorch::TorchAdaptor::to_torch(log_probs_batch, 
+	auto tensor_log_probs_batch = cuberl::utils::pytorch::TorchAdaptor::to_torch(log_probs_batch, 
 														                      config_.device_type,
 																			  true);
 	
 	
-	auto discounted_coeffs = cubeai::maths::exponentiate(reward_batch, config_.gamma);
-	auto discounted_returns = cubeai::maths::element_product(reward_batch, discounted_coeffs);
+	auto discounted_coeffs = cuberl::maths::exponentiate(reward_batch, config_.gamma);
+	auto discounted_returns = cuberl::maths::element_product(reward_batch, discounted_coeffs);
 	
 	if(config_.normalize_rewards){
 		
-		discounted_returns = cubeai::maths::normalize_max(discounted_returns);
+		discounted_returns = cuberl::maths::normalize_max(discounted_returns);
 	}
 	
 	// TODO: These should be the discounted rewards
-	auto tensor_reward_batch = cubeai::utils::pytorch::TorchAdaptor::to_torch(discounted_returns, 
+	auto tensor_reward_batch = cuberl::utils::pytorch::TorchAdaptor::to_torch(discounted_returns, 
 													                       config_.device_type, true);
 	
 	// now that we have the batches

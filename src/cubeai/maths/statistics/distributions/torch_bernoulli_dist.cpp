@@ -13,7 +13,7 @@
 #include <stdexcept>
 #include <cmath>
 
-namespace cubeai {
+namespace cuberl {
 namespace maths {
 namespace stats {
 

@@ -21,8 +21,7 @@
 #include <iostream>
 #include <unordered_map>
 
-namespace example_0
-{
+namespace rl_example_5{
 
 const std::string SERVER_URL = "http://0.0.0.0:8001/api";
 
@@ -32,7 +31,7 @@ using cuberl::uint_t;
 
 int main() {
 
-    using namespace example_0;
+    using namespace rl_example_5;
 
     try{
 
@@ -43,7 +42,7 @@ int main() {
 
         std::for_each(q.begin(),
                       q.end(),
-                      cubeai::utils::cubeai_print<real_t>);
+                      cuberl::utils::cubeai_print<real_t>);
 
     }
     catch(std::exception& e){
