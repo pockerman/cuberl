@@ -6,9 +6,9 @@
 
 namespace{
 
-using cubeai::real_t;
-using cubeai::uint_t;
-using namespace cubeai::containers;
+using cuberl::real_t;
+using cuberl::uint_t;
+using namespace cuberl::containers;
 
 struct Experience
 {

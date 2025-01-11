@@ -1,5 +1,5 @@
 #include "cubeai/base/cubeai_types.h"
-#include "cubeai/utils/map_input_resolver.h"
+#include "rlenvs/utils/std_map_utils.h"
 
 #include <boost/noncopyable.hpp>
 
@@ -307,8 +307,8 @@ KalmanFilter<MotionModelType,
         throw std::runtime_error("Motion model has not been set");
     }
 
-    auto u = utils::MapInputResolver<input_type, DynVec<real_t> >::resolve("u", input);
-    auto w = utils::MapInputResolver<input_type, DynVec<real_t> >::resolve("w", input);
+    auto u = rlenvscpp::utils::template resolve<DynVec<real_t>>("u", input);
+    auto w = rlenvscpp::utils::template resolve<DynVec<real_t>>("w", input);
 
     // make a state predicion using the
     // motion model
@@ -367,7 +367,7 @@ KalmanFilter<MotionModelType,
       }
 
       auto& K = (*this)["K"];
-      auto z = utils::MapInputResolver<input_type, DynVec<real_t>>::resolve("z", input);
+      auto z = rlenvscpp::utils::template resolve<DynVec<real_t>>("z", input);
       auto innovation = z - H*x;
 
       if(K.cols() != innovation.size()){

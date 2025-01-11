@@ -6,18 +6,18 @@
 #include "cubeai/rl/worlds/envs_concepts.h"
 #include "cubeai/rl/episode_info.h"
 #include "cubeai/maths/matrix_utilities.h"
-#include "cubeai/io/csv_file_writer.h"
-
-#include "cubeai/base/cubeai_consts.h"
 #include "cubeai/base/cubeai_config.h"
 
-#ifdef CUBEAI_DEBUG
+#include "rlenvs/utils/io/csv_file_writer.h"
+#include "rlenvs/rlenvs_consts.h"
+
+#ifdef CUBERL_DEBUG
 #include <cassert>
 #endif
 
 #include <chrono>
 
-namespace cubeai {
+namespace cuberl {
 namespace rl{
 namespace algos {
 namespace td {
@@ -32,7 +32,7 @@ struct QLearningConfig
     real_t gamma;
     real_t eta;
     uint_t max_num_iterations_per_episode;
-    std::string path{""};
+    std::string path{rlenvscpp::consts::INVALID_STR};
 };
 
 
@@ -157,7 +157,7 @@ template<envs::discrete_world_concept EnvTp, typename ActionSelector>
 void
 QLearning<EnvTp, ActionSelector>::actions_after_training_ends(env_type&){
 
-    if(config_.path != ""){
+    if(config_.path != rlenvscpp::consts::INVALID_STR){
         save(config_.path);
     }
 }
@@ -198,8 +198,10 @@ QLearning<EnvTp, ActionSelector>::on_training_episode(env_type& env, uint_t epis
         }
         else{
 
-            update_q_table_(action, state, CubeAIConsts::invalid_size_type(),
-                            CubeAIConsts::invalid_size_type(), reward);
+            update_q_table_(action, state, 
+			                rlenvscpp::consts::INVALID_ID,
+                            rlenvscpp::consts::INVALID_ID, 
+							reward);
 
 
             break;
@@ -252,7 +254,7 @@ QLearning<EnvTp, ActionSelector>::update_q_table_(const action_type& action, con
 												  const  action_type& /*next_action*/, real_t reward){
 
     auto q_current = q_table_(cstate, action);
-    auto q_next = next_state != CubeAIConsts::invalid_size_type() ? cubeai::maths::get_row_max(q_table_, next_state) : 0.0;
+    auto q_next = next_state != rlenvscpp::consts::INVALID_ID ? cuberl::maths::get_row_max(q_table_, next_state) : 0.0;
 
 
     auto td_target = reward + config_.gamma * q_next;

@@ -3,12 +3,13 @@
 
 #include "cubeai/base/cubeai_config.h" //KERNEL_PRINT_DBG_MSGS
 #include "cubeai/base/cubeai_types.h"
-#include "cubeai/base/cubeai_consts.h"
+
 #include "cubeai/rl/algorithms/dp/dp_algo_base.h"
 #include "cubeai/rl/algorithms/dp/policy_improvement.h"
 #include "cubeai/rl/algorithms/utils.h"
 #include "cubeai/rl/episode_info.h"
-#include "cubeai/io/csv_file_writer.h"
+#include "rlenvs/utils/io/csv_file_writer.h"
+#include "rlenvs/rlenvs_consts.h"
 
 #include <memory>
 #include <cmath>
@@ -28,7 +29,7 @@ struct ValueIterationConfig
     uint_t n_max_iterations;
     real_t gamma;
     real_t tolerance;
-    std::string save_path{CubeAIConsts::dummy_string()};
+    std::string save_path{rlenvscpp::consts::INVALID_STR};
 };
 
 ///
@@ -181,7 +182,7 @@ ValueIteration<EnvType, PolicyType, PolicyAdaptorType>::actions_after_training_e
     policy_imp_.on_training_episode(env, 0);
     policy_.update( policy_imp_.policy()); //.make_copy();
 
-    if(config_.save_path != CubeAIConsts::dummy_string()){
+    if(config_.save_path != rlenvscpp::consts::INVALID_STR){
         save(config_.save_path);
     }
 
@@ -191,7 +192,7 @@ template<typename EnvType, typename PolicyType, typename PolicyAdaptorType>
 void
 ValueIteration<EnvType, PolicyType, PolicyAdaptorType>::save(const std::string& filename)const{
 
-    cubeai::io::CSVWriter file_writer(filename, ',');
+    rlenvscpp::utils::io::CSVWriter file_writer(filename, ',');
     file_writer.open();
 
     file_writer.write_column_names({"state_index", "value_function"});

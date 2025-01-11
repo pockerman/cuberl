@@ -6,20 +6,18 @@
   * */
 
 #include "cubeai/base/cubeai_config.h"
-
-#ifdef USE_RL
-
 #include "cubeai/base/cubeai_types.h"
 #include "cubeai/rl/algorithms/dummy/dummy_algorithm.h"
 #include "cubeai/rl/trainers/rl_serial_agent_trainer.h"
 #include "cubeai/rl/algorithms/rl_algo_config.h"
 #include "cubeai/rl/agents/dummy_agent.h"
-#include "cubeai/utils/iteration_counter.h"
+
 #include "cubeai/utils/cubeai_concepts.h"
 
-#include "rlenvs/rlenvs_types_v2.h"
+#include "rlenvs/utils/iteration_counter.h"
 #include "rlenvs/envs/gymnasium/classic_control/mountain_car_env.h"
-#include "rlenvs/time_step.h"
+#include "rlenvs/envs/time_step.h"
+#include "rlenvs/envs/api_server/apiserver.h"
 
 
 #include <iostream>
@@ -30,20 +28,22 @@ namespace example_0
 
 const std::string SERVER_URL = "http://0.0.0.0:8001/api";
 
-using cubeai::real_t;
-using cubeai::uint_t;
-using cubeai::DynMat;
-using cubeai::DynVec;
-using cubeai::rl::algos::DummyAlgorithm;
-using cubeai::rl::algos::DummyAlgorithmConfig;
-using cubeai::rl::RLSerialAgentTrainer;
-using cubeai::rl::RLSerialTrainerConfig;
-using cubeai::rl::agents::DummyAgent;
-using cubeai::utils::IterationCounter;
+using cuberl::real_t;
+using cuberl::uint_t;
+using cuberl::DynMat;
+using cuberl::DynVec;
+using cuberl::rl::algos::DummyAlgorithm;
+using cuberl::rl::algos::DummyAlgorithmConfig;
+using cuberl::rl::RLSerialAgentTrainer;
+using cuberl::rl::RLSerialTrainerConfig;
+using cuberl::rl::agents::DummyAgent;
+using cuberl::utils::concepts::float_or_integral_vector;
+using rlenvscpp::utils::IterationCounter;
 using rlenvscpp::envs::gymnasium::MountainCar;
+using rlenvscpp::envs::RESTApiServerWrapper;
 
 
-template<cubeai::utils::concepts::float_or_integral_vector PolicyValuesType, typename StateType>
+template<float_or_integral_vector PolicyValuesType, typename StateType>
 class DummyPolicy
 {
 public:
@@ -71,14 +71,14 @@ private:
 };
 
 
-template<cubeai::utils::concepts::float_or_integral_vector PolicyValuesType,
+template<float_or_integral_vector PolicyValuesType,
 typename StateType>
 DummyPolicy<PolicyValuesType, StateType>::DummyPolicy(policy_values_type&& values)
     :
     policy_values_(values)
 {}
 
-template<cubeai::utils::concepts::float_or_integral_vector PolicyValuesType, typename StateType>
+template<float_or_integral_vector PolicyValuesType, typename StateType>
 const typename DummyPolicy<PolicyValuesType, StateType>::action_type&
 DummyPolicy<PolicyValuesType, StateType>::on_state(const state_type& /*state*/)const{
 
@@ -135,9 +135,11 @@ int main() {
     using namespace example_0;
 
     try{
+		
+		RESTApiServerWrapper server(SERVER_URL, true);
 
         // create the environment
-        MountainCar env(SERVER_URL);
+        MountainCar env(server);
 
         std::cout<<"Environment URL: "<<env.get_url()<<std::endl;
 
@@ -181,14 +183,3 @@ int main() {
 
    return 0;
 }
-#else
-
-#include <iostream>
-int main() {
-
-	std::cout<<"This example requires to configure the library with RL support. Set USE_RL to ON and rebuild"<<std::endl;
-}
-
-#endif
-
-

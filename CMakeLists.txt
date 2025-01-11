@@ -172,7 +172,7 @@ FILE(GLOB SRCS src/cubeai/base/*.cpp
                src/cubeai/rl/*/*.cpp
                #src/cubeai/geom_primitives/*.cpp
                src/cubeai/utils/*.cpp
-               #src/cubeai/maths/*.cpp
+               src/cubeai/maths/*.cpp
                #src/cubeai/maths/statistics/*.cpp
                #src/cubeai/maths/statistics/distributions/*.cpp
                #src/cubeai/maths/optimization/*.cpp

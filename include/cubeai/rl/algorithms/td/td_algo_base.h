@@ -5,23 +5,11 @@
 #include "cubeai/rl/algorithms/rl_algorithm_base.h"
 #include "cubeai/rl/worlds/envs_concepts.h"
 
-
-
-//#include <deque>
-//#include <vector>
-//#include <iostream>
-
-namespace cubeai {
+namespace cuberl {
 namespace rl {
 namespace algos {
 namespace td {
 
-/*struct TDAlgoConfig: RLAlgoConfig
-{
-    real_t gamma;
-    real_t eta;
-    uint_t seed{42};
-};*/
 
 ///
 ///\brief The TDAlgoBase class. Base class

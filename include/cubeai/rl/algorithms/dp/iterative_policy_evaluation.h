@@ -3,9 +3,10 @@
 
 #include "cubeai/base/cubeai_types.h"
 #include "cubeai/rl/algorithms/dp/dp_algo_base.h"
-#include "cubeai/io/csv_file_writer.h"
-#include "cubeai/utils/iteration_counter.h"
-#include "cubeai/io/csv_file_writer.h"
+
+#include "rlenvs/utils/iteration_counter.h"
+#include "rlenvs/utils/io/csv_file_writer.h"
+#include "rlenvs/rlenvs_consts.h"
 
 #include <chrono>
 #include <cmath>
@@ -21,7 +22,7 @@ struct IterativePolicyEvalConfig
 {
     real_t gamma{1.0};
     real_t tolerance{1.0e-6};
-    std::string save_path{CubeAIConsts::dummy_string()};
+    std::string save_path{rlenvscpp::consts::INVALID_STR};
 };
 
 ///
@@ -137,7 +138,7 @@ template<typename EnvType, typename PolicyType>
 void
 IterativePolicyEvalutationSolver<EnvType, PolicyType>::actions_after_training_ends(env_type& /*env*/){
 
-    if(config_.save_path != CubeAIConsts::dummy_string()){
+    if(config_.save_path != rlenvscpp::consts::INVALID_STR){
         save(config_.save_path);
     }
 }
@@ -151,7 +152,7 @@ IterativePolicyEvalutationSolver<EnvType, PolicyType>::on_training_episode(env_t
     auto delta = 0.0;
 
 
-    cubeai::utils::IterationCounter itr_counter(env.n_states());
+    rlenvscpp::utils::IterationCounter itr_counter(env.n_states());
     uint_t s = 0;
     while(itr_counter.continue_iterations()){
         // every time we query itr_counter we increase the
@@ -203,7 +204,7 @@ template<typename EnvType, typename PolicyType>
 void
 IterativePolicyEvalutationSolver<EnvType, PolicyType>::save(const std::string& filename)const{
 
-    cubeai::io::CSVWriter file_writer(filename, ',');
+    rlenvscpp::utils::io::CSVWriter file_writer(filename, ',');
     file_writer.open();
     file_writer.write_column_names({"state_index", "value_function"});
 

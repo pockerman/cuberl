@@ -4,7 +4,7 @@
  * */
 #include "cubeai/base/cubeai_config.h"
 
-#if defined(USE_PYTORCH) && defined(USE_RLENVS_CPP)
+#ifdef USE_PYTORCH
 
 #include "cubeai/base/cubeai_types.h"
 #include "cubeai/io/csv_file_writer.h"
@@ -160,7 +160,7 @@ int main(){
         // we will use an epsilon-greedy policy
         EpsilonGreedyPolicy policy(	EPSILON, 
 									SEED, 
-									cubeai::rl::policies::EpsilonDecayOption::NONE);
+									cuberl::rl::policies::EpsilonDecayOption::NONE);
 
         // the loss function to use
         auto loss_fn = torch::nn::MSELoss();
@@ -191,7 +191,7 @@ int main(){
 				
 				// randomize the flattened observation
 				obs = cubeai::maths::add(obs, rand_vec);
-				auto torch_state = cubeai::utils::pytorch::TorchAdaptor::to_torch(obs, cubeai::DeviceType::CPU);
+				auto torch_state = cuberl::utils::pytorch::TorchAdaptor::to_torch(obs, cubeai::DeviceType::CPU);
                 
                 // get the qvals
                 auto qvals = qnet(torch_state);

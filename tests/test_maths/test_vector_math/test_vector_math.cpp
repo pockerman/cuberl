@@ -7,11 +7,9 @@
 
 namespace{
 
-using cubeai::real_t;
-using cubeai::uint_t;
-using cubeai::DynVec;
-
-
+using cuberl::real_t;
+using cuberl::uint_t;
+using cuberl::DynVec;
 }
 
 
@@ -22,7 +20,7 @@ TEST(TestSoftMaxVector, Test_1) {
         vals[i] = 10.0;
     }
 
-    auto softmax_vec = cubeai::maths::softmax_vec(vals);
+    auto softmax_vec = cuberl::maths::softmax_vec(vals);
 
     EXPECT_DOUBLE_EQ(0.25, softmax_vec[0]);
     EXPECT_DOUBLE_EQ(0.25, softmax_vec[1]);
@@ -38,8 +36,8 @@ TEST(TestZeroCenter, Test_2) {
         vals[i] = 10.0;
     }
 
-    auto mean = cubeai::maths::mean(vals);
-    auto zero_center_mean = cubeai::maths::zero_center(vals);
+    auto mean = cuberl::maths::mean(vals);
+    auto zero_center_mean = cuberl::maths::zero_center(vals);
 
     EXPECT_DOUBLE_EQ(vals[0] - mean, zero_center_mean[0]);
     EXPECT_DOUBLE_EQ(vals[1] - mean, zero_center_mean[1]);
@@ -53,7 +51,7 @@ TEST(TestLogSpace, Test_3) {
 
     // this is taken from NumPy:
     // https://numpy.org/doc/stable/reference/generated/numpy.logspace.html
-    auto vals = cubeai::maths::logspace(2.0, 3.0, 4, 10.0);
+    auto vals = cuberl::maths::logspace(2.0, 3.0, 4, 10.0);
 
     ASSERT_EQ(vals.size(), 4);
     EXPECT_NEAR(vals[0], 100.0, 1.0e-2);

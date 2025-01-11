@@ -4,18 +4,14 @@
 #include "cubeai/base/cubeai_types.h"
 #include "cubeai/rl/algorithms/rl_algorithm_base.h"
 #include "cubeai/rl/algorithms/rl_algo_config.h"
-#include "cubeai/utils/iteration_counter.h"
+#include "rlenvs/utils/iteration_counter.h"
 
 #include "cubeai/base/cubeai_config.h"
-
-#ifdef USE_GYMFCPP
-#include "gymfcpp/render_mode_enum.h"
-#endif
 
 #include <chrono>
 #include <iostream>
 
-namespace cubeai{
+namespace cuberl{
 namespace rl{
 namespace algos{
 
@@ -79,7 +75,7 @@ protected:
     ///
     /// \brief itr_counter_
     ///
-    cubeai::utils::IterationCounter itr_counter_;
+    rlenvscpp::utils::IterationCounter itr_counter_;
 
     ///
     /// \brief actions_
@@ -111,7 +107,7 @@ DummyAlgorithm<EnvType>::on_training_episode(env_type& env, uint_t episode_idx){
     while(itr_counter_.continue_iterations()){
 
         // sample an action
-        auto action = env.sample_action();
+        auto action = 0; //env.sample_action();
 
         // step the environment
         auto time_step = env.step(action);

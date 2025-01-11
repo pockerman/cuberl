@@ -3,7 +3,7 @@
 #include "cubeai/rl/trainers/rl_serial_agent_trainer.h"
 #include "cubeai/rl/policies/uniform_discrete_policy.h"
 #include "cubeai/rl/policies/stochastic_adaptor_policy.h"
-
+#include "rlenvs/envs/api_server/apiserver.h"
 #include "rlenvs/envs/gymnasium/toy_text/frozen_lake_env.h"
 
 #include <boost/log/trivial.hpp>
@@ -14,16 +14,17 @@ namespace rl_example_8
 const std::string SERVER_URL = "http://0.0.0.0:8001/api";
 const std::string SOLUTION_FILE = "value_iteration_frozen_lake_v1.csv";
 
-using cubeai::real_t;
-using cubeai::uint_t;
-using cubeai::rl::policies::UniformDiscretePolicy;
-using cubeai::rl::policies::StochasticAdaptorPolicy;
-using cubeai::rl::algos::dp::ValueIteration;
-using cubeai::rl::algos::dp::ValueIterationConfig;
-using cubeai::rl::RLSerialAgentTrainer;
-using cubeai::rl::RLSerialTrainerConfig;
+using cuberl::real_t;
+using cuberl::uint_t;
+using cuberl::rl::policies::UniformDiscretePolicy;
+using cuberl::rl::policies::StochasticAdaptorPolicy;
+using cuberl::rl::algos::dp::ValueIteration;
+using cuberl::rl::algos::dp::ValueIterationConfig;
+using cuberl::rl::RLSerialAgentTrainer;
+using cuberl::rl::RLSerialTrainerConfig;
 
 using rlenvscpp::envs::gymnasium::FrozenLake;
+using rlenvscpp::envs::RESTApiServerWrapper;
 typedef FrozenLake<4> env_type;
 
 typedef  ValueIteration<env_type,
@@ -37,9 +38,11 @@ int main() {
 	BOOST_LOG_TRIVIAL(info)<<"Starting agent training";
 	
     using namespace rl_example_8;
+	
+	RESTApiServerWrapper server(SERVER_URL, true);
 
     // create the environment
-    env_type env(SERVER_URL);
+    env_type env(server);
 
     BOOST_LOG_TRIVIAL(info)<<"Creating environment...";
     std::unordered_map<std::string, std::any> options;

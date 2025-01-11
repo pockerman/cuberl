@@ -2,9 +2,10 @@
 #define RL_SERIAL_AGENT_TRAINER_H
 
 #include "cubeai/base/cubeai_types.h"
-#include "cubeai/base/cubeai_consts.h"
-#include "cubeai/base/iterative_algorithm_result.h"
-#include "cubeai/base/iterative_algorithm_controller.h"
+#include "rlenvs/rlenvs_consts.h"
+
+#include "rlenvs/utils/iterative_algorithm_result.h"
+#include "rlenvs/utils/iterative_algorithm_controller.h"
 
 #include <boost/noncopyable.hpp>
 #include <boost/log/trivial.hpp>
@@ -12,7 +13,7 @@
 #include <chrono>
 //#include <iostream>
 
-namespace cubeai {
+namespace cuberl {
 namespace rl {
 
 // forward declare
@@ -24,9 +25,9 @@ struct EpisodeInfo;
 ///
 struct RLSerialTrainerConfig
 {
-    uint_t output_msg_frequency{CubeAIConsts::INVALID_SIZE_TYPE};
+    uint_t output_msg_frequency{rlenvscpp::consts::INVALID_ID};
     uint_t n_episodes{0};
-    real_t tolerance{CubeAIConsts::tolerance()};
+    real_t tolerance{rlenvscpp::consts::TOLERANCE};
 };
 
 
@@ -53,7 +54,7 @@ public:
     /// \brief train Iterate to train the agent on the given
     /// environment
     ///
-    virtual IterativeAlgorithmResult train(env_type& env);
+    virtual rlenvscpp::utils::IterativeAlgorithmResult train(env_type& env);
 
     ///
     /// \brief actions_before_training_begins.  Execute any actions
@@ -105,7 +106,7 @@ protected:
     /// \brief itr_ctrl_ Handles the iteration over the
     /// episodes
     ///
-    IterativeAlgorithmController itr_ctrl_;
+    rlenvscpp::utils::IterativeAlgorithmController itr_ctrl_;
 
     ///
     /// \brief agent_
@@ -168,7 +169,7 @@ RLSerialAgentTrainer<EnvType, AgentType>::actions_after_training_ends(env_type& 
 }
 
 template<typename EnvType, typename AgentType>
-IterativeAlgorithmResult
+rlenvscpp::utils::IterativeAlgorithmResult
 RLSerialAgentTrainer<EnvType, AgentType>::train(env_type& env){
 
 	BOOST_LOG_TRIVIAL(info)<<" Start training on environment..."; //<<env.name;
@@ -184,7 +185,7 @@ RLSerialAgentTrainer<EnvType, AgentType>::train(env_type& env){
         this->actions_before_episode_begins(env, episode_counter);
         auto episode_info = agent_.on_training_episode(env, episode_counter);
 
-        if(output_msg_frequency_ != CubeAIConsts::INVALID_SIZE_TYPE &&
+        if(output_msg_frequency_ != rlenvscpp::consts::INVALID_ID &&
                 episode_counter % output_msg_frequency_  == 0){
 
             BOOST_LOG_TRIVIAL(info)<<episode_info;;

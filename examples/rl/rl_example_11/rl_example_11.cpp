@@ -1,6 +1,6 @@
 #include "cubeai/base/cubeai_config.h"
 
-#if defined(USE_PYTORCH) && defined(USE_RLENVS_CPP)
+#ifdef USE_PYTORCH
 
 #include "cubeai/base/cubeai_types.h"
 #include "cubeai/maths/statistics/distributions/torch_categorical.h"
@@ -8,6 +8,8 @@
 #include "cubeai/rl/algorithms/actor_critic/a2c.h"
 #include "cubeai/maths/optimization/optimizer_type.h"
 #include "cubeai/maths/optimization/pytorch_optimizer_factory.h"
+
+#include "rlenvs/envs/api_server/apiserver.h"
 #include "rlenvs/envs/gymnasium/classic_control/cart_pole_env.h"
 
 #include <boost/log/trivial.hpp>
@@ -20,14 +22,15 @@ namespace rl_example_11{
 
 const std::string SERVER_URL = "http://0.0.0.0:8001/api";
 
-using cubeai::real_t;
-using cubeai::uint_t;
-using cubeai::torch_tensor_t;
-using cubeai::maths::stats::TorchCategorical;
-using cubeai::rl::algos::ac::A2CConfig;
-using cubeai::rl::algos::ac::A2CSolver;
-using cubeai::rl::RLSerialAgentTrainer;
-using cubeai::rl::RLSerialTrainerConfig;
+using cuberl::real_t;
+using cuberl::uint_t;
+using cuberl::torch_tensor_t;
+using cuberl::maths::stats::TorchCategorical;
+using cuberl::rl::algos::ac::A2CConfig;
+using cuberl::rl::algos::ac::A2CSolver;
+using cuberl::rl::RLSerialAgentTrainer;
+using cuberl::rl::RLSerialTrainerConfig;
+using rlenvscpp::envs::RESTApiServerWrapper;
 
 
 // create the Action and the Critic networks
@@ -143,8 +146,10 @@ int main(){
 
     try{
 
+		RESTApiServerWrapper server(SERVER_URL, true);
+		
         // create the environment
-        env_type env(SERVER_URL);
+        env_type env(server);
 
 		BOOST_LOG_TRIVIAL(info)<<"Creating environment...";
         std::unordered_map<std::string, std::any> options;
@@ -164,16 +169,17 @@ int main(){
         opt_options.insert(std::make_pair("lr", 0.001));
 
 
-		using namespace cubeai::maths::optim::pytorch;
+		using namespace cuberl::maths::optim::pytorch;
+		using namespace cuberl::maths::optim;
 
-        auto pytorch_ops = build_pytorch_optimizer_options(cubeai::maths::optim::OptimzerType::ADAM,
-                                                                                          opt_options);
+        auto pytorch_ops = build_pytorch_optimizer_options(OptimzerType::ADAM,
+														  opt_options);
 
-        auto policy_optimizer = build_pytorch_optimizer(cubeai::maths::optim::OptimzerType::ADAM,
-                                                                                       *policy, pytorch_ops);
+        auto policy_optimizer = build_pytorch_optimizer(OptimzerType::ADAM,
+                                                        *policy, pytorch_ops);
 
-        auto critic_optimizer = build_pytorch_optimizer(cubeai::maths::optim::OptimzerType::ADAM,
-                                                                                       *critic, pytorch_ops);
+        auto critic_optimizer = build_pytorch_optimizer(OptimzerType::ADAM,
+                                                        *critic, pytorch_ops);
 
         typedef A2CSolver<env_type, ActorNet, CriticNet> solver_type;
 

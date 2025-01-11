@@ -1,12 +1,8 @@
-#include "cubeai/base/cubeai_config.h"
-
-#ifdef USE_RLENVS_CPP
-
 #include "cubeai/base/cubeai_types.h"
 #include "cubeai/rl/algorithms/td/sarsa.h"
 #include "cubeai/rl/policies/epsilon_greedy_policy.h"
 #include "cubeai/rl/trainers/rl_serial_agent_trainer.h"
-
+#include "rlenvs/envs/api_server/apiserver.h"
 #include "rlenvs/envs/gymnasium/toy_text/cliff_world_env.h"
 
 #include <boost/log/trivial.hpp>
@@ -17,16 +13,17 @@ namespace rl_example_9{
 const std::string SERVER_URL = "http://0.0.0.0:8001/api";
 const std::string SOLUTION_FILE = "sarsa_cliff_walking_v1.csv";
 
-using cubeai::real_t;
-using cubeai::uint_t;
-using cubeai::rl::policies::EpsilonGreedyPolicy;
-using cubeai::rl::algos::td::SarsaSolver;
-using cubeai::rl::algos::td::SarsaConfig;
-using cubeai::rl::policies::EpsilonDecayOption;
-using cubeai::rl::RLSerialAgentTrainer;
-using cubeai::rl::RLSerialTrainerConfig;
-using rlenvscpp::envs::gymnasium::CliffWorldActionsEnum;
+using cuberl::real_t;
+using cuberl::uint_t;
+using cuberl::rl::policies::EpsilonGreedyPolicy;
+using cuberl::rl::algos::td::SarsaSolver;
+using cuberl::rl::algos::td::SarsaConfig;
+using cuberl::rl::policies::EpsilonDecayOption;
+using cuberl::rl::RLSerialAgentTrainer;
+using cuberl::rl::RLSerialTrainerConfig;
+using rlenvscpp::envs::RESTApiServerWrapper;
 typedef  rlenvscpp::envs::gymnasium::CliffWorld env_type;
+
 
 // ActionSelector. This is a simple wrapper to
 // EpsilonGreedyPolicy class in order to adapt the
@@ -57,22 +54,7 @@ env_type::action_type
 ActionSelector::operator()(const MapType& q_map, uint_t state)const{
 
     auto action = policy_(q_map, state);
-
-    // convert to
-    switch(action){
-
-        case 0:
-            return CliffWorldActionsEnum::UP;
-        case 1:
-            return CliffWorldActionsEnum::RIGHT;
-        case 2:
-            return CliffWorldActionsEnum::DOWN;
-        case 3:
-            return CliffWorldActionsEnum::LEFT;
-
-    }
-
-    return CliffWorldActionsEnum::INVALID_ACTION;
+    return action;
 }
 
 }
@@ -84,8 +66,10 @@ int main(){
 
     try{
 
+		RESTApiServerWrapper server(SERVER_URL, true);
+		
         // create the environment
-        env_type env(SERVER_URL);
+        env_type env(server);
 
         BOOST_LOG_TRIVIAL(info)<<"Creating environment...";
         std::unordered_map<std::string, std::any> options;
@@ -128,14 +112,3 @@ int main(){
 
     return 0;
 }
-
-#else
-#include <iostream>
-
-int main(){
-
-    std::cout<<"This example requires the flag USE_RLENVS_CPP to be true."<<std::endl;
-    std::cout<<"Reconfigures and rebuild the library by setting the flag USE_RLENVS_CPP  to ON."<<std::endl;
-    return 1;
-}
-#endif

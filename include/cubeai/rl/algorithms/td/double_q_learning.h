@@ -7,18 +7,19 @@
 ///
 
 #include "cubeai/base/cubeai_types.h"
-#include "cubeai/base/cubeai_consts.h"
 #include "cubeai/rl/algorithms/td/td_algo_base.h"
 #include "cubeai/rl/rl_mixins.h"
 #include "cubeai/rl/worlds/envs_concepts.h"
 #include "cubeai/rl/episode_info.h"
-#include "cubeai/io/csv_file_writer.h"
 #include "cubeai/maths/matrix_utilities.h"
+
+#include "rlenvs/utils/io/csv_file_writer.h"
+#include "rlenvs/rlenvs_consts.h"
 
 #include <chrono>
 #include <random>
 
-namespace cubeai{
+namespace cuberl{
 namespace rl{
 namespace algos{
 namespace td{
@@ -26,7 +27,7 @@ namespace td{
 struct DoubleQLearningConfig
 {
 
-    std::string path{""};
+    std::string path{rlenvscpp::consts::INVALID_STR};
     real_t tolerance;
     real_t gamma;
     real_t eta;
@@ -94,7 +95,8 @@ public:
     ///
     /// \brief actions_after_training_episode
     ///
-    virtual void actions_after_episode_ends(env_type&, uint_t episode_idx, const EpisodeInfo& /*einfo*/){ action_selector_.adjust_on_episode(episode_idx);}
+    virtual void actions_after_episode_ends(env_type&, uint_t episode_idx, 
+	                                        const EpisodeInfo& /*einfo*/){ action_selector_.adjust_on_episode(episode_idx);}
 
     ///
     /// \brief on_episode Do one on_episode of the algorithm
@@ -251,7 +253,7 @@ template <envs::discrete_world_concept EnvTp, typename ActionSelector>
 void
 DoubleQLearning<EnvTp, ActionSelector>::save(std::string filename)const{
 
-    CSVWriter file_writer(filename, ',', true);
+    rlenvscpp::utils::io::CSVWriter file_writer(filename, ',', true);
     std::vector<std::string> col_names(1 + this->with_double_q_table_mixin<DynMat<real_t>>::q_table_1.columns());
     col_names[0] = "state_index";
 
