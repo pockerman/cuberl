@@ -6,9 +6,10 @@
 
 #include "cubeai/base/cubeai_config.h"
 #include "cubeai/base/cubeai_types.h"
-#include "cubeai/base/cubeai_consts.h"
+
 #include "cubeai/rl/episode_info.h"
 #include "cubeai/maths/vector_math.h"
+#include "rlenvs/rlenvs_consts.h"
 
 #ifdef CUBEAI_PRINT_DBG_MSGS
     #include <boost/log/trivial.hpp>
@@ -19,7 +20,7 @@
 #include <algorithm>
 #include <vector>
 
-namespace cubeai{
+namespace cuberl{
 namespace rl{
 namespace algos {
 namespace mc {
@@ -33,7 +34,7 @@ struct FirstVisitMCSolverConfig
     real_t alpha_decay_ratio{0.3};
     uint_t max_steps{100};
     uint_t n_episodes{500};
-    std::string save_path{CubeAIConsts::dummy_string()};
+    std::string save_path{rlenvscpp::consts::INVALID_STR};
 };
 
 /**
@@ -235,9 +236,9 @@ FirstVisitMCSolver<EnvType,
 
         // calculate the return. First extract up to n_steps
         // from the discounts
-        auto trajectory_discounts = cubeai::maths::extract_subvector(discounts, n_steps);
-        auto trajectory_rewards = cubeai::maths::extract_subvector(rewards, count, false);
-        auto G = cubeai::maths::dot_product(trajectory_discounts, trajectory_rewards);
+        auto trajectory_discounts = cuberl::maths::extract_subvector(discounts, n_steps);
+        auto trajectory_rewards = cuberl::maths::extract_subvector(rewards, count, false);
+        auto G = cuberl::maths::dot_product(trajectory_discounts, trajectory_rewards);
         auto mc_error = G -  v_[time_step.observation()];
 
         // update the state value

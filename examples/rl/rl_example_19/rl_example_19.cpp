@@ -1,7 +1,3 @@
-#include "cubeai/base/cubeai_config.h"
-
-#ifdef USE_RLENVS_CPP
-
 #include "cubeai/base/cubeai_types.h"
 #include "cubeai/rl/algorithms/mc/first_visit_mc.h"
 #include "cubeai/rl/learning_rate_scheduler.h"
@@ -9,10 +5,10 @@
 #include "cubeai/rl/policies/epsilon_greedy_policy.h"
 #include "cubeai/maths/vector_math.h"
 
-#include "rlenvs/rlenvs_types_v2.h"
+
 #include "rlenvs/envs/gymnasium/toy_text/frozen_lake_env.h"
-#include "rlenvs/time_step.h"
 #include "rlenvs/envs/envs_utils.h"
+#include "rlenvs/envs/api_server/apiserver.h"
 
 #include <iostream>
 #include <random>
@@ -21,16 +17,17 @@
 namespace rl_example_19
 {
 
-using cubeai::real_t;
-using cubeai::uint_t;
-using cubeai::rl::ConstantLRScheduler;
-using cubeai::rl::policies::EpsilonGreedyPolicy;
-using cubeai::rl::algos::mc::FirstVisitMCSolver;
-using cubeai::rl::algos::mc::FirstVisitMCSolverConfig;
-using cubeai::rl::RLSerialAgentTrainer;
-using cubeai::rl::RLSerialTrainerConfig;
+using cuberl::real_t;
+using cuberl::uint_t;
+using cuberl::rl::ConstantLRScheduler;
+using cuberl::rl::policies::EpsilonGreedyPolicy;
+using cuberl::rl::algos::mc::FirstVisitMCSolver;
+using cuberl::rl::algos::mc::FirstVisitMCSolverConfig;
+using cuberl::rl::RLSerialAgentTrainer;
+using cuberl::rl::RLSerialTrainerConfig;
+using rlenvscpp::envs::RESTApiServerWrapper;
 using rlenvscpp::envs::gymnasium::FrozenLake;
-using rlenvscpp::envs::gymnasium::FrozenLakeActionsEnum;
+
 
 const std::string SERVER_URL = "http://0.0.0.0:8001/api";
 const uint_t SEED = 42;
@@ -50,21 +47,7 @@ RandomActionSelector::operator()(const StateType /*state*/)const{
         std::mt19937 generator(SEED);
         std::uniform_int_distribution<> real_dist(0, 4);
         auto action = real_dist(generator);
-
-        switch(action){
-
-            case 0:
-                return FrozenLakeActionsEnum::LEFT;
-            case 1:
-                return FrozenLakeActionsEnum::DOWN;
-            case 2:
-                return FrozenLakeActionsEnum::RIGHT;
-            case 3:
-                return FrozenLakeActionsEnum::UP;
-
-            default:
-                return FrozenLakeActionsEnum::INVALID_ACTION;
-        }
+		return action;
 }
 
 struct TrajectoryGenerator
@@ -94,7 +77,7 @@ template<typename TrajectoryType>
 std::vector<real_t>
 DiscountGenerator::operator()(const TrajectoryType&, uint_t max_steps)
 {
-    return cubeai::maths::logspace(0.0, static_cast<real_t>(max_steps), max_steps, 1.0);
+    return cuberl::maths::logspace(0.0, static_cast<real_t>(max_steps), max_steps, 1.0);
 }
 
 
@@ -103,10 +86,6 @@ typedef TrajectoryGenerator trajectory_generator_type;
 typedef ConstantLRScheduler learning_rate_scheduler_type;
 typedef FirstVisitMCSolverConfig solver_config_type;
 typedef DiscountGenerator discount_generator_type;
-
-
-
-
 typedef FirstVisitMCSolver<env_type, trajectory_generator_type,
                            learning_rate_scheduler_type, discount_generator_type> solver_type;
 
@@ -118,8 +97,11 @@ int main() {
 
     using namespace rl_example_19;
 
+	RESTApiServerWrapper server(SERVER_URL, true);
+
+
     // create the environment
-    FrozenLake<4> env(SERVER_URL);
+    FrozenLake<4> env(server);
 
     std::cout<<"Environment URL: "<<env.get_url()<<std::endl;
     std::unordered_map<std::string, std::any> options;
@@ -148,14 +130,3 @@ int main() {
 
    return 0;
 }
-#else
-#include <iostream>
-
-int main() {
-
-    std::cout<<"This example requires  gymfcpp. Configure cubeai to use gymfcpp"<<std::endl;
-    return 0;
-}
-#endif
-
-

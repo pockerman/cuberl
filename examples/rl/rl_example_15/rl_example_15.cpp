@@ -4,10 +4,9 @@
  * */
 #include "cubeai/base/cubeai_config.h"
 
-#if defined(USE_PYTORCH) && defined(USE_RLENVS_CPP)
+#ifdef USE_PYTORCH
 
 #include "cubeai/base/cubeai_types.h"
-#include "cubeai/io/csv_file_writer.h"
 #include "cubeai/rl/trainers/rl_serial_agent_trainer.h"
 #include "cubeai/maths/optimization/optimizer_type.h"
 #include "cubeai/maths/optimization/pytorch_optimizer_factory.h"
@@ -15,6 +14,8 @@
 #include "cubeai/utils/torch_adaptor.h"
 #include "cubeai/maths/vector_math.h"
 #include "cubeai/data_structs/experience_buffer.h"
+
+#include "rlenvs/utils/io/csv_file_writer.h"
 #include "rlenvs/envs/grid_world/grid_world_env.h"
 
 #include <boost/log/trivial.hpp>
@@ -33,15 +34,15 @@ namespace rl_example_12{
 
 	namespace F = torch::nn::functional;
 	
-using cubeai::real_t;
-using cubeai::uint_t;
-using cubeai::float_t;
-using cubeai::torch_tensor_t;
+using cuberl::real_t;
+using cuberl::uint_t;
+using cuberl::float_t;
+using cuberl::torch_tensor_t;
 
-using cubeai::rl::RLSerialAgentTrainer;
-using cubeai::rl::RLSerialTrainerConfig;
-using cubeai::rl::policies::EpsilonGreedyPolicy;
-using cubeai::containers::ExperienceBuffer;
+using cuberl::rl::RLSerialAgentTrainer;
+using cuberl::rl::RLSerialTrainerConfig;
+using cuberl::rl::policies::EpsilonGreedyPolicy;
+using cuberl::containers::ExperienceBuffer;
 using rlenvscpp::envs::grid_world::Gridworld;
 
 	
@@ -154,7 +155,7 @@ get(const std::vector<experience_tuple_type>& experience){
 int main(){
 
     using namespace rl_example_12;
-	using namespace cubeai;
+	using namespace cuberl;
 
     try{
 
@@ -176,7 +177,7 @@ int main(){
         
 		// initialize the environment using random mode
 		std::unordered_map<std::string, std::any> options;
-        options["mode"] = std::any(rlenvscpp::envs::grid_world::to_string(rlenvscpp::envs::grid_world::GridWorldInitType::RANDOM));
+        options["mode"] = std::any(rlenvscpp::envs::grid_world::GridWorldInitType::RANDOM);
 
         env.make("v0", options);
 
@@ -232,19 +233,19 @@ int main(){
 
 				auto obs1 = flattened_observation(time_step.observation());
 				
-				rand_vec = cubeai::maths::randomize(rand_vec, a, b, 64);
-				rand_vec = cubeai::maths::divide(rand_vec, 100.0);
+				rand_vec = cuberl::maths::randomize(rand_vec, a, b, 64);
+				rand_vec = cuberl::maths::divide(rand_vec, 100.0);
 				
 				// randomize the flattened observation by adding
 				// some noise
 				obs1 = maths::add(obs1, rand_vec);
-				auto torch_state_1 = cubeai::utils::pytorch::TorchAdaptor::to_torch(obs1, 
+				auto torch_state_1 = cuberl::utils::pytorch::TorchAdaptor::to_torch(obs1, 
 																		            DeviceType::CPU);
                 
                 // get the qvals
                 auto qvals = qnet(torch_state_1);
                 auto action_idx = policy(qvals, 
-				                         cubeai::torch_tensor_value_type<float_t>());
+				                         cuberl::torch_tensor_value_type<float_t>());
 				
 				BOOST_LOG_TRIVIAL(info)<<"Action selected: "<<action_idx<<std::endl;
 
@@ -285,26 +286,26 @@ int main(){
 					auto reward_batch  = get<real_t, 2>(batch_sample);
 					auto done_batch    = get<bool, 4>(batch_sample);
 					
-					auto state_1_batch_t = cubeai::utils::pytorch::TorchAdaptor::stack(state_1_batch, 
-																			cubeai::DeviceType::CPU);
+					auto state_1_batch_t = cuberl::utils::pytorch::TorchAdaptor::stack(state_1_batch, 
+																			cuberl::DeviceType::CPU);
 					auto q1 = qnet(state_1_batch_t);
 					
 					// tell the model that we don't use grad here
 					qnet->eval();
 					
-					auto state_2_batch_t = cubeai::utils::pytorch::TorchAdaptor::stack(state_2_batch, 
-																			cubeai::DeviceType::CPU);
+					auto state_2_batch_t = cuberl::utils::pytorch::TorchAdaptor::stack(state_2_batch, 
+																			cuberl::DeviceType::CPU);
 					auto q2 = qnet(state_2_batch_t);
 				
 					// we are training again
 					qnet->train();
 					
-					auto reward_batch_t = cubeai::utils::pytorch::TorchAdaptor::to_torch(reward_batch, 
-																			  cubeai::DeviceType::CPU);
-					auto done_batch_t = cubeai::utils::pytorch::TorchAdaptor::to_torch(done_batch, 
-																			  cubeai::DeviceType::CPU);
-					auto action_batch_t = cubeai::utils::pytorch::TorchAdaptor::to_torch(action_batch, 
-																			  cubeai::DeviceType::CPU);
+					auto reward_batch_t = cuberl::utils::pytorch::TorchAdaptor::to_torch(reward_batch, 
+												lr						cuberl::DeviceType::CPU);
+					auto done_batch_t =   cuberl::utils::pytorch::TorchAdaptor::to_torch(done_batch, 
+												lr						cuberl::DeviceType::CPU);
+					auto action_batch_t = cuberl::utils::pytorch::TorchAdaptor::to_torch(action_batch, 
+																			  cuberl::DeviceType::CPU);
 															
 					auto state_max = torch::max(q2, 1);
 					auto state_max_val = std::get<0>(state_max);
@@ -351,7 +352,8 @@ int main(){
         // purposes
         auto filename = std::string("experiments/") + EXPERIMENT_ID;
         filename += "/dqn_grid_world_policy_rewards.csv";
-        cubeai::io::CSVWriter csv_writer(filename, cubeai::io::CSVWriter::default_delimiter());
+        rlenvscpp::utils::io::CSVWriter csv_writer(filename, 
+												   rlenvscpp::utils::io::CSVWriter::default_delimiter());
         csv_writer.open();
 		csv_writer.write_column_vector(losses);
         
@@ -376,8 +378,8 @@ int main(){
 #include <iostream>
 int main(){
 
-	std::cout<<"This example requires PyTorch and rlenvscpplib."<<std::endl;
-	std::cout<<"Reconfigure cuberl with USE_PYTORCH and USE_RLENVS_CPP flags turned ON."<<std::endl;
+	std::cout<<"This example requires PyTorch"<<std::endl;
+	std::cout<<"Reconfigure cuberl with USE_PYTORCH flag turned ON."<<std::endl;
     return 0;
 }
 #endif
