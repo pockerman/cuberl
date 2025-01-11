@@ -6,9 +6,9 @@
 
 #include "cubeai/base/cubeai_config.h"
 #include "cubeai/base/cubeai_types.h"
-#include "cubeai/io/json_file_reader.h"
-#include "cubeai/utils/iteration_counter.h"
-#include "cubeai/geom_primitives/shapes/circle.h"
+#include "rlenvs/utils/io/json_file_reader.h"
+#include "rlenvs/utils/iteration_counter.h"
+#include "rlenvs/utils/geometry/shapes/circle.h"
 
 #include <boost/log/trivial.hpp>
 #include <iostream>
@@ -18,11 +18,11 @@
 namespace intro_example_1
 {
 
-using cubeai::real_t;
-using cubeai::uint_t;
-using cubeai::utils::IterationCounter;
-using cubeai::geom_primitives::Circle;
-using cubeai::io::JSONFileReader;
+using cuberl::real_t;
+using cuberl::uint_t;
+using rlenvscpp::utils::IterationCounter;
+using rlenvscpp::utils::geom::Circle;
+using rlenvscpp::utils::io::JSONFileReader;
 
 const std::string CONFIG = "config.json";
 

@@ -6,7 +6,7 @@
 #include <vector>
 #include<tuple>
 
-namespace cubeai{
+namespace cuberl{
 namespace rl{
 namespace envs{
 

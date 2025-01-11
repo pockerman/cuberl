@@ -2,7 +2,7 @@
 
 #ifdef USE_PYTORCH
 
-namespace cubeai {
+namespace cuberl {
 namespace maths {
 namespace stats {
 

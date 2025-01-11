@@ -17,7 +17,7 @@
 
 #include <type_traits>
 
-namespace cubeai{
+namespace cuberl{
 namespace utils {
 namespace concepts {
 

@@ -1,6 +1,7 @@
 #include "cubeai/maths/vector_math.h"
 #include <cmath>
-namespace cubeai{
+
+namespace cuberl{
 namespace maths{
 
 std::vector<real_t>

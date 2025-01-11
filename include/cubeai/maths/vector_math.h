@@ -7,7 +7,7 @@
 #include "cubeai/base/cubeai_config.h"
 #include "cubeai/base/cubeai_types.h"
 #include "cubeai/utils/cubeai_concepts.h"
-#include "cubeai/base/cubeai_consts.h"
+#include "rlenvs/rlenvs_consts.h"
 
 #include <cmath>
 #include <algorithm>
@@ -17,12 +17,12 @@
 #include <iostream>
 #include <stdexcept>
 
-#ifdef CUBEAI_DEBUG
+#ifdef CUBERL_DEBUG
 #include <cassert>
 #endif
 	
 
-namespace cubeai{
+namespace cuberl{
 namespace maths{
 	
 namespace detail_{
@@ -114,11 +114,10 @@ sum(IteratorType begin, IteratorType end, bool parallel=true){
     return sum_; 
 }
 
-/**
- * @brief mean Compute the mean value of the values in
- * the provided iterator range
- *
- **/
+///
+/// \brief mean Compute the mean value of the values in
+/// the provided iterator range
+///
 template<typename IteratorType>
 real_t
 mean(IteratorType begin, IteratorType end, bool parallel=true){
@@ -226,11 +225,11 @@ randomize_vec(Vec& v, const Vec& walk_set, uint_t seed=42){
 
 }
 
-/**
- * @brief Fill in the given vector with random values
- * @param vec The vector to fill in
- * @param seed The seed for the random engine
- */
+///
+/// \brief Fill in the given vector with random values
+/// \param vec The vector to fill in
+/// \param seed The seed for the random engine
+///
 template<typename T>
 std::vector<T>& 
 randomize(std::vector<T>& vec, T a, T b, uint_t seed=42){
@@ -482,7 +481,7 @@ uint_t
 bin_index(const typename SequenceTp::value_type& x, const SequenceTp& sequence){
 
     if(sequence.size() <= 1){
-        return CubeAIConsts::invalid_size_type();
+        return rlenvscpp::consts::INVALID_ID;
     }
 
     auto index = 1;
@@ -502,14 +501,13 @@ bin_index(const typename SequenceTp::value_type& x, const SequenceTp& sequence){
         prev_val = current_val;
     }
 
-    return CubeAIConsts::invalid_size_type();
+    return rlenvscpp::consts::INVALID_ID;
 }
 
-/**
- * @brief zero_center. Subtracts the mean value of the
- * given vector from every value of the vector
- *
- */
+///
+///@brief zero_center. Subtracts the mean value of the
+///given vector from every value of the vector
+///
 template<typename VectorType>
 VectorType
 zero_center(const VectorType& vec, bool parallel=true){
@@ -523,14 +521,14 @@ zero_center(const VectorType& vec, bool parallel=true){
 
 }
 
-/**
- * @brief Normalize the values of the given vector with the given value.
- * Essentially this function divides the elements of the vector with the
- * value provided
- * @param vec
- * @param v
- * @param parallel
- */
+///
+/// \brief Normalize the values of the given vector with the given value.
+/// Essentially this function divides the elements of the vector with the
+/// value provided
+/// \param vec
+/// \param v
+/// \param parallel
+///
 template<typename VectorType>
 VectorType
 normalize(const VectorType& vec, typename VectorType::value_type v){
@@ -618,7 +616,7 @@ template<typename VectorType>
 real_t
 dot_product(const VectorType& v1, const VectorType& v2, uint_t start_idx=0){
 
-#ifdef CUBEAI_DEBUG
+#ifdef CUBERL_DEBUG
     assert(v1.size() == v2.size() && "Invalid vector sizes");
     assert(start_idx < v1.size() && "Invalid start_idx");
 #endif

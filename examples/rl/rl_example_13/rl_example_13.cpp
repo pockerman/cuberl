@@ -4,17 +4,19 @@
  **/
 #include "cubeai/base/cubeai_config.h"
 
-#if defined(USE_PYTORCH) && defined(USE_RLENVS_CPP)
+#ifdef USE_PYTORCH
 
 #include "cubeai/base/cubeai_types.h"
-#include "cubeai/io/csv_file_writer.h"
 #include "cubeai/rl/algorithms/pg/simple_reinforce.h"
 #include "cubeai/rl/trainers/rl_serial_agent_trainer.h"
 #include "cubeai/maths/optimization/optimizer_type.h"
 #include "cubeai/maths/optimization/pytorch_optimizer_factory.h"
 #include "cubeai/maths/statistics/distributions/torch_categorical.h"
 
+#include "rlenvs/utils/io/csv_file_writer.h"
+#include "rlenvs/envs/api_server/apiserver.h"
 #include "rlenvs/envs/gymnasium/classic_control/cart_pole_env.h"
+
 #include <boost/log/trivial.hpp>
 
 #include <torch/torch.h>
@@ -34,15 +36,16 @@ const std::string EXPERIMENT_ID = "2";
 
 namespace F = torch::nn::functional;
 
-using cubeai::real_t;
-using cubeai::uint_t;
-using cubeai::torch_tensor_t;
-using cubeai::DeviceType;
-using cubeai::rl::algos::pg::ReinforceSolver;
-using cubeai::rl::algos::pg::ReinforceConfig;
-using cubeai::rl::RLSerialAgentTrainer;
-using cubeai::rl::RLSerialTrainerConfig;
-using cubeai::maths::stats::TorchCategorical;
+using cuberl::real_t;
+using cuberl::uint_t;
+using cuberl::torch_tensor_t;
+using cuberl::DeviceType;
+using cuberl::rl::algos::pg::ReinforceSolver;
+using cuberl::rl::algos::pg::ReinforceConfig;
+using cuberl::rl::RLSerialAgentTrainer;
+using cuberl::rl::RLSerialTrainerConfig;
+using cuberl::maths::stats::TorchCategorical;
+using  rlenvscpp::envs::RESTApiServerWrapper;	
 using rlenvscpp::envs::gymnasium::CartPole;
 
 
@@ -136,7 +139,11 @@ int main(){
         torch::manual_seed(42);
 
 		BOOST_LOG_TRIVIAL(info)<<"Creating environment...";
-        auto env = CartPole(SERVER_URL);
+		
+		
+		RESTApiServerWrapper server(SERVER_URL, true);
+		
+        auto env = CartPole(server);
 	
         std::unordered_map<std::string, std::any> options;
 
@@ -158,7 +165,7 @@ int main(){
         std::map<std::string, std::any> opt_options;
         opt_options.insert(std::make_pair("lr", LEARNING_RATE));
 
-		using namespace cubeai::maths;
+		using namespace cuberl::maths;
         auto pytorch_ops = optim::pytorch::build_pytorch_optimizer_options(optim::OptimzerType::ADAM,
 																		   opt_options);
 
@@ -183,7 +190,8 @@ int main(){
         // purposes
         auto filename = std::string("experiments/") + EXPERIMENT_ID;
         filename += "/reinforce_rewards.csv";
-        cubeai::io::CSVWriter csv_writer(filename, cubeai::io::CSVWriter::default_delimiter());
+        rlenvscpp::utils::io::CSVWriter csv_writer(filename, 
+		                                             rlenvscpp::utils::io::CSVWriter::default_delimiter());
         csv_writer.open();
         csv_writer.write_column_vector(trainer.episodes_total_rewards());
 

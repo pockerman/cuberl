@@ -1,10 +1,10 @@
 #include "cubeai/base/cubeai_config.h"
 
-#if defined(USE_PYTORCH)
+#ifdef USE_PYTORCH
 
 #include "cubeai/base/cubeai_types.h"
-#include "cubeai/utils/iteration_counter.h"
-#include "cubeai/io/json_file_reader.h"
+#include "rlenvs/utils/iteration_counter.h"
+#include "rlenvs/utils/io/json_file_reader.h"
 
 #include <torch/torch.h>
 #include <boost/log/trivial.hpp>
@@ -16,10 +16,10 @@
 namespace intro_example_2
 {
 
-using cubeai::real_t;
-using cubeai::uint_t;
-using cubeai::io::JSONFileReader;
-using cubeai::utils::IterationCounter;
+using cuberl::real_t;
+using cuberl::uint_t;
+using rlenvscpp::utils::io::JSONFileReader;
+using rlenvscpp::utils::IterationCounter;
 
 namespace fs = std::filesystem;
 const std::string CONFIG = "config.json";

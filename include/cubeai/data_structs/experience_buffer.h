@@ -4,7 +4,7 @@
 #include "cubeai/base/cubeai_config.h"
 #include "cubeai/base/cubeai_types.h"
 
-#ifdef CUBEAI_DEBUG
+#ifdef CUBERL_DEBUG
 #include <cassert>
 #endif
 
@@ -14,7 +14,7 @@
 #include <vector>
 #include <random>
 
-namespace cubeai{
+namespace cuberl{
 namespace containers {
 
 /**

@@ -10,7 +10,7 @@
 
 #include <vector>
 
-namespace cubeai {
+namespace cuberl {
 namespace maths {
 namespace stats {
 

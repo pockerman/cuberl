@@ -53,17 +53,15 @@ SET(CMAKE_LINKER_FLAGS "-pthread")
 SET(USE_OPENMP ON)
 SET(USE_LOG ON)
 SET(USE_PYTORCH ON)
-
 SET(USE_OPENCV OFF)
-SET(USE_RLENVS_CPP ON)
-SET(RLENVS_CPP_INCLUDE_DIRS "${PROJECT_SOURCE_DIR}/external/rlenvs_cpp/src")
+SET(RLENVS_CPP_INCLUDE_DIRS "${PROJECT_SOURCE_DIR}/external/rlenvs_cpp/src") # required
 
 SET(USE_RL ON)
 SET(DATA_SET_FOLDER ${PROJECT_SOURCE_DIR}/data)
 SET(ENABLE_EXAMPLES_FLAG ON)
 SET(ENABLE_TESTS_FLAG ON) # Testing
 SET(ENABLE_DOC_FLAG OFF) # Documentation
-SET(EIGEN_INCLUDE_DIRS "${PROJECT_SOURCE_DIR}/external/eigen")
+
 
 IF(USE_CUDA)
 	# The CUDA compiler. You may need to set this manually
@@ -85,8 +83,8 @@ ENDIF()
 IF(CMAKE_BUILD_TYPE STREQUAL "Debug")
 	SET(CMAKE_INSTALL_PREFIX  ${PROJECT_SOURCE_DIR}/install/dbg)
 	SET(CMAKE_CXX_FLAGS "-g ") # -Wall -Wextra")
-	SET(CUBEAI_DEBUG ON)
-	SET(CUBEAI_PRINT_DBG_MSGS ON)
+	SET(CUBERL_DEBUG ON)
+	SET(CUBERL_PRINT_DBG_MSGS ON)
 	SET(BOOST_LOG_DYN_LINK ON)
 ELSEIF(CMAKE_BUILD_TYPE STREQUAL "Release")
 	SET(CMAKE_INSTALL_PREFIX  ${PROJECT_SOURCE_DIR}/install/opt)
@@ -95,13 +93,13 @@ ELSEIF(CMAKE_BUILD_TYPE STREQUAL "Release")
     SET(BOOST_LOG_DYN_LINK ON)
 ENDIF()
 
-IF(USE_RLENVS_CPP)
-	IF(CMAKE_BUILD_TYPE MATCHES "Debug")
-		SET(RLENVS_CPP_LIB_PATH "${PROJECT_SOURCE_DIR}/external/rlenvs_cpp/install/dbg")
-	ELSE()
-		SET(RLENVS_CPP_LIB_PATH "${PROJECT_SOURCE_DIR}/external/rlenvs_cpp/install/opt")
-	ENDIF()
+
+IF(CMAKE_BUILD_TYPE MATCHES "Debug")
+	SET(RLENVS_CPP_LIB_PATH "${PROJECT_SOURCE_DIR}/external/rlenvs_cpp/install/dbg")
+ELSE()
+	SET(RLENVS_CPP_LIB_PATH "${PROJECT_SOURCE_DIR}/external/rlenvs_cpp/install/opt")
 ENDIF()
+
 
 # if tests are enabled try to
 # find GTest
@@ -121,6 +119,7 @@ ENDIF()
 # find Boost, BLAS
 FIND_PACKAGE(Boost 1.74.0 REQUIRED)
 FIND_PACKAGE(BLAS REQUIRED)
+FIND_PACKAGE(Eigen3 REQUIRED)
 
 IF(Boost_FOUND)
 	MESSAGE( STATUS  "Found needed Boost C++ library.")
@@ -168,18 +167,14 @@ INCLUDE_DIRECTORIES(include/)
 
 # collect the source files for the library
 FILE(GLOB SRCS src/cubeai/base/*.cpp
-               src/cubeai/datasets/*.cpp
                src/cubeai/rl/*.cpp
                src/cubeai/rl/*/*.cpp
-               src/cubeai/io/*.cpp
-               src/cubeai/geom_primitives/*.cpp
                src/cubeai/utils/*.cpp
                src/cubeai/maths/*.cpp
                src/cubeai/maths/statistics/*.cpp
                src/cubeai/maths/statistics/distributions/*.cpp
                src/cubeai/maths/optimization/*.cpp
-               src/cubeai/planning/*.cpp
-               src/cubeai/pytorch_utils/*.cpp
+               #src/cubeai/planning/*.cpp
 	)
 
 

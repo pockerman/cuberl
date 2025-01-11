@@ -1,6 +1,6 @@
 #include "cubeai/rl/episode_info.h"
 
-namespace cubeai{
+namespace cuberl{
 namespace rl{
 
 std::ostream&

@@ -2,7 +2,6 @@
 #define DP_ALGO_BASE_H
 
 #include "cubeai/base/cubeai_types.h"
-#include "cubeai/io/csv_file_writer.h"
 #include "cubeai/rl/algorithms/rl_algorithm_base.h"
 
 #include <tuple>
@@ -10,7 +9,7 @@
 #include <string>
 #include <type_traits>
 
-namespace cubeai {
+namespace cuberl {
 namespace rl {
 namespace algos {
 namespace dp {

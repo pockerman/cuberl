@@ -8,7 +8,7 @@
 #include <cassert>
 #endif
 
-namespace cubeai{
+namespace cuberl{
 namespace utils {
 	namespace pytorch{
 

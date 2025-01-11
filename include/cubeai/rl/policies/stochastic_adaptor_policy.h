@@ -2,12 +2,10 @@
 #define STOCHASTIC_ADAPTOR_POLICY_H
 
 #include "cubeai/base/cubeai_types.h"
-//#include "cubeai/rl/policies/policy_adaptor_base.h"
 #include "cubeai/maths/vector_math.h"
-
 #include "cubeai/base/cubeai_config.h"
 
-#ifdef CUBEAI_DEBUG
+#ifdef CUBERL_DEBUG
 #include <cassert>
 #endif
 
@@ -15,7 +13,7 @@
 #include <any>
 #include <map>
 
-namespace cubeai {
+namespace cuberl {
 namespace rl {
 namespace policies {
 
@@ -89,7 +87,7 @@ StochasticAdaptorPolicy<PolicyType>::operator()(const std::map<std::string, std:
     auto state_actions = std::any_cast<DynVec<real_t>>(options.find("state_actions")->second);
     auto best_actions = maths::max_indices(state_actions);
 
-#ifdef CUBEAI_DEBUG
+#ifdef CUBERL_DEBUG
     assert(best_actions.size() <= action_space_size_ && "Incompatible number of best actions. Cannot exccedd the action space size");
 #endif
 

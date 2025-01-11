@@ -1,6 +1,5 @@
 #include "cubeai/base/cubeai_types.h"
 
-
 #include <cmath>
 #include <utility>
 #include <tuple>
@@ -11,10 +10,10 @@
 namespace exe
 {
 
-using cubeai::real_t;
-using cubeai::uint_t;
-using cubeai::DynMat;
-using cubeai::DynVec;
+using cuberl::real_t;
+using cuberl::uint_t;
+using cuberl::DynMat;
+using cuberl::DynVec;
 
 // create transition matrix
 DynMat<real_t> create_transition_matrix(){

@@ -5,7 +5,7 @@
 
 #include <type_traits>
 
-namespace cubeai {
+namespace cuberl {
 namespace rl {
 namespace envs {
 

@@ -1,19 +1,19 @@
 #ifndef EXPECTED_SARSA_H
 #define EXPECTED_SARSA_H
 
-#include "cubeai/base/cubeai_consts.h"
 #include "cubeai/base/cubeai_config.h"
 #include "cubeai/base/cubeai_types.h"
 #include "cubeai/rl/algorithms/td/td_algo_base.h"
 #include "cubeai/rl/worlds/envs_concepts.h"
+#include "rlenvs/rlenvs_consts.h"
 
 
 
-#ifdef CUBEAI_DEBUG
+#ifdef CUBERL_DEBUG
 #include <cassert>
 #endif
 
-namespace cubeai {
+namespace cuberl {
 namespace rl{
 namespace algos {
 namespace td {
@@ -180,10 +180,12 @@ ExpectedSARSA<EnvTp, ActionSelector>::on_episode(){
 
 template<envs::discrete_world_concept EnvTp, typename ActionSelector>
 void
-ExpectedSARSA<EnvTp, ActionSelector>::update_q_table_(const action_type& action, const state_type& cstate,
-                                                           const state_type& next_state, const  action_type& next_action, real_t reward){
+ExpectedSARSA<EnvTp, ActionSelector>::update_q_table_(const action_type& action, 
+                                                      const state_type& cstate,
+													  const state_type& next_state, 
+													  const  action_type& next_action, real_t reward){
 
-#ifdef CUBEAI_DEBUG
+#ifdef CUBERL_DEBUG
     assert(action < this->env_ref_().n_actions() && "Inavlid action idx");
     assert(cstate < this->env_ref_().n_states() && "Inavlid state idx");
 

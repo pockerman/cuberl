@@ -9,7 +9,7 @@
 #include "cubeai/rl/epsilon_decay_options.h"
 
 
-#ifdef CUBEAI_DEBUG
+#ifdef CUBERL_DEBUG
 #include <cassert>
 #endif
 
@@ -18,7 +18,7 @@
 #include <random>
 
 
-namespace cubeai::rl{
+namespace cuberl::rl{
 
 namespace  {
 

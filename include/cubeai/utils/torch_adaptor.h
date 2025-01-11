@@ -10,7 +10,7 @@
 #include <torch/torch.h>
 #include <vector>
 
-namespace cubeai{
+namespace cuberl{
 namespace utils {
 namespace pytorch{
 

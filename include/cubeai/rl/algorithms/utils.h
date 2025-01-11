@@ -10,7 +10,7 @@
 #include <vector>
 #include <iostream>
 
-namespace cubeai{
+namespace cuberl{
 namespace rl {
 namespace algos {
 

@@ -7,7 +7,7 @@
 #include <set>
 #include <initializer_list>
 
-namespace cubeai{
+namespace cuberl{
 namespace maths{
 
 ///

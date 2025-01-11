@@ -8,7 +8,7 @@
 
 #include <boost/log/trivial.hpp>
 
-namespace cubeai {
+namespace cuberl {
 namespace rl {
 namespace algos {
 namespace pg {

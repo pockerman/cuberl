@@ -1,13 +1,13 @@
 #include "cubeai/rl/policies/uniform_discrete_policy.h"
 #include "cubeai/rl/policies/policy_type.h"
 
-#ifdef CUBEAI_DEBUG
+#ifdef CUBERL_DEBUG
 #include <cassert>
 #endif
 
 #include <unordered_map>
 
-namespace cubeai{
+namespace cuberl{
 namespace rl {
 namespace policies {
 
@@ -64,7 +64,7 @@ UniformDiscretePolicy::operator[](uint_t sidx)const {
 void
 UniformDiscretePolicy::update(uint_t sidx, const std::vector<std::pair<uint_t, real_t>>& vals){
 
-#ifdef CUBEAI_DEBUG
+#ifdef CUBERL_DEBUG
     assert(sidx < n_states_ && "Invalid state index. Index must be < n_states_");
     assert(!vals.empty() && "Empty values to update state status are not allwed");
 #endif

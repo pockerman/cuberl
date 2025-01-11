@@ -12,7 +12,7 @@
 #include "cubeai/base/cubeai_types.h"
 #include "cubeai/maths/vector_math.h"
 #include "cubeai/rl/policies/softmax_policy.h"
-#include "cubeai/io/csv_file_writer.h"
+#include "rlenvs/utils/io/csv_file_writer.h"
 #include <cmath>
 #include <utility>
 #include <tuple>
@@ -24,9 +24,9 @@
 namespace exe
 {
 
-using cubeai::real_t;
-using cubeai::uint_t;
-using cubeai::DynVec;
+using cuberl::real_t;
+using cuberl::uint_t;
+using cuberl::DynVec;
 
 
 // number of arms
@@ -136,7 +136,7 @@ int main() {
         auto record = extract_part(records);
 
         // soft-max the vector
-        auto p = cubeai::maths::softmax_vec(record.begin(),
+        auto p = cuberl::maths::softmax_vec(record.begin(),
                                             record.end(), TAU);
 
         std::discrete_distribution<> distribution(p.begin(), p.end());
@@ -156,7 +156,7 @@ int main() {
         std::cout<<"\tReward obtained: "<<rewards[i]<<std::endl;
     }
 
-    auto csv_writer = cubeai::io::CSVWriter("rewards.csv", ',');
+    auto csv_writer = rlenvscpp::utils::io::CSVWriter("rewards.csv", ',');
 
     csv_writer.write_column_vector(rewards);
 

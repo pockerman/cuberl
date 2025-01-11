@@ -5,7 +5,7 @@
 #define LEARNING_RATE_SCHEDULER_H
 #include "cubeai/base/cubeai_types.h"
 
-namespace cubeai{
+namespace cuberl{
 namespace rl{
 
 /**

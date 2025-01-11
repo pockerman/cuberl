@@ -2,14 +2,14 @@
 #define EPISODE_INFO_H
 
 #include "cubeai/base/cubeai_types.h"
-#include "cubeai/base/cubeai_consts.h"
+#include "rlenvs/rlenvs_consts.h"
 #include <chrono>
 #include <string>
 #include <map>
 #include <any>
 #include <ostream>
 
-namespace cubeai {
+namespace cuberl {
 namespace rl {
 
 ///
@@ -18,8 +18,8 @@ namespace rl {
 struct EpisodeInfo
 {
 
-    uint_t episode_index{CubeAIConsts::INVALID_SIZE_TYPE};
-    uint_t episode_iterations{CubeAIConsts::INVALID_SIZE_TYPE};
+    uint_t episode_index{rlenvscpp::consts::INVALID_ID};
+    uint_t episode_iterations{rlenvscpp::consts::INVALID_ID};
     bool stop_training{false};
 
     ///

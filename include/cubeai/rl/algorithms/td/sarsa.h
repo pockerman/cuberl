@@ -1,15 +1,16 @@
 #ifndef SARSA_H
 #define SARSA_H
 
+#include "cubeai/base/cubeai_config.h"
 #include "cubeai/rl/algorithms/td/td_algo_base.h"
 #include "cubeai/rl/worlds/envs_concepts.h"
 #include "cubeai/rl/episode_info.h"
-#include "cubeai/base/cubeai_consts.h"
-#include "cubeai/base/cubeai_config.h"
-#include "cubeai/io/csv_file_writer.h"
-//#include "cubeai/maths/matrix_utilities.h"
 
-#ifdef CUBEAI_DEBUG
+#include "rlenvs/utils/io/csv_file_writer.h"
+#include "rlenvs/rlenvs_consts.h"
+
+
+#ifdef CUBERL_DEBUG
 #include <cassert>
 #endif
 
@@ -18,7 +19,7 @@
 #include <string>
 
 
-namespace cubeai{
+namespace cuberl{
 namespace rl {
 namespace algos {
 namespace td {
@@ -34,7 +35,7 @@ struct SarsaConfig
     real_t gamma;
     real_t eta;
     uint_t max_num_iterations_per_episode;
-    std::string path{""};
+    std::string path{rlenvscpp::consts::INVALID_STR};
 };
 
 ///
@@ -195,8 +196,10 @@ SarsaSolver<EnvTp, ActionSelector>::on_training_episode(env_type& env, uint_t ep
         }
         else{
 
-            update_q_table_(action, state, CubeAIConsts::invalid_size_type(),
-                            CubeAIConsts::invalid_size_type(), reward);
+            update_q_table_(action, state, 
+			                rlenvscpp::consts::INVALID_ID,
+                            rlenvscpp::consts::INVALID_ID, 
+							reward);
 
             break;
         }
@@ -241,7 +244,7 @@ SarsaSolver<EnvTp, ActionSelector>::update_q_table_(const action_type& action, c
                                                    const state_type& next_state, const action_type& next_action, real_t reward){
 
     auto q_current = q_table_(cstate, action);
-    auto q_next = next_state != CubeAIConsts::invalid_size_type() ? q_table_(next_state, next_action) : 0.0;
+    auto q_next = next_state != rlenvscpp::consts::INVALID_ID ? q_table_(next_state, next_action) : 0.0;
     auto td_target = reward + config_.gamma * q_next;
     q_table_(cstate, action) = q_current + (config_.eta * (td_target - q_current));
 

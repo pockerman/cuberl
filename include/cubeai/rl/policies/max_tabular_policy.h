@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: 2024 <copyright holder> <email>
-// SPDX-License-Identifier: Apache-2.0
-
 #ifndef MAX_TABULAR_POLICY_H
 #define MAX_TABULAR_POLICY_H
 
@@ -11,7 +8,7 @@
 #include <torch/torch.h>
 #endif
 
-namespace cubeai {
+namespace cuberl {
 namespace rl {
 namespace policies {
 

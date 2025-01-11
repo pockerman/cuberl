@@ -1,9 +1,8 @@
 #include "cubeai/base/cubeai_config.h"
 
-#if defined(USE_PYTORCH)
+#ifdef USE_PYTORCH
 
 #include "cubeai/base/cubeai_types.h"
-
 
 #include <torch/torch.h>
 #include <boost/log/trivial.hpp>
@@ -15,11 +14,9 @@
 
 namespace example2{
 	
-	using cubeai::real_t;
-	
-	// this type is not supported by PyTorch
-	using cubeai::uint_t;
-	using cubeai::int_t;
+	using cuberl::real_t;
+	using cuberl::uint_t;
+	using cuberl::int_t;
 }
 
 

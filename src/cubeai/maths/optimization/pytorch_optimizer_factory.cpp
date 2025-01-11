@@ -5,7 +5,7 @@
 #include "cubeai/base/cubeai_types.h"
 #include <exception>
 
-namespace cubeai{
+namespace cuberl{
 namespace maths{
 namespace optim {
 namespace pytorch{

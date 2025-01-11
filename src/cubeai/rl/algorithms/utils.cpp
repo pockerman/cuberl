@@ -2,7 +2,7 @@
 #include "cubeai/maths/vector_math.h"
 #include <algorithm>
 
-namespace cubeai{
+namespace cuberl{
 namespace rl{
 namespace algos{
 

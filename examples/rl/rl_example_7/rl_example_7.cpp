@@ -1,13 +1,9 @@
-#include "cubeai/base/cubeai_config.h"
-
-#ifdef USE_RLENVS_CPP
-
 #include "cubeai/base/cubeai_types.h"
 #include "cubeai/rl/algorithms/dp/policy_iteration.h"
 #include "cubeai/rl/trainers/rl_serial_agent_trainer.h"
 #include "cubeai/rl/policies/uniform_discrete_policy.h"
 #include "cubeai/rl/policies/stochastic_adaptor_policy.h"
-
+#include "rlenvs/envs/api_server/apiserver.h"
 #include "rlenvs/envs/gymnasium/toy_text/frozen_lake_env.h"
 
 
@@ -22,15 +18,16 @@ namespace rl_example_7
 const std::string SERVER_URL = "http://0.0.0.0:8001/api";
 const std::string SOLUTION_FILE = "policy_iteration_frozen_lake_v0.csv";
 
-using cubeai::real_t;
-using cubeai::uint_t;
-using cubeai::rl::policies::UniformDiscretePolicy;
-using cubeai::rl::policies::StochasticAdaptorPolicy;
-using cubeai::rl::algos::dp::PolicyIterationSolver;
-using cubeai::rl::algos::dp::PolicyIterationConfig;
-using cubeai::rl::RLSerialAgentTrainer;
-using cubeai::rl::RLSerialTrainerConfig;
+using cuberl::real_t;
+using cuberl::uint_t;
+using cuberl::rl::policies::UniformDiscretePolicy;
+using cuberl::rl::policies::StochasticAdaptorPolicy;
+using cuberl::rl::algos::dp::PolicyIterationSolver;
+using cuberl::rl::algos::dp::PolicyIterationConfig;
+using cuberl::rl::RLSerialAgentTrainer;
+using cuberl::rl::RLSerialTrainerConfig;
 using rlenvscpp::envs::gymnasium::FrozenLake;
+using rlenvscpp::envs::RESTApiServerWrapper;
 
 typedef FrozenLake<4> env_type;
 }
@@ -39,9 +36,11 @@ int main() {
 
 	BOOST_LOG_TRIVIAL(info)<<"Starting agent training";
     using namespace rl_example_7;
+	
+	RESTApiServerWrapper server(SERVER_URL, true);
 
      // create the environment
-    FrozenLake<4> env(SERVER_URL);
+    FrozenLake<4> env(server);
     std::unordered_map<std::string, std::any> options;
 
 	BOOST_LOG_TRIVIAL(info)<<"Creating environment...";
@@ -79,13 +78,3 @@ int main() {
 	BOOST_LOG_TRIVIAL(info)<<"Finished agent training";
     return 0;
 }
-#else
-#include <iostream>
-
-int main() {
-
-    std::cout<<"This example requires  gymfcpp. Configure cubeai to use gymfcpp"<<std::endl;
-    return 0;
-}
-#endif
-

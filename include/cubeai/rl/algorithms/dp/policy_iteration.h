@@ -5,10 +5,11 @@
 #include "cubeai/rl/algorithms/dp/dp_algo_base.h"
 #include "cubeai/rl/algorithms/dp/iterative_policy_evaluation.h"
 #include "cubeai/rl/algorithms/dp/policy_improvement.h"
+#include "rlenvs/utils/io/csv_file_writer.h"
 
 #include <string>
 
-namespace cubeai{
+namespace cuberl{
 namespace rl{
 namespace algos {
 namespace dp{
@@ -191,7 +192,7 @@ template<typename EnvType, typename PolicyType, typename PolicyAdaptorType>
 void
 PolicyIterationSolver<EnvType, PolicyType, PolicyAdaptorType>::save(const std::string& filename)const{
 
-    cubeai::io::CSVWriter file_writer(filename, ',');
+    rlenvscpp::utils::io::CSVWriter file_writer(filename, ',');
     file_writer.open();
 
     file_writer.write_column_names({"state_index", "value_function"});

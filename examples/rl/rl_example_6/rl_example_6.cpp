@@ -1,15 +1,10 @@
-#include "cubeai/base/cubeai_config.h"
-
-#ifdef USE_RLENVS_CPP
-
 #include "cubeai/base/cubeai_types.h"
 #include "cubeai/rl/algorithms/dp/iterative_policy_evaluation.h"
 #include "cubeai/rl/trainers/rl_serial_agent_trainer.h"
 #include "cubeai/rl/policies/uniform_discrete_policy.h"
 
-#include "rlenvs/rlenvs_types_v2.h"
 #include "rlenvs/envs/gymnasium/toy_text/frozen_lake_env.h"
-#include "rlenvs/time_step.h"
+#include "rlenvs/envs/api_server/apiserver.h"
 
 #include <iostream>
 
@@ -18,14 +13,15 @@ namespace rl_example_6
 
 const std::string SERVER_URL = "http://0.0.0.0:8001/api";
 
-using cubeai::real_t;
-using cubeai::uint_t;
-using cubeai::rl::policies::UniformDiscretePolicy;
-using cubeai::rl::algos::dp::IterativePolicyEvalutationSolver;
-using cubeai::rl::algos::dp::IterativePolicyEvalConfig;
-using cubeai::rl::RLSerialAgentTrainer;
-using cubeai::rl::RLSerialTrainerConfig;
+using cuberl::real_t;
+using cuberl::uint_t;
+using cuberl::rl::policies::UniformDiscretePolicy;
+using cuberl::rl::algos::dp::IterativePolicyEvalutationSolver;
+using cuberl::rl::algos::dp::IterativePolicyEvalConfig;
+using cuberl::rl::RLSerialAgentTrainer;
+using cuberl::rl::RLSerialTrainerConfig;
 using rlenvscpp::envs::gymnasium::FrozenLake;
+using rlenvscpp::envs::RESTApiServerWrapper;
 typedef FrozenLake<4> env_type;
 
 }
@@ -33,9 +29,11 @@ typedef FrozenLake<4> env_type;
 int main() {
 
     using namespace rl_example_6;
+	
+	RESTApiServerWrapper server(SERVER_URL, true);
 
     // create the environment
-    FrozenLake<4> env(SERVER_URL);
+    FrozenLake<4> env(server);
 
     std::cout<<"Environment URL: "<<env.get_url()<<std::endl;
     std::unordered_map<std::string, std::any> options;
@@ -64,14 +62,5 @@ int main() {
 
    return 0;
 }
-#else
-#include <iostream>
-
-int main() {
-
-    std::cout<<"This example requires  gymfcpp. Configure cubeai to use gymfcpp"<<std::endl;
-    return 0;
-}
-#endif
 
 

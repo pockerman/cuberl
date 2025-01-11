@@ -1,6 +1,6 @@
 #include "cubeai/base/cubeai_types.h"
-#include "cubeai/utils/iteration_counter.h"
-#include "cubeai/maths/statistics/distributions/normal_dist.h"
+#include "rlenvs/utils/iteration_counter.h"
+#include "rlenvs/utils/maths/statistics/distributions/normal_dist.h"
 #include "cubeai/maths/vector_math.h"
 #include <boost/log/trivial.hpp>
 
@@ -14,12 +14,12 @@
 namespace intro_example_7
 {
 
-using cubeai::real_t;
-using cubeai::uint_t;
-using cubeai::DynMat;
-using cubeai::DynVec;
-using cubeai::maths::stats::NormalDist;
-using cubeai::utils::IterationCounter;
+using cuberl::real_t;
+using cuberl::uint_t;
+using cuberl::DynMat;
+using cuberl::DynVec;
+using rlenvscpp::utils::maths::stats::NormalDist;
+using rlenvscpp::utils::IterationCounter;
 
 // we will sample from the normal distribution
 // with mu = 4.0 and std = 1.0
@@ -77,8 +77,8 @@ int main() {
 		
 	}
 	
-	auto E_I = cubeai::maths::mean(intergals.begin(), intergals.end(), true);
-	auto V_I = cubeai::maths::variance(intergals.begin(), intergals.end(), true);
+	auto E_I = cuberl::maths::mean(intergals.begin(), intergals.end(), true);
+	auto V_I = cuberl::maths::variance(intergals.begin(), intergals.end(), true);
 	BOOST_LOG_TRIVIAL(info)<<"E[I]="<<E_I;
 	BOOST_LOG_TRIVIAL(info)<<"V[I]="<<V_I;
 	BOOST_LOG_TRIVIAL(info)<<"Finished example...";

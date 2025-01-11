@@ -6,11 +6,11 @@
 
 namespace{
 
-using cubeai::real_t;
-using cubeai::uint_t;
-using cubeai::DynMat;
-using cubeai::DynVec;
-using namespace cubeai::rl::policies;
+using cuberl::real_t;
+using cuberl::uint_t;
+using cuberl::DynMat;
+using cuberl::DynVec;
+using namespace cuberl::rl::policies;
 
 }
 

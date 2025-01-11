@@ -3,14 +3,14 @@
 #include "cubeai/base/cubeai_types.h"
 #include "cubeai/base/cubeai_config.h"
 
-#ifdef CUBEAI_DEBUG
+#ifdef CUBERL_DEBUG
 #include <cassert>
 #include <boost/log/trivial.hpp>
 #endif
 
 #include <vector>
 
-namespace cubeai {
+namespace cuberl {
 namespace rl {
 namespace policies {
 	
@@ -19,7 +19,7 @@ namespace policies {
     uint_t 
 	EpsilonGreedyPolicy::operator()(const torch_tensor_t& tensor, torch_tensor_value_type<real_t>)const{
 		
-		auto vec = cubeai::utils::pytorch::TorchAdaptor::to_vector<real_t>(tensor);
+		auto vec = cuberl::utils::pytorch::TorchAdaptor::to_vector<real_t>(tensor);
 
 		std::uniform_real_distribution<> real_dist_(0.0, 1.0);
 
@@ -35,7 +35,7 @@ namespace policies {
 	uint_t 
 	EpsilonGreedyPolicy::operator()(const torch_tensor_t& tensor, torch_tensor_value_type<float_t>)const{
 		
-		auto vec = cubeai::utils::pytorch::TorchAdaptor::to_vector<float_t>(tensor);
+		auto vec = cuberl::utils::pytorch::TorchAdaptor::to_vector<float_t>(tensor);
 
 		std::uniform_real_distribution<> real_dist_(0.0, 1.0);
 
@@ -51,7 +51,7 @@ namespace policies {
 	uint_t 
 	EpsilonGreedyPolicy::operator()(const torch_tensor_t& tensor, torch_tensor_value_type<int_t>)const{
 		
-		auto vec = cubeai::utils::pytorch::TorchAdaptor::to_vector<int_t>(tensor);
+		auto vec = cuberl::utils::pytorch::TorchAdaptor::to_vector<int_t>(tensor);
 
 		std::uniform_real_distribution<> real_dist_(0.0, 1.0);
 
@@ -66,7 +66,7 @@ namespace policies {
 	}
 	uint_t 
 	EpsilonGreedyPolicy::operator()(const torch_tensor_t& tensor, torch_tensor_value_type<lint_t>)const{
-		auto vec = cubeai::utils::pytorch::TorchAdaptor::to_vector<lint_t>(tensor);
+		auto vec = cuberl::utils::pytorch::TorchAdaptor::to_vector<lint_t>(tensor);
 
 		std::uniform_real_distribution<> real_dist_(0.0, 1.0);
 
@@ -85,7 +85,7 @@ template<>
 uint_t
 EpsilonGreedyPolicy::operator()(const DynMat<real_t>& mat, uint_t state_idx)const{
 
-#ifdef CUBEAI_DEBUG
+#ifdef CUBERL_DEBUG
     assert(state_idx < mat.size() && "Invalid state index. Should be state_idx < q_map.size()");
 #endif
 
@@ -96,7 +96,7 @@ template<>
 uint_t
 EpsilonGreedyPolicy::operator()(const std::vector<std::vector<real_t>>& mat,
                                 uint_t state_idx)const{
-#ifdef CUBEAI_DEBUG
+#ifdef CUBERL_DEBUG
     assert(state_idx < mat.size() && "Invalid state index. Should be state_idx < q_map.size()");
 #endif
 
@@ -108,7 +108,7 @@ void
 EpsilonGreedyPolicy::set_eps_value(real_t eps){
 	
 	if(decay_op_ != EpsilonDecayOption::NONE){
-#ifdef CUBEAI_DEBUG
+#ifdef CUBERL_DEBUG
 	BOOST_LOG_TRIVIAL(warning)<<"Epsilon is not update as you have set up a decay policy..."<<std::endl;
 #endif
 		return;
