@@ -18,7 +18,7 @@ TEST(TestMaxTabularPolicy, Test_Constructor) {
 
     MaxTabularPolicy policy;
     std::vector<real_t> vals{1.0, 2.0, 3.0};
-    policy(vals);
+    policy.get_action(vals);
 
 }
 
@@ -27,7 +27,7 @@ TEST(TestMaxTabularPolicy, Test_Operator_1) {
     MaxTabularPolicy policy;
 
     std::vector<real_t> vals{1.0, 2.0, 3.0};
-    auto max_idx = policy(vals);
+    auto max_idx = policy.get_action(vals);
     ASSERT_EQ(max_idx, static_cast<uint_t>(2));
 
 }
@@ -37,7 +37,7 @@ TEST(TestMaxTabularPolicy, Test_Operator_2) {
     MaxTabularPolicy policy;
 
     std::vector<real_t> vals{3.0, 2.0, 1.0};
-    auto max_idx = policy(vals);
+    auto max_idx = policy.get_action(vals);
     ASSERT_EQ(max_idx, static_cast<uint_t>(0));
 
 }
@@ -47,7 +47,7 @@ TEST(TestMaxTabularPolicy, Test_Operator_3) {
     MaxTabularPolicy policy;
 
     std::vector<real_t> vals{1.0, 3.0, 2.0};
-    auto max_idx = policy(vals);
+    auto max_idx = policy.get_action(vals);
     ASSERT_EQ(max_idx, static_cast<uint_t>(1));
 
 }
@@ -71,7 +71,7 @@ TEST(TestMaxTabularPolicy, Test_Operator_4) {
     vals(2,2) = 3.0;
 
 
-    auto max_idx = policy(vals, 0);
+    auto max_idx = policy.get_action(vals, 0);
     ASSERT_EQ(max_idx, static_cast<uint_t>(2));
 
 }

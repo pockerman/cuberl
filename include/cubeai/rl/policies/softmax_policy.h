@@ -42,20 +42,22 @@ public:
     template<typename VecTp>
     output_type operator()(const VecTp& q_map)const;
 
-    /**
-     * @brief any actions the policy should perform
-     * on the given episode index
-     */
+    ///
+	/// \brief any actions the policy should perform
+	/// on the given episode index
+	///
     void on_episode(uint_t)noexcept{}
 
-    /**
-     * @brief Reset the policy
-     * */
+    ///
+	/// \brief Reset the policy
+	///
     void reset()noexcept{}
 
 private:
 
-    // the tau the policy is using
+	///
+    /// \brief the tau the policy is using
+	///
     real_t tau_;
 
     MaxTabularPolicy max_policy_;
@@ -73,7 +75,7 @@ MaxTabularSoftmaxPolicy::output_type
 MaxTabularSoftmaxPolicy::operator()(const VecTp& q_map)const{
 
     auto softmax_vec = maths::softmax_vec(q_map.begin(), q_map.end(), tau_);
-    return max_policy_(softmax_vec);
+    return max_policy_.get_action(softmax_vec);
 }
 
 }

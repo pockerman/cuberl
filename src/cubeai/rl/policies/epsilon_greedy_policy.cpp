@@ -25,7 +25,7 @@ namespace policies {
 
 		if(real_dist_(generator_) > eps_){
 			// select greedy action with probability 1 - epsilon
-			return max_policy_(vec);
+			return max_policy_.get_action(vec);
 		}
 
 		// else select a random action
@@ -41,7 +41,7 @@ namespace policies {
 
 		if(real_dist_(generator_) > eps_){
 			// select greedy action with probability 1 - epsilon
-			return max_policy_(vec);
+			return max_policy_.get_action(vec);
 		}
 
 		// else select a random action
@@ -57,7 +57,7 @@ namespace policies {
 
 		if(real_dist_(generator_) > eps_){
 			// select greedy action with probability 1 - epsilon
-			return max_policy_(vec);
+			return max_policy_.get_action(vec);
 		}
 
 		// else select a random action
@@ -72,7 +72,7 @@ namespace policies {
 
 		if(real_dist_(generator_) > eps_){
 			// select greedy action with probability 1 - epsilon
-			return max_policy_(vec);
+			return max_policy_.get_action(vec);
 		}
 
 		// else select a random action

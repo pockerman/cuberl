@@ -19,8 +19,10 @@ namespace algos {
 /// provided value functions
 ///
 template<typename WorldTp>
-auto state_actions_from_v(const WorldTp& env, const DynVec<real_t>& v,
-                          real_t gamma, uint_t state) -> DynVec<real_t>{
+auto state_actions_from_v(const WorldTp& env, 
+                          const DynVec<real_t>& v,
+                          real_t gamma, 
+						  uint_t state) -> DynVec<real_t>{
 
     auto q = DynVec<real_t>(env.n_actions());
     std::for_each(q.begin(),
@@ -43,6 +45,7 @@ auto state_actions_from_v(const WorldTp& env, const DynVec<real_t>& v,
 
     return q;
 }
+
 
 ///
 /// \brief create_discounts_array

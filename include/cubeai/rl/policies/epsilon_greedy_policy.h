@@ -49,7 +49,8 @@ public:
 	/// \brief Constructor Creates an epsilon greedy policy with an
 	///epsilon decay strategy
 	///
-    explicit EpsilonGreedyPolicy(real_t eps, uint_t seed, EpsilonDecayOption decay_op,
+    explicit EpsilonGreedyPolicy(real_t eps, uint_t seed, 
+	                             EpsilonDecayOption decay_op,
                                  real_t min_eps = MIN_EPS,
                                  real_t max_eps=MAX_EPS,
                                  real_t epsilon_decay = EPSILON_DECAY_FACTOR);
@@ -169,7 +170,7 @@ EpsilonGreedyPolicy::operator()(const VecType& vec)const{
 
     if(real_dist_(generator_) > eps_){
         // select greedy action with probability 1 - epsilon
-        return max_policy_(vec);
+        return max_policy_.get_action(vec);
     }
 
     // else select a random action

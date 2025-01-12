@@ -3,88 +3,160 @@
 
 #include "cubeai/base/cubeai_config.h"
 #include "cubeai/base/cubeai_types.h"
+#include "cubeai/rl/algorithms/utils.h"
 
 #ifdef USE_PYTORCH
 #include <torch/torch.h>
 #endif
 
+#include <type_traits>
+#include <vector>
+#include <string>
+
 namespace cuberl {
 namespace rl {
 namespace policies {
-
-/**
- * @brief class MaxTabularPolicy
- */
+	
+/// Forward declaration. Definition
+/// at the end of the file
+struct MaxTabularPolicyBuilder;
+	
+///
+/// \brief class MaxTabularPolicy
+///
 class MaxTabularPolicy
 {
 public:
 
-    /**
-     * @brief The output type of operator()
-     */
+    ///
+	/// \brief The output type of operator()
+	///
     typedef uint_t output_type;
-
-    /**
-    *  @brief Constructor
-    */
-    MaxTabularPolicy()=default;
-
-    /**
-     * @brief operator(). Given a
-     */
+	typedef uint_t state_type;
+	typedef uint_t action_type;
+	
+	///
+	/// \brief get_action. Given a
+	///
     template<typename MatType>
-    output_type operator()(const MatType& q_map, uint_t state_idx)const;
-
+    static output_type get_action(const MatType& q_map, uint_t state_idx);
+	
+	///
+	/// \brief get_action. Given a vector always returns the position
+	/// of the maximum occuring element. If the given vector is empty returns
+	/// CubeAIConsts::invalid_size_type
+	///
+    template<typename VecTp>
+    static output_type get_action(const VecTp& q_map);
+	
 #ifdef USE_PYTORCH
-     /**
-     * @brief operator(). Given a vector always returns the position
-     * of the maximum occuring element. If the given vector is empty returns
-     * CubeAIConsts::invalid_size_type
-     */
-    uint_t operator()(const torch_tensor_t& vec)const;
+	///
+	/// \brief get_action. Given a vector always returns the position
+	/// of the maximum occuring element. If the given vector is empty returns
+	/// CubeAIConsts::invalid_size_type
+	///
+    static output_type get_action(const torch_tensor_t& vec);
 #endif
 
-    /**
-     * @brief operator(). Given a vector always returns the position
-     * of the maximum occuring element. If the given vector is empty returns
-     * CubeAIConsts::invalid_size_type
-     */
-    template<typename VecTp>
-    output_type operator()(const VecTp& q_map)const;
+	/// 
+	/// \brief Make friends so the builder access
+	/// private members
+	///
+	friend struct MaxTabularPolicyBuilder;
 
-    /**
-     * @brief any actions the policy should perform
-     * on the given episode index
-     */
+    /// 
+    /// \brief Constructor
+    /// 
+    MaxTabularPolicy()=default;
+
+    /// 
+	/// \brief any actions the policy should perform
+	/// on the given episode index
+	/// 
     void on_episode(uint_t)noexcept{}
 
-    /**
-     * @brief Reset the policy
-     * */
-    void reset()noexcept{}
+    ///
+	/// \brief Reset the policy
+	///
+    void reset()noexcept{state_action_map_.clear();}
+	
+	///
+	/// \brief Get the action from the given state
+	///
+	action_type on_state(state_type s)const{return state_action_map_[s];}
+	
+	///
+	/// \brief Save the state -> action map in a CSV file;
+	///
+	void save(const std::string& filename)const;
+	
+private:
 
-
+		///
+		/// \brief The state-action map
+		///
+		std::vector<uint_t> state_action_map_;
 };
 
 
 #ifdef USE_PYTORCH
 inline
 uint_t
-MaxTabularPolicy::operator()(const torch_tensor_t& vec)const{
+MaxTabularPolicy::get_action(const torch_tensor_t& vec){
     return torch::argmax(vec).item<uint_t>();
 }
 #endif
 
 
 template<typename VecTp>
-uint_t
-MaxTabularPolicy::operator()(const VecTp& vec)const{
+MaxTabularPolicy::action_type
+MaxTabularPolicy::get_action(const VecTp& vec){
 
     return std::distance(vec.begin(),
                          std::max_element(vec.begin(),
                                           vec.end()));
 
 }
+
+
+struct MaxTabularPolicyBuilder
+{
+
+	template<typename EnvType>
+	void build_from_state_function(const EnvType& env,
+                                   const DynVec<real_t>& v,
+                                   real_t gamma, 
+								   MaxTabularPolicy& policy);
+};
+
+template<typename EnvType>
+void
+MaxTabularPolicyBuilder::build_from_state_function(const EnvType& env,
+												   const DynVec<real_t>& v,
+                                                   real_t gamma, 
+								                   MaxTabularPolicy& policy){
+																
+	static_assert(std::is_integral_v<typename EnvType::state_type>, 
+	              "state type must be integral");
+	static_assert(std::is_integral_v<typename EnvType::action_type>, 
+	              "action type must be integral");
+								
+
+	typedef typename EnvType::action_type action_type;
+	policy.state_action_map_.clear();
+	policy.state_action_map_.resize(env.n_states());
+
+	for(uint_t s=0; s<env.n_states(); ++s){
+	
+		auto state_vals = cuberl::rl::algos::state_actions_from_v(env, v, 
+																  gamma, s);
+																  
+		action_type action = policy.get_action(state_vals);
+		policy.state_action_map_[s] = action;
+	}
+	
+}
+
 
 
 }

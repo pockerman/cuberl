@@ -8,6 +8,7 @@
 #include "cubeai/rl/algorithms/dp/policy_improvement.h"
 #include "cubeai/rl/algorithms/utils.h"
 #include "cubeai/rl/episode_info.h"
+#include "cubeai/rl/policies/max_tabular_policy.h"
 #include "rlenvs/utils/io/csv_file_writer.h"
 #include "rlenvs/rlenvs_consts.h"
 
@@ -26,9 +27,8 @@ namespace dp {
 ///
 struct ValueIterationConfig
 {
-    uint_t n_max_iterations;
-    real_t gamma;
-    real_t tolerance;
+    real_t gamma{1.0};
+    real_t tolerance {rlenvscpp::consts::TOLERANCE};
     std::string save_path{rlenvscpp::consts::INVALID_STR};
 };
 
@@ -94,7 +94,13 @@ public:
     ///
     ///
     void save(const std::string& filename)const;
-
+	
+	
+	///
+	/// \brief
+	///
+	cuberl::rl::policies::MaxTabularPolicy build_policy(const env_type& env)const;
+	
 private:
 
     ///
@@ -141,7 +147,9 @@ ValueIteration<EnvType, PolicyType, PolicyAdaptorType>::actions_before_training_
 
 template<typename EnvType, typename PolicyType, typename PolicyAdaptorType>
 EpisodeInfo
-ValueIteration<EnvType, PolicyType, PolicyAdaptorType>::on_training_episode(env_type& env, uint_t episode_idx){
+ValueIteration<EnvType, PolicyType, 
+			   PolicyAdaptorType>::on_training_episode(env_type& env, 
+			                                           uint_t episode_idx){
 
 	// start timing the training
     auto start = std::chrono::steady_clock::now();
@@ -157,9 +165,8 @@ ValueIteration<EnvType, PolicyType, PolicyAdaptorType>::on_training_episode(env_
         delta = std::max(delta, std::fabs(v_[s] - v));
     }
 
-    // update residual
-    //this->iter_controller_().update_residual( delta );
-
+	// inform the outer loop that 
+	// we converged
     if(delta < config_.tolerance){
         info.stop_training = true;
     }
@@ -170,6 +177,10 @@ ValueIteration<EnvType, PolicyType, PolicyAdaptorType>::on_training_episode(env_
     info.episode_index = episode_idx;
 	info.episode_iterations = env.n_states();
 	info.total_time = elapsed_seconds;
+	
+	// this is artificial but helps
+	// to monitor convergence
+	info.episode_reward = delta;
 	
     return info;
 }
@@ -201,6 +212,18 @@ ValueIteration<EnvType, PolicyType, PolicyAdaptorType>::save(const std::string& 
         auto row = std::make_tuple(s, v_[s]);
         file_writer.write_row(row);
     }
+}
+
+template<typename EnvType, typename PolicyType, typename PolicyAdaptorType>
+cuberl::rl::policies::MaxTabularPolicy 
+ValueIteration<EnvType, PolicyType, PolicyAdaptorType>::build_policy(const env_type& env)const{
+	
+	cuberl::rl::policies::MaxTabularPolicy policy;
+	cuberl::rl::policies::MaxTabularPolicyBuilder builder;
+	builder.build_from_state_function(env, v_,
+									  config_.gamma,policy);
+	return policy;
+	
 }
 
 }

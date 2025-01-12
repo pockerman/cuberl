@@ -151,7 +151,8 @@ RLSerialAgentTrainer<EnvType, AgentType>::actions_before_training_begins(env_typ
 
 template<typename EnvType, typename AgentType>
 void
-RLSerialAgentTrainer<EnvType, AgentType>::actions_before_episode_begins(env_type& env, uint_t episode_idx){
+RLSerialAgentTrainer<EnvType, AgentType>::actions_before_episode_begins(env_type& env, 
+                                                                        uint_t episode_idx){
    agent_.actions_before_episode_begins(env, episode_idx);
 }
 
@@ -180,6 +181,7 @@ RLSerialAgentTrainer<EnvType, AgentType>::train(env_type& env){
     this->actions_before_training_begins(env);
 
     uint_t episode_counter = 0;
+	bool stop_training = false;
     while(itr_ctrl_.continue_iterations()){
 
         this->actions_before_episode_begins(env, episode_counter);
@@ -188,7 +190,7 @@ RLSerialAgentTrainer<EnvType, AgentType>::train(env_type& env){
         if(output_msg_frequency_ != rlenvscpp::consts::INVALID_ID &&
                 episode_counter % output_msg_frequency_  == 0){
 
-            BOOST_LOG_TRIVIAL(info)<<episode_info;;
+            BOOST_LOG_TRIVIAL(info)<<episode_info;
         }
 
         total_reward_per_episode_.push_back(episode_info.episode_reward);
@@ -197,6 +199,10 @@ RLSerialAgentTrainer<EnvType, AgentType>::train(env_type& env){
 
         if(episode_info.stop_training){
             BOOST_LOG_TRIVIAL(info)<<" Stopping training at index="<<episode_counter;
+			
+			// assume that if we were told to stop
+			// that we have converge
+			stop_training = true;
             break;
         }
         episode_counter += 1;
@@ -207,11 +213,10 @@ RLSerialAgentTrainer<EnvType, AgentType>::train(env_type& env){
     std::chrono::duration<real_t> elapsed_seconds = end-start;
 	
 	BOOST_LOG_TRIVIAL(info)<<" Done... ";
-	//BOOST_LOG_TRIVIAL(info)<<" Total training time..."<<elapsed_seconds;
-    
-
+	
     auto state = itr_ctrl_.get_state();
     state.total_time = elapsed_seconds;
+	state.converged = stop_training;
     return state;
 }
 
