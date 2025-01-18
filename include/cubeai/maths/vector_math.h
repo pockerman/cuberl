@@ -395,7 +395,7 @@ softmax_vec(IteratorType begin, IteratorType end, real_t tau=1.0){
 template <typename VectorType>
 uint_t
 arg_max(const VectorType& vec) {
-  return static_cast<uint_t>(std::distance(vec.begin(), max_element(vec.begin(), vec.end())));
+  return static_cast<uint_t>(std::distance(vec.begin(), std::max_element(vec.begin(), vec.end())));
 }
 
 
@@ -407,7 +407,7 @@ arg_max(const VectorType& vec) {
 template <typename VectorType>
 uint_t
 arg_min(const VectorType& vec) {
-  return static_cast<uint_t>(std::distance(vec.begin(), min_element(vec.begin(), vec.end())));
+  return static_cast<uint_t>(std::distance(vec.begin(), std::min_element(vec.begin(), vec.end())));
 }
 
 template<typename T>

@@ -58,6 +58,22 @@ MaxTabularPolicy::save(const std::string& filename)const{
 	csv_writer.close();
 }
 
+
+
+void 
+MaxTabularPolicyBuilder::build_from_state_action_function(const DynMat<real_t>& q,
+	                                                      MaxTabularPolicy& policy){
+															  
+	policy.state_action_map_.clear();
+	policy.state_action_map_.resize(q.rows());
+	
+	for(uint_t s=0; s<q.rows(); ++s){
+		auto action = policy.get_action(q, s);
+		policy.state_action_map_[s] = action;
+	}
+															  
+} 
+
 }
 }
 }

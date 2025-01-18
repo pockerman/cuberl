@@ -2,16 +2,23 @@
 #include "cubeai/rl/algorithms/td/q_learning.h"
 #include "cubeai/rl/policies/epsilon_greedy_policy.h"
 #include "cubeai/rl/trainers/rl_serial_agent_trainer.h"
+
+#include "rlenvs/utils/io/csv_file_writer.h"
 #include "rlenvs/envs/api_server/apiserver.h"
 #include "rlenvs/envs/gymnasium/toy_text/cliff_world_env.h"
 
 #include <iostream>
 #include <iostream>
 #include <unordered_map>
+#include <boost/log/trivial.hpp>
 
 namespace rl_example_10{
 
 const std::string SERVER_URL = "http://0.0.0.0:8001/api";
+
+const std::string SOLUTION_FILE = "qlearning_cliff_walking_v1.csv";
+const std::string REWARD_PER_ITR = "reward_per_itr.csv";
+const std::string POLICY = "policy.csv";
 
 using cuberl::real_t;
 using cuberl::uint_t;
@@ -29,6 +36,7 @@ typedef  rlenvscpp::envs::gymnasium::CliffWorld env_type;
 
 int main(){
 
+	BOOST_LOG_TRIVIAL(info)<<"Starting agent training";
     using namespace rl_example_10;
 
     try{
@@ -38,36 +46,60 @@ int main(){
         // create the environment
         env_type env(server);
 
-        std::cout<<"Environment URL: "<<env.get_url()<<std::endl;
-        std::unordered_map<std::string, std::any> options;
-
-        std::cout<<"Creating the environment..."<<std::endl;
-        env.make("v1", options);
+        BOOST_LOG_TRIVIAL(info)<<"Creating environment...";
+        
+		std::unordered_map<std::string, std::any> options;
+        env.make("v0", options);
         env.reset();
-        std::cout<<"Done..."<<std::endl;
+		
+        BOOST_LOG_TRIVIAL(info)<<"Done...";
 
-        std::cout<<"Number of states="<<env.n_states()<<std::endl;
-        std::cout<<"Number of actions="<<env.n_actions()<<std::endl;
+        BOOST_LOG_TRIVIAL(info)<<"Number of states="<<env.n_states();
+        BOOST_LOG_TRIVIAL(info)<<"Number of actions="<<env.n_actions();
 
 
-        EpsilonGreedyPolicy policy(1.0, env.n_actions(), EpsilonDecayOption::INVERSE_STEP);
+		// create an e-greedy policy. Use the number 
+		// of actions as a seed. Use a constant epsilon
+        EpsilonGreedyPolicy policy(0.01, env.n_actions(), 
+		                           EpsilonDecayOption::NONE);
 
         QLearningConfig qlearn_config;
-        qlearn_config.gamma = 1.0;
-        qlearn_config.eta = 0.01;
+        qlearn_config.gamma = 0.9;
+        qlearn_config.eta = 0.5;
         qlearn_config.tolerance = 1.0e-8;
         qlearn_config.max_num_iterations_per_episode = 1000;
-        qlearn_config.path = "qlearning_cliff_walking_v0.csv";
+        qlearn_config.path = SOLUTION_FILE;
 
         QLearning<env_type, EpsilonGreedyPolicy> algorithm(qlearn_config, policy);
 
-        RLSerialTrainerConfig trainer_config = {10, 10000, 1.0e-8};
+        RLSerialTrainerConfig trainer_config = {10, 1000, 1.0e-8};
 
         RLSerialAgentTrainer<env_type,
                 QLearning<env_type, EpsilonGreedyPolicy>> trainer(trainer_config, algorithm);
 
         auto info = trainer.train(env);
-        std::cout<<info<<std::endl;
+        BOOST_LOG_TRIVIAL(info)<<info;
+		
+		// save the reward the agent achieved per training epoch
+		auto reward = trainer.episodes_total_rewards();
+		auto iterations = trainer.n_itrs_per_episode();
+	
+		rlenvscpp::utils::io::CSVWriter csv_writer(REWARD_PER_ITR);
+		csv_writer.open();
+		
+		csv_writer.write_column_names({"epoch", "reward"});
+		
+		auto epoch = static_cast<uint_t>(0);
+		for(auto val: reward){
+			
+			std::tuple<uint_t, real_t> row = {epoch++, val};
+			csv_writer.write_row(row);
+		}
+		
+		csv_writer.close();
+		
+		// build the policy
+		algorithm.build_policy().save(POLICY);
 
     }
     catch(std::exception& e){

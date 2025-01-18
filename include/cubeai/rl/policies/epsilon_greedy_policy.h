@@ -75,34 +75,31 @@ public:
 	uint_t operator()(const torch_tensor_t& vec, torch_tensor_value_type<lint_t>)const;
 #endif
 
-
-
-    /**
-     * @brief any actions the policy should perform
-     * on the given episode index
-     */
+    ///
+	/// \brief any actions the policy should perform
+	/// on the given episode index
+	///
     void on_episode(uint_t episode_idx)noexcept;
 
-    /**
-     * @brief Reset the policy
-     * */
+    ///
+	/// \brief Reset the policy
+	///
     void reset()noexcept{eps_ = eps_init_;}
 
-    /**
-     * @brief Returns the value of the epsilon
-     * */
+    ///
+	/// \brief Returns the value of the epsilon
+	///
     real_t eps_value()const noexcept{return eps_;}
 	
-	/**
-	 * @brief Set the epsilon value
-	 * @param eps
-	 */
+	///
+	/// \brief Set the epsilon value
+	/// \param eps
+	///
 	void set_eps_value(real_t eps);
 
-
-    /**
-     * @brief Returns the decay option
-     * */
+    ///
+	/// \brief Returns the decay option
+	///
     EpsilonDecayOption decay_option()const noexcept{return decay_op_;}
 
 
@@ -115,9 +112,9 @@ private:
     real_t epsilon_decay_;
     EpsilonDecayOption decay_op_;
 
-     /**
-     * @brief The random engine generator
-     */
+	///
+	/// \brief The random engine generator
+	///
     mutable std::mt19937 generator_;
 
     // how to select the action

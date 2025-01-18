@@ -28,7 +28,7 @@ auto state_actions_from_v(const WorldTp& env,
     std::for_each(q.begin(),
                   q.end(),
                   [](auto& item){item = 0.0;});
-    //auto q = DynVec<real_t>(env.n_actions(), 0.0);
+    
 
     for(uint_t a=0; a < env.n_actions(); ++a){
 

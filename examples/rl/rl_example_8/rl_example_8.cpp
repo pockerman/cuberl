@@ -54,6 +54,7 @@ int main() {
     BOOST_LOG_TRIVIAL(info)<<"Creating environment...";
     std::unordered_map<std::string, std::any> options;
 
+	options["is_slippery"] = std::any(false);
     env.make("v1", options);
     env.reset();
     BOOST_LOG_TRIVIAL(info)<<"Done...";
@@ -67,8 +68,8 @@ int main() {
 																  init_policy);
 
     ValueIterationConfig config;
-    config.gamma = 1.0;
-    config.tolerance = 1.0e-6;
+    config.gamma = 0.99;
+    config.tolerance = 1.0e-8;
 
     solver_type algorithm(config, init_policy, policy_adaptor);
 

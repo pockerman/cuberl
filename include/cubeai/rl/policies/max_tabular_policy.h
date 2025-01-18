@@ -4,6 +4,7 @@
 #include "cubeai/base/cubeai_config.h"
 #include "cubeai/base/cubeai_types.h"
 #include "cubeai/rl/algorithms/utils.h"
+#include "cubeai/maths/vector_math.h"
 
 #ifdef USE_PYTORCH
 #include <torch/torch.h>
@@ -12,6 +13,7 @@
 #include <type_traits>
 #include <vector>
 #include <string>
+#include <iostream>
 
 namespace cuberl {
 namespace rl {
@@ -127,6 +129,9 @@ struct MaxTabularPolicyBuilder
                                    const DynVec<real_t>& v,
                                    real_t gamma, 
 								   MaxTabularPolicy& policy);
+								   
+	void build_from_state_action_function(const DynMat<real_t>& q,
+	                                      MaxTabularPolicy& policy);   
 };
 
 template<typename EnvType>
@@ -151,11 +156,17 @@ MaxTabularPolicyBuilder::build_from_state_function(const EnvType& env,
 		auto state_vals = cuberl::rl::algos::state_actions_from_v(env, v, 
 																  gamma, s);
 																  
+																  
+		std::cout<<"State vals: "<<state_vals<<std::endl;
+																  
 		action_type action = policy.get_action(state_vals);
 		policy.state_action_map_[s] = action;
 	}
 	
 }
+
+
+  
 
 
 

@@ -2,11 +2,12 @@
 #define Q_LEARNING_H
 
 #include "cubeai/base/cubeai_types.h"
+#include "cubeai/base/cubeai_config.h"
+#include "cubeai/rl/episode_info.h"
 #include "cubeai/rl/algorithms/td/td_algo_base.h"
 #include "cubeai/rl/worlds/envs_concepts.h"
-#include "cubeai/rl/episode_info.h"
+#include "cubeai/rl/policies/max_tabular_policy.h"
 #include "cubeai/maths/matrix_utilities.h"
-#include "cubeai/base/cubeai_config.h"
 
 #include "rlenvs/utils/io/csv_file_writer.h"
 #include "rlenvs/rlenvs_consts.h"
@@ -27,12 +28,14 @@ namespace td {
 ///
 struct QLearningConfig
 {
+	bool average_episode_reward{true};
     uint_t n_episodes;
-    real_t tolerance;
+    uint_t max_num_iterations_per_episode;
+	real_t tolerance;
     real_t gamma;
     real_t eta;
-    uint_t max_num_iterations_per_episode;
     std::string path{rlenvscpp::consts::INVALID_STR};
+	
 };
 
 
@@ -42,7 +45,7 @@ struct QLearningConfig
 /// The implementation also allows for exponential decay
 /// of the used epsilon
 ///
-template<envs::discrete_world_concept EnvTp, typename ActionSelector>
+template<envs::discrete_world_concept EnvTp, typename PolicyType>
 class QLearning final: public TDAlgoBase<EnvTp>
 {
 
@@ -66,12 +69,12 @@ public:
     ///
     /// \brief action_selector_t
     ///
-    typedef ActionSelector action_selector_type;
+    typedef PolicyType policy_type;
 
     ///
     /// \brief Constructor
     ///
-    QLearning(const QLearningConfig config, const ActionSelector& selector);
+    QLearning(const QLearningConfig config, const PolicyType& policy);
 
     ///
     /// \brief actions_before_training_begins. Execute any actions the
@@ -102,9 +105,14 @@ public:
     virtual EpisodeInfo on_training_episode(env_type&, uint_t episode_idx);
 
     ///
+    /// \brief Save the state-action function in a CSV format
     ///
-    ///
-    void save(std::string filename)const;
+    void save(const std::string& filename)const;
+	
+	///
+	/// \brief Build the policy after training
+	///
+	cuberl::rl::policies::MaxTabularPolicy build_policy()const;
 
 private:
 
@@ -116,7 +124,7 @@ private:
     ///
     /// \brief action_selector_
     ///
-    action_selector_type action_selector_;
+    policy_type policy_;
 
     ///
     /// \brief q_table_. The tabilar representation of the Q-function
@@ -128,23 +136,24 @@ private:
     /// \param action
     ///
     void update_q_table_(const action_type& action, const state_type& cstate,
-                         const state_type& next_state, const  action_type& next_action, real_t reward);
+                         const state_type& next_state, const  action_type& next_action, 
+						 real_t reward);
 
 };
 
-template <envs::discrete_world_concept EnvTp, typename ActionSelector>
-QLearning<EnvTp, ActionSelector>::QLearning(const QLearningConfig config, 
-											const ActionSelector& selector)
+template <envs::discrete_world_concept EnvTp, typename PolicyType>
+QLearning<EnvTp, PolicyType>::QLearning(const QLearningConfig config, 
+											const PolicyType& policy)
     :
       TDAlgoBase<EnvTp>(),
       config_(config),
-      action_selector_(selector),
+      policy_(policy),
       q_table_()
 {}
 
-template<envs::discrete_world_concept EnvTp, typename ActionSelector>
+template<envs::discrete_world_concept EnvTp, typename PolicyType>
 void
-QLearning<EnvTp, ActionSelector>::actions_before_training_begins(env_type& env){
+QLearning<EnvTp, PolicyType>::actions_before_training_begins(env_type& env){
     q_table_ = DynMat<real_t>(env.n_states(), env.n_actions());
 
     for(uint_t i=0; i < env.n_states(); ++i)
@@ -153,9 +162,9 @@ QLearning<EnvTp, ActionSelector>::actions_before_training_begins(env_type& env){
 
 }
 
-template<envs::discrete_world_concept EnvTp, typename ActionSelector>
+template<envs::discrete_world_concept EnvTp, typename PolicyType>
 void
-QLearning<EnvTp, ActionSelector>::actions_after_training_ends(env_type&){
+QLearning<EnvTp, PolicyType>::actions_after_training_ends(env_type&){
 
     if(config_.path != rlenvscpp::consts::INVALID_STR){
         save(config_.path);
@@ -163,9 +172,9 @@ QLearning<EnvTp, ActionSelector>::actions_after_training_ends(env_type&){
 }
 
 
-template<envs::discrete_world_concept EnvTp, typename ActionSelector>
+template<envs::discrete_world_concept EnvTp, typename PolicyType>
 EpisodeInfo
-QLearning<EnvTp, ActionSelector>::on_training_episode(env_type& env, uint_t episode_idx){
+QLearning<EnvTp, PolicyType>::on_training_episode(env_type& env, uint_t episode_idx){
 
     auto start = std::chrono::steady_clock::now();
     EpisodeInfo info;
@@ -174,11 +183,12 @@ QLearning<EnvTp, ActionSelector>::on_training_episode(env_type& env, uint_t epis
     auto episode_score = 0.0;
     auto state = env.reset().observation();
 
-    // select an action
-    auto action = action_selector_(q_table_, state);
-
     uint_t itr=0;
     for(;  itr < config_.max_num_iterations_per_episode; ++itr){
+		
+		
+		// select an action
+		auto action = policy_(q_table_, state);
 
         // Take a on_episode
         auto step_type_result = env.step(action);
@@ -191,7 +201,7 @@ QLearning<EnvTp, ActionSelector>::on_training_episode(env_type& env, uint_t epis
         episode_score += reward;
 
         if(!done){
-            auto next_action = action_selector_(q_table_, state);
+            auto next_action = policy_(q_table_, state);
             update_q_table_(action, state, next_state, next_action, reward);
             state = next_state;
             action = next_action;
@@ -212,44 +222,57 @@ QLearning<EnvTp, ActionSelector>::on_training_episode(env_type& env, uint_t epis
     std::chrono::duration<real_t> elapsed_seconds = end-start;
 
     info.episode_index = episode_idx;
-    info.episode_reward = episode_score;
+    info.episode_reward = config_.average_episode_reward ? episode_score / static_cast<real_t>(itr) : episode_score;
     info.episode_iterations = itr;
     info.total_time = elapsed_seconds;
     return info;
 }
 
-template<envs::discrete_world_concept EnvTp, typename ActionSelector>
+template<envs::discrete_world_concept EnvTp, typename PolicyType>
 void
-QLearning<EnvTp, ActionSelector>::actions_after_episode_ends(env_type&, uint_t episode_idx,
-                                                            const EpisodeInfo& /*einfo*/){
-    action_selector_.on_episode(episode_idx);
+QLearning<EnvTp, PolicyType>::actions_after_episode_ends(env_type&, uint_t episode_idx,
+														 const EpisodeInfo& /*einfo*/){
+    policy_.on_episode(episode_idx);
 }
 
-template<envs::discrete_world_concept EnvTp, typename ActionSelector>
+template<envs::discrete_world_concept EnvTp, typename PolicyType>
 void
-QLearning<EnvTp, ActionSelector>::save(std::string /*filename*/)const{
+QLearning<EnvTp, PolicyType>::save(const std::string& filename)const{
 
-    /*CSVWriter file_writer(filename, ',', true);
-    std::vector<std::string> col_names(1 + q_table_.columns());
+    rlenvscpp::utils::io::CSVWriter file_writer(filename, ',');
+	file_writer.open();
+	
+    std::vector<std::string> col_names(1 + q_table_.cols());
     col_names[0] = "state_index";
 
-    for(uint_t i = 0; i< q_table_.columns(); ++i){
+    for(uint_t i = 0; i< static_cast<uint_t>(q_table_.cols()); ++i){
         col_names[i + 1] = "action_" + std::to_string(i);
     }
 
     file_writer.write_column_names(col_names);
 
-    for(uint_t s=0; s < q_table_.rows(); ++s){
+    for(uint_t s=0; s < static_cast<uint_t>(q_table_.rows()); ++s){
         auto actions = maths::get_row(q_table_, s);
         auto row = std::make_tuple(s, actions);
         file_writer.write_row(row);
-    }*/
-
+    }
 }
 
-template <envs::discrete_world_concept EnvTp, typename ActionSelector>
+
+template<envs::discrete_world_concept EnvTp, typename PolicyType>
+cuberl::rl::policies::MaxTabularPolicy 
+QLearning<EnvTp, PolicyType>::build_policy()const{
+	
+	cuberl::rl::policies::MaxTabularPolicy policy;
+	cuberl::rl::policies::MaxTabularPolicyBuilder builder;
+	builder.build_from_state_action_function(q_table_,policy);
+	return policy;
+	
+}
+
+template <envs::discrete_world_concept EnvTp, typename PolicyType>
 void
-QLearning<EnvTp, ActionSelector>::update_q_table_(const action_type& action, const state_type& cstate,
+QLearning<EnvTp, PolicyType>::update_q_table_(const action_type& action, const state_type& cstate,
 												  const state_type& next_state, 
 												  const  action_type& /*next_action*/, real_t reward){
 

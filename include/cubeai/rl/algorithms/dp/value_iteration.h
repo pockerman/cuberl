@@ -189,9 +189,9 @@ template<typename EnvType, typename PolicyType, typename PolicyAdaptorType>
 void
 ValueIteration<EnvType, PolicyType, PolicyAdaptorType>::actions_after_training_ends(env_type& env){
 
-    policy_imp_.set_value_function(v_);
-    policy_imp_.on_training_episode(env, 0);
-    policy_.update( policy_imp_.policy()); //.make_copy();
+    //policy_imp_.set_value_function(v_);
+    //policy_imp_.on_training_episode(env, 0);
+    //policy_.update( policy_imp_.policy()); //.make_copy();
 
     if(config_.save_path != rlenvscpp::consts::INVALID_STR){
         save(config_.save_path);

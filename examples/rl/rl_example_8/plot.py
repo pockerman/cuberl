@@ -25,7 +25,7 @@ def plot_state_values(v, title:str) -> None:
 def plot_rewards(filename: Path) -> None:
 
 
-    with open(filename, 'r', newline='') as csvfile:
+    with open(filename, 'r', newline='\n') as csvfile:
 
         csv_file_reader = csv.reader(csvfile, delimiter=",")
 		
