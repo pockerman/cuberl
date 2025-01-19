@@ -5,6 +5,8 @@
 #include "cubeai/rl/algorithms/td/td_algo_base.h"
 #include "cubeai/rl/worlds/envs_concepts.h"
 #include "cubeai/rl/episode_info.h"
+#include "cubeai/rl/policies/max_tabular_policy.h"
+#include "cubeai/maths/matrix_utilities.h"
 
 #include "rlenvs/utils/io/csv_file_writer.h"
 #include "rlenvs/rlenvs_consts.h"
@@ -41,7 +43,7 @@ struct SarsaConfig
 ///
 /// \brief The Sarsa class.
 ///
-template<envs::discrete_world_concept EnvType, typename ActionSelector>
+template<envs::discrete_world_concept EnvType, typename PolicyType>
 class SarsaSolver final: public TDAlgoBase<EnvType>
 {
 public:
@@ -64,12 +66,12 @@ public:
     ///
     /// \brief action_selector_t
     ///
-    typedef ActionSelector action_selector_type;
+    typedef PolicyType policy_type;
 
     ///
-    /// \brief SarsaSolver
+    /// \brief ExpectedSarsaSolver
     ///
-    SarsaSolver(SarsaConfig config, const ActionSelector& selector);
+    SarsaSolver(SarsaConfig config, const PolicyType& selector);
 
     ///
     /// \brief actions_before_training_begins. Execute any actions the
@@ -100,9 +102,14 @@ public:
     virtual EpisodeInfo on_training_episode(env_type&, uint_t episode_idx);
 
     ///
+    /// \brief Build the policy after training
     ///
-    ///
-    void save(std::string filename)const;
+    void save(const std::string& filename)const;
+	
+	///
+	/// \brief Build the policy after training
+	///
+	cuberl::rl::policies::MaxTabularPolicy build_policy()const;
 
 private:
 
@@ -114,7 +121,7 @@ private:
     ///
     /// \brief action_selector_
     ///
-    action_selector_type action_selector_;
+    policy_type policy_;
 
     ///
     /// \brief q_table_. The tabular representation of the Q-function
@@ -125,24 +132,26 @@ private:
     /// \brief update_q_table_
     /// \param action
     ///
-    void update_q_table_(const action_type& action, const state_type& cstate,
-                         const state_type& next_state, const  action_type& next_action, real_t reward);
+    void update_q_table_(const action_type& action, 
+	                     const state_type& cstate,
+                         const state_type& next_state, 
+						 const  action_type& next_action, real_t reward);
 };
 
 
 
-template<envs::discrete_world_concept EnvTp, typename ActionSelector>
-SarsaSolver<EnvTp, ActionSelector>::SarsaSolver(SarsaConfig config, 
-												const ActionSelector& selector)
+template<envs::discrete_world_concept EnvTp, typename PolicyType>
+SarsaSolver<EnvTp, PolicyType>::SarsaSolver(SarsaConfig config, 
+											const PolicyType& selector)
     :
       TDAlgoBase<EnvTp>(),
       config_(config),
-      action_selector_(selector)
+      policy_(selector)
 {}
 
-template<envs::discrete_world_concept EnvTp, typename ActionSelector>
+template<envs::discrete_world_concept EnvTp, typename PolicyType>
 void
-SarsaSolver<EnvTp, ActionSelector>::actions_before_training_begins(env_type& env){
+SarsaSolver<EnvTp, PolicyType>::actions_before_training_begins(env_type& env){
     q_table_ = DynMat<real_t>(env.n_states(), env.n_actions());
 
     for(uint_t i=0; i < env.n_states(); ++i)
@@ -151,18 +160,19 @@ SarsaSolver<EnvTp, ActionSelector>::actions_before_training_begins(env_type& env
 
 }
 
-template<envs::discrete_world_concept EnvTp, typename ActionSelector>
+template<envs::discrete_world_concept EnvTp, typename PolicyType>
 void
-SarsaSolver<EnvTp, ActionSelector>::actions_after_training_ends(env_type&){
+SarsaSolver<EnvTp, PolicyType>::actions_after_training_ends(env_type&){
 
-    if(config_.path != ""){
+    if(config_.path != rlenvscpp::consts::INVALID_STR){
         save(config_.path);
     }
 }
 
-template<envs::discrete_world_concept EnvTp, typename ActionSelector>
+template<envs::discrete_world_concept EnvTp, typename PolicyType>
 EpisodeInfo
-SarsaSolver<EnvTp, ActionSelector>::on_training_episode(env_type& env, uint_t episode_idx){
+SarsaSolver<EnvTp, PolicyType>::on_training_episode(env_type& env, 
+													uint_t episode_idx){
 
     auto start = std::chrono::steady_clock::now();
     EpisodeInfo info;
@@ -176,7 +186,7 @@ SarsaSolver<EnvTp, ActionSelector>::on_training_episode(env_type& env, uint_t ep
     for(;  itr < config_.max_num_iterations_per_episode; ++itr){
 
         // select an action
-        auto action = action_selector_(q_table_, state);
+        auto action = policy_(q_table_, state);
 
         // Take a on_episode
         auto step_type_result = env.step(action);
@@ -189,7 +199,9 @@ SarsaSolver<EnvTp, ActionSelector>::on_training_episode(env_type& env, uint_t ep
         episode_score += reward;
 
         if(!done){
-            auto next_action = action_selector_(q_table_, state);
+			
+			// use the policy to select the next action
+            auto next_action = policy_(q_table_, state);
             update_q_table_(action, state, next_state, next_action, reward);
             state = next_state;
             action = next_action;
@@ -205,7 +217,6 @@ SarsaSolver<EnvTp, ActionSelector>::on_training_episode(env_type& env, uint_t ep
         }
     }
 
-
     auto end = std::chrono::steady_clock::now();
     std::chrono::duration<real_t> elapsed_seconds = end-start;
 
@@ -216,44 +227,62 @@ SarsaSolver<EnvTp, ActionSelector>::on_training_episode(env_type& env, uint_t ep
     return info;
 }
 
-template<envs::discrete_world_concept EnvTp, typename ActionSelector>
+template<envs::discrete_world_concept EnvTp, typename PolicyType>
 void
-SarsaSolver<EnvTp, ActionSelector>::save(std::string /*filename*/)const{
+SarsaSolver<EnvTp, PolicyType>::save(const std::string& filename)const{
 
-    /*CSVWriter file_writer(filename, ',', true);
+    rlenvscpp::utils::io::CSVWriter file_writer(filename, ',');
+	file_writer.open();
+	
     std::vector<std::string> col_names(1 + q_table_.cols());
     col_names[0] = "state_index";
 
-    for(uint_t i = 0; i< q_table_.columns(); ++i){
+    for(uint_t i = 0; i< static_cast<uint_t>(q_table_.cols()); ++i){
         col_names[i + 1] = "action_" + std::to_string(i);
     }
 
     file_writer.write_column_names(col_names);
 
-    for(uint_t s=0; s < q_table_.rows(); ++s){
+    for(uint_t s=0; s < static_cast<uint_t>(q_table_.rows()); ++s){
         auto actions = maths::get_row(q_table_, s);
         auto row = std::make_tuple(s, actions);
         file_writer.write_row(row);
-    }*/
+    }
 
 }
 
-template<envs::discrete_world_concept EnvTp, typename ActionSelector>
+template<envs::discrete_world_concept EnvTp, typename PolicyType>
 void
-SarsaSolver<EnvTp, ActionSelector>::update_q_table_(const action_type& action, const state_type& cstate,
-                                                   const state_type& next_state, const action_type& next_action, real_t reward){
+SarsaSolver<EnvTp, PolicyType>::update_q_table_(const action_type& action, 
+												        const state_type& cstate,
+												        const state_type& next_state, 
+												        const action_type& next_action, real_t reward){
 
     auto q_current = q_table_(cstate, action);
+	
+	// with the SARSA solver we query the 
+	// q-function about its value at next state when taking next action
+	// in Q-learning we form a maximum instead
     auto q_next = next_state != rlenvscpp::consts::INVALID_ID ? q_table_(next_state, next_action) : 0.0;
     auto td_target = reward + config_.gamma * q_next;
     q_table_(cstate, action) = q_current + (config_.eta * (td_target - q_current));
 
 }
 
+template<envs::discrete_world_concept EnvTp, typename PolicyType>
+cuberl::rl::policies::MaxTabularPolicy 
+SarsaSolver<EnvTp, PolicyType>::build_policy()const{
+	
+	cuberl::rl::policies::MaxTabularPolicy policy;
+	cuberl::rl::policies::MaxTabularPolicyBuilder builder;
+	builder.build_from_state_action_function(q_table_,policy);
+	return policy;
+	
 }
 
-}
 
+}
+}
 }
 }
 

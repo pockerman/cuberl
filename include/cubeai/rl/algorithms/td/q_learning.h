@@ -46,7 +46,7 @@ struct QLearningConfig
 /// of the used epsilon
 ///
 template<envs::discrete_world_concept EnvTp, typename PolicyType>
-class QLearning final: public TDAlgoBase<EnvTp>
+class QLearningSolver final: public TDAlgoBase<EnvTp>
 {
 
 public:
@@ -74,7 +74,7 @@ public:
     ///
     /// \brief Constructor
     ///
-    QLearning(const QLearningConfig config, const PolicyType& policy);
+    QLearningSolver(const QLearningConfig config, const PolicyType& policy);
 
     ///
     /// \brief actions_before_training_begins. Execute any actions the
@@ -142,7 +142,7 @@ private:
 };
 
 template <envs::discrete_world_concept EnvTp, typename PolicyType>
-QLearning<EnvTp, PolicyType>::QLearning(const QLearningConfig config, 
+QLearningSolver<EnvTp, PolicyType>::QLearningSolver(const QLearningConfig config, 
 											const PolicyType& policy)
     :
       TDAlgoBase<EnvTp>(),
@@ -153,7 +153,7 @@ QLearning<EnvTp, PolicyType>::QLearning(const QLearningConfig config,
 
 template<envs::discrete_world_concept EnvTp, typename PolicyType>
 void
-QLearning<EnvTp, PolicyType>::actions_before_training_begins(env_type& env){
+QLearningSolver<EnvTp, PolicyType>::actions_before_training_begins(env_type& env){
     q_table_ = DynMat<real_t>(env.n_states(), env.n_actions());
 
     for(uint_t i=0; i < env.n_states(); ++i)
@@ -164,7 +164,7 @@ QLearning<EnvTp, PolicyType>::actions_before_training_begins(env_type& env){
 
 template<envs::discrete_world_concept EnvTp, typename PolicyType>
 void
-QLearning<EnvTp, PolicyType>::actions_after_training_ends(env_type&){
+QLearningSolver<EnvTp, PolicyType>::actions_after_training_ends(env_type&){
 
     if(config_.path != rlenvscpp::consts::INVALID_STR){
         save(config_.path);
@@ -174,7 +174,7 @@ QLearning<EnvTp, PolicyType>::actions_after_training_ends(env_type&){
 
 template<envs::discrete_world_concept EnvTp, typename PolicyType>
 EpisodeInfo
-QLearning<EnvTp, PolicyType>::on_training_episode(env_type& env, uint_t episode_idx){
+QLearningSolver<EnvTp, PolicyType>::on_training_episode(env_type& env, uint_t episode_idx){
 
     auto start = std::chrono::steady_clock::now();
     EpisodeInfo info;
@@ -230,14 +230,14 @@ QLearning<EnvTp, PolicyType>::on_training_episode(env_type& env, uint_t episode_
 
 template<envs::discrete_world_concept EnvTp, typename PolicyType>
 void
-QLearning<EnvTp, PolicyType>::actions_after_episode_ends(env_type&, uint_t episode_idx,
+QLearningSolver<EnvTp, PolicyType>::actions_after_episode_ends(env_type&, uint_t episode_idx,
 														 const EpisodeInfo& /*einfo*/){
     policy_.on_episode(episode_idx);
 }
 
 template<envs::discrete_world_concept EnvTp, typename PolicyType>
 void
-QLearning<EnvTp, PolicyType>::save(const std::string& filename)const{
+QLearningSolver<EnvTp, PolicyType>::save(const std::string& filename)const{
 
     rlenvscpp::utils::io::CSVWriter file_writer(filename, ',');
 	file_writer.open();
@@ -261,7 +261,7 @@ QLearning<EnvTp, PolicyType>::save(const std::string& filename)const{
 
 template<envs::discrete_world_concept EnvTp, typename PolicyType>
 cuberl::rl::policies::MaxTabularPolicy 
-QLearning<EnvTp, PolicyType>::build_policy()const{
+QLearningSolver<EnvTp, PolicyType>::build_policy()const{
 	
 	cuberl::rl::policies::MaxTabularPolicy policy;
 	cuberl::rl::policies::MaxTabularPolicyBuilder builder;
@@ -272,7 +272,7 @@ QLearning<EnvTp, PolicyType>::build_policy()const{
 
 template <envs::discrete_world_concept EnvTp, typename PolicyType>
 void
-QLearning<EnvTp, PolicyType>::update_q_table_(const action_type& action, const state_type& cstate,
+QLearningSolver<EnvTp, PolicyType>::update_q_table_(const action_type& action, const state_type& cstate,
 												  const state_type& next_state, 
 												  const  action_type& /*next_action*/, real_t reward){
 

@@ -23,7 +23,7 @@ const std::string POLICY = "policy.csv";
 using cuberl::real_t;
 using cuberl::uint_t;
 using cuberl::rl::policies::EpsilonGreedyPolicy;
-using cuberl::rl::algos::td::QLearning;
+using cuberl::rl::algos::td::QLearningSolver;
 using cuberl::rl::algos::td::QLearningConfig;
 using cuberl::rl::policies::EpsilonDecayOption;
 using cuberl::rl::RLSerialAgentTrainer;
@@ -53,10 +53,8 @@ int main(){
         env.reset();
 		
         BOOST_LOG_TRIVIAL(info)<<"Done...";
-
         BOOST_LOG_TRIVIAL(info)<<"Number of states="<<env.n_states();
         BOOST_LOG_TRIVIAL(info)<<"Number of actions="<<env.n_actions();
-
 
 		// create an e-greedy policy. Use the number 
 		// of actions as a seed. Use a constant epsilon
@@ -70,12 +68,12 @@ int main(){
         qlearn_config.max_num_iterations_per_episode = 1000;
         qlearn_config.path = SOLUTION_FILE;
 
-        QLearning<env_type, EpsilonGreedyPolicy> algorithm(qlearn_config, policy);
+        QLearningSolver<env_type, EpsilonGreedyPolicy> algorithm(qlearn_config, policy);
 
         RLSerialTrainerConfig trainer_config = {10, 1000, 1.0e-8};
 
         RLSerialAgentTrainer<env_type,
-                QLearning<env_type, EpsilonGreedyPolicy>> trainer(trainer_config, algorithm);
+                QLearningSolver<env_type, EpsilonGreedyPolicy>> trainer(trainer_config, algorithm);
 
         auto info = trainer.train(env);
         BOOST_LOG_TRIVIAL(info)<<info;

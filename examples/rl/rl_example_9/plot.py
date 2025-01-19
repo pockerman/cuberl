@@ -59,8 +59,8 @@ def main(v_func_filename, avg_score_filename):
        
 		
 if __name__ == '__main__':
-  main("/home/alex/qi3/ce_rl/cubic_engine/rl/examples/example_9/build/sarsa_value_func.csv", 
-       "/home/alex/qi3/ce_rl/cubic_engine/rl/examples/example_9/build/sarsa_avg_scores.csv")
+  main("/home/alex/qi3/cuberl/build/examples/rl/rl_example_9/sarsa_cliff_walking_v0.csv", 
+       "/home/alex/qi3/cuberl/build/examples/rl/rl_example_9/reward_per_itr.csv")
 	
 	
 

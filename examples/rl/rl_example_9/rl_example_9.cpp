@@ -11,7 +11,9 @@
 namespace rl_example_9{
 
 const std::string SERVER_URL = "http://0.0.0.0:8001/api";
-const std::string SOLUTION_FILE = "sarsa_cliff_walking_v1.csv";
+const std::string SOLUTION_FILE = "sarsa_cliff_walking_v0.csv";
+const std::string REWARD_PER_ITR = "reward_per_itr.csv";
+const std::string POLICY = "policy.csv";
 
 using cuberl::real_t;
 using cuberl::uint_t;
@@ -24,38 +26,6 @@ using cuberl::rl::RLSerialTrainerConfig;
 using rlenvscpp::envs::RESTApiServerWrapper;
 typedef  rlenvscpp::envs::gymnasium::CliffWorld env_type;
 
-
-// ActionSelector. This is a simple wrapper to
-// EpsilonGreedyPolicy class in order to adapt the
-// returned action to the appropriate Env::ENUM
-
-struct ActionSelector
-{
-
-    ActionSelector(real_t eps, uint_t n_actions);
-
-    template<typename MapType>
-    env_type::action_type
-    operator()(const MapType& q_map, uint_t state)const;
-
-    // the underlying policy
-    EpsilonGreedyPolicy policy_;
-
-};
-
-ActionSelector::ActionSelector(real_t eps, uint_t n_actions)
-:
-policy_(eps, n_actions,EpsilonDecayOption::INVERSE_STEP)
-{}
-
-
-template<typename MapType>
-env_type::action_type
-ActionSelector::operator()(const MapType& q_map, uint_t state)const{
-
-    auto action = policy_(q_map, state);
-    return action;
-}
 
 }
 
@@ -80,26 +50,50 @@ int main(){
         BOOST_LOG_TRIVIAL(info)<<"Number of states="<<env.n_states();
         BOOST_LOG_TRIVIAL(info)<<"Number of actions="<<env.n_actions();
 
-        ActionSelector policy(1.0, env.n_actions()); //, EpsilonDecayOption::INVERSE_STEP);
+        // create an e-greedy policy. Use the number 
+		// of actions as a seed. Use a constant epsilon
+        EpsilonGreedyPolicy policy(0.1, env.n_actions(), 
+		                           EpsilonDecayOption::NONE);
 
         SarsaConfig sarsa_config;
         sarsa_config.gamma = 1.0;
-        sarsa_config.eta = 0.01;
+        sarsa_config.eta = 0.5;
         sarsa_config.tolerance = 1.0e-8;
-        sarsa_config.max_num_iterations_per_episode = 1000;
+        sarsa_config.max_num_iterations_per_episode = 100;
         sarsa_config.path = SOLUTION_FILE;
 
-        SarsaSolver<env_type, ActionSelector> algorithm(sarsa_config, policy);
+        SarsaSolver<env_type, EpsilonGreedyPolicy> algorithm(sarsa_config, policy);
 
-        RLSerialTrainerConfig trainer_config = {10, 500, 1.0e-8};
+        RLSerialTrainerConfig trainer_config = {10, 2000, 1.0e-8};
 
         RLSerialAgentTrainer<env_type,
                              SarsaSolver<env_type,
-                             ActionSelector>> trainer(trainer_config, algorithm);
+                             EpsilonGreedyPolicy>> trainer(trainer_config, algorithm);
 
         auto info = trainer.train(env);
         BOOST_LOG_TRIVIAL(info)<<"Training info..."<<info;
 		BOOST_LOG_TRIVIAL(info)<<"Finished agent training";
+		
+		// save the reward the agent achieved per training epoch
+		auto reward = trainer.episodes_total_rewards();
+		auto iterations = trainer.n_itrs_per_episode();
+	
+		rlenvscpp::utils::io::CSVWriter csv_writer(REWARD_PER_ITR);
+		csv_writer.open();
+		
+		csv_writer.write_column_names({"epoch", "reward"});
+		
+		auto epoch = static_cast<uint_t>(0);
+		for(auto val: reward){
+			
+			std::tuple<uint_t, real_t> row = {epoch++, val};
+			csv_writer.write_row(row);
+		}
+		
+		csv_writer.close();
+		
+		// build the policy
+		algorithm.build_policy().save(POLICY);
 
     }
     catch(std::exception& e){

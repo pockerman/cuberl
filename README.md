@@ -25,8 +25,8 @@ The following is an indicative list of examples.
 - <a href="examples/rl/rl_example_6/rl_example_6.cpp">Iterative policy evaluation on ```FrozenLake-v0```</a>
 - <a href="examples/rl/rl_example_7/rl_example_7.cpp">Policy iteration on ```FrozenLake-v0```</a>
 - <a href="examples/rl/rl_example_8/rl_example_8.md">Value iteration on ```FrozenLake-v0```</a>
-- <a href="examples/rl/rl_example_9/rl_example_9.cpp">SARSA on ```CliffWalking-v0```</a>
-- <a href="examples/rl/rl_example_10/rl_example_10.cpp">Q-learning on ```CliffWalking-v0```</a>
+- <a href="examples/rl/rl_example_9/rl_example_9.md">SARSA on ```CliffWalking-v0```</a>
+- <a href="examples/rl/rl_example_10/rl_example_10.md">Q-learning on ```CliffWalking-v0```</a>
 - <a href="examples/rl/rl_example_11/rl_example_11.md">A2C on ```CartPole-v1```</a>
 - <a href="examples/rl/rl_example_12/rl_example_12.md">DQN on ```Gridworld```</a>
 - <a href="examples/rl/rl_example_15/rl_example_15.md">DQN on ```Gridworld``` with experience replay</a>
