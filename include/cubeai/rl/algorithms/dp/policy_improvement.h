@@ -3,6 +3,7 @@
 
 #include "cubeai/rl/algorithms/dp/dp_algo_base.h"
 #include "cubeai/rl/algorithms/utils.h"
+#include "cubeai/rl/policies/adaptors/policy_stochastic_adaptor.h"
 
 #include <memory>
 #include <any>
@@ -19,7 +20,7 @@ namespace dp {
   *  algorithm in the sense that it looks for a policy. Instead, it is
   * more of a helper function that allows as to improve on a given policy.
   */
-template<typename EnvType, typename PolicyType, typename PolicyAdaptorType>
+template<typename EnvType, typename PolicyType>
 class PolicyImprovement: public DPSolverBase<EnvType>
 {
 public:
@@ -35,16 +36,12 @@ public:
     typedef PolicyType policy_type;
 
     ///
-    /// \brief policy_adaptor_type
-    ///
-    typedef PolicyAdaptorType policy_adaptor_type;
-
-    ///
     /// \brief IterativePolicyEval
     ///
-    PolicyImprovement(real_t gamma, const DynVec<real_t>& val_func,
-                      policy_type& policy,
-                      policy_adaptor_type& policy_adaptor);
+    PolicyImprovement(uint_t action_space_size,
+					  real_t gamma, 
+	                  const DynVec<real_t>& val_func,
+                      policy_type& policy);
 
     ///
     /// \brief actions_before_training_begins. Execute any actions the
@@ -108,28 +105,28 @@ protected:
     /// \brief policy_
     ///
     policy_type& policy_;
-
-    ///
-    /// \brief policy_adaptor_
-    ///
-    policy_adaptor_type& policy_adaptor_;
-
+	
+	///
+	/// \brief How to adapt the policy
+	///
+	cuberl::rl::policies::StochasticAdaptorPolicy<policy_type> policy_adaptor_;
 };
 
-template<typename EnvType, typename PolicyType, typename PolicyAdaptorType>
-PolicyImprovement<EnvType, PolicyType, PolicyAdaptorType>::PolicyImprovement(real_t gamma, const DynVec<real_t>& val_func,
-                                                 policy_type& policy, policy_adaptor_type& policy_adaptor)
+template<typename EnvType, typename PolicyType>
+PolicyImprovement<EnvType, PolicyType>::PolicyImprovement(uint_t action_space_size,
+                                                          real_t gamma, const DynVec<real_t>& val_func,
+                                                          policy_type& policy)
     :
       DPSolverBase<EnvType>(),
       gamma_(gamma),
       v_(val_func),
       policy_(policy),
-      policy_adaptor_(policy_adaptor)
+	  policy_adaptor_(val_func.size(), action_space_size, policy)
 {}
 
-template<typename EnvType, typename PolicyType, typename PolicyAdaptorType>
+template<typename EnvType, typename PolicyType>
 EpisodeInfo
-PolicyImprovement<EnvType, PolicyType, PolicyAdaptorType>::on_training_episode(env_type& env, uint_t episode_idx){
+PolicyImprovement<EnvType, PolicyType>::on_training_episode(env_type& env, uint_t episode_idx){
 
     auto start = std::chrono::steady_clock::now();
 
@@ -139,8 +136,8 @@ PolicyImprovement<EnvType, PolicyType, PolicyAdaptorType>::on_training_episode(e
 
         auto state_actions = state_actions_from_v(env, v_, gamma_, s);
 
-        options.insert_or_assign("state", s);
-        options.insert_or_assign("state_actions", std::any(state_actions));
+		options.insert_or_assign("state", s);
+		options.insert_or_assign("state_actions", std::any(state_actions));
         policy_ = policy_adaptor_(options);
     }
 

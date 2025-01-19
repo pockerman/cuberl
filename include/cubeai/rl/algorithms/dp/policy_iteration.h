@@ -5,7 +5,9 @@
 #include "cubeai/rl/algorithms/dp/dp_algo_base.h"
 #include "cubeai/rl/algorithms/dp/iterative_policy_evaluation.h"
 #include "cubeai/rl/algorithms/dp/policy_improvement.h"
+
 #include "rlenvs/utils/io/csv_file_writer.h"
+#include "rlenvs/rlenvs_consts.h"
 
 #include <string>
 
@@ -23,13 +25,13 @@ struct PolicyIterationConfig
     uint_t n_policy_eval_steps;
     real_t gamma{1.0};
     real_t tolerance{1.0e-6};
-    std::string save_path{""};
+    std::string save_path{rlenvscpp::consts::INVALID_STR};
 };
 
 ///
 /// \brief The policy iteration class
 ///
-template<typename EnvType, typename PolicyType, typename PolicyAdaptorType>
+template<typename EnvType, typename PolicyType>
 class PolicyIterationSolver final: public DPSolverBase<EnvType>
 {
 public:
@@ -45,16 +47,11 @@ public:
     typedef PolicyType policy_type;
 
     ///
-    /// \brief policy_adaptor_type
-    ///
-    typedef PolicyAdaptorType policy_adaptor_type;
-
-    ///
     /// \brief PolicyIteration
     ///
     PolicyIterationSolver(PolicyIterationConfig config,
-                          policy_type& policy,
-                          policy_adaptor_type& policy_adaptor);
+						  uint_t action_space_size,
+                          policy_type& policy);
 
     ///
     /// \brief actions_before_training_begins. Execute any actions the
@@ -108,44 +105,44 @@ private:
     ///
     /// \brief policy_imp_
     ///
-    PolicyImprovement<env_type, policy_type, policy_adaptor_type> policy_imp_;
+    PolicyImprovement<env_type, policy_type> policy_impr_;
 
 };
 
-template<typename EnvType, typename PolicyType, typename PolicyAdaptorType>
-PolicyIterationSolver<EnvType, PolicyType, PolicyAdaptorType>::PolicyIterationSolver(PolicyIterationConfig config,
-                                                                                     policy_type& policy,
-                                                                                     policy_adaptor_type& policy_adaptor)
+template<typename EnvType, typename PolicyType>
+PolicyIterationSolver<EnvType, PolicyType>::PolicyIterationSolver(PolicyIterationConfig config,
+                                                                  uint_t action_space_size,
+																  policy_type& policy)
     :
     DPSolverBase<EnvType>(),
     config_(config),
     v_(),
     policy_eval_({config.gamma, config.tolerance}, policy),
-    policy_imp_(config.gamma, DynVec<real_t>(), policy, policy_adaptor)
+    policy_impr_(action_space_size, config.gamma, DynVec<real_t>(), policy)
 {}
 
 
-template<typename EnvType, typename PolicyType, typename PolicyAdaptorType>
+template<typename EnvType, typename PolicyType>
 void
-PolicyIterationSolver<EnvType, PolicyType, PolicyAdaptorType>::actions_before_training_begins(env_type& env){
+PolicyIterationSolver<EnvType, PolicyType>::actions_before_training_begins(env_type& env){
 
     policy_eval_.actions_before_training_begins(env);
-    policy_imp_.actions_before_training_begins(env);
+    policy_impr_.actions_before_training_begins(env);
 }
 
-template<typename EnvType, typename PolicyType, typename PolicyAdaptorType>
+template<typename EnvType, typename PolicyType>
 void
-PolicyIterationSolver<EnvType, PolicyType, PolicyAdaptorType>::actions_after_training_ends(env_type& /*env*/){
+PolicyIterationSolver<EnvType, PolicyType>::actions_after_training_ends(env_type& /*env*/){
     v_ = policy_eval_.get_value_function();
 
-    if(config_.save_path != ""){
+    if(config_.save_path != rlenvscpp::consts::INVALID_STR){
         save(config_.save_path);
     }
 }
 
-template<typename EnvType, typename PolicyType, typename PolicyAdaptorType>
+template<typename EnvType, typename PolicyType>
 EpisodeInfo
-PolicyIterationSolver<EnvType, PolicyType, PolicyAdaptorType>::on_training_episode(env_type& env, uint_t episode_idx){
+PolicyIterationSolver<EnvType, PolicyType>::on_training_episode(env_type& env, uint_t episode_idx){
 
     auto start = std::chrono::steady_clock::now();
     EpisodeInfo info;
@@ -162,13 +159,13 @@ PolicyIterationSolver<EnvType, PolicyType, PolicyAdaptorType>::on_training_episo
 
     // update the value function to
     // improve for
-    policy_imp_.set_value_function( policy_eval_.get_value_function());
+    policy_impr_.set_value_function( policy_eval_.get_value_function());
 
     // improve the policy
-    auto policy_imp_info = policy_imp_.on_training_episode(env, episode_idx);
+    auto policy_imp_info = policy_impr_.on_training_episode(env, episode_idx);
 
     // get the improved policy
-    const auto& new_policy = policy_imp_.policy();
+    const auto& new_policy = policy_impr_.policy();
 
     // policy converged
     if(old_policy == new_policy){
@@ -188,9 +185,9 @@ PolicyIterationSolver<EnvType, PolicyType, PolicyAdaptorType>::on_training_episo
     return info;
 }
 
-template<typename EnvType, typename PolicyType, typename PolicyAdaptorType>
+template<typename EnvType, typename PolicyType>
 void
-PolicyIterationSolver<EnvType, PolicyType, PolicyAdaptorType>::save(const std::string& filename)const{
+PolicyIterationSolver<EnvType, PolicyType>::save(const std::string& filename)const{
 
     rlenvscpp::utils::io::CSVWriter file_writer(filename, ',');
     file_writer.open();

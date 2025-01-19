@@ -2,7 +2,6 @@
 #include "cubeai/rl/algorithms/dp/policy_iteration.h"
 #include "cubeai/rl/trainers/rl_serial_agent_trainer.h"
 #include "cubeai/rl/policies/uniform_discrete_policy.h"
-#include "cubeai/rl/policies/stochastic_adaptor_policy.h"
 #include "rlenvs/envs/api_server/apiserver.h"
 #include "rlenvs/envs/gymnasium/toy_text/frozen_lake_env.h"
 
@@ -21,7 +20,6 @@ const std::string SOLUTION_FILE = "policy_iteration_frozen_lake_v0.csv";
 using cuberl::real_t;
 using cuberl::uint_t;
 using cuberl::rl::policies::UniformDiscretePolicy;
-using cuberl::rl::policies::StochasticAdaptorPolicy;
 using cuberl::rl::algos::dp::PolicyIterationSolver;
 using cuberl::rl::algos::dp::PolicyIterationConfig;
 using cuberl::rl::RLSerialAgentTrainer;
@@ -50,18 +48,16 @@ int main() {
     BOOST_LOG_TRIVIAL(info)<<"Done...";
 
     UniformDiscretePolicy policy(env.n_states(), env.n_actions());
-    StochasticAdaptorPolicy<UniformDiscretePolicy> policy_adaptor(env.n_states(), env.n_actions(), policy);
-
+    
     PolicyIterationConfig config;
     config.gamma = 1.0;
     config.n_policy_eval_steps = 15;
     config.tolerance = 1.0e-8;
 
     typedef PolicyIterationSolver<env_type,
-                                  UniformDiscretePolicy,
-                                  StochasticAdaptorPolicy<UniformDiscretePolicy>> solver_type;
+                                  UniformDiscretePolicy> solver_type;
 
-    solver_type solver(config, policy, policy_adaptor);
+    solver_type solver(config, env.n_actions(), policy);
     
 	// output message frequence, number of episodes, tolerance
     RLSerialTrainerConfig trainer_config = {10, 100, 1.0e-8};
