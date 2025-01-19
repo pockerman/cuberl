@@ -35,7 +35,7 @@ struct ValueIterationConfig
 ///
 /// \brief ValueIteration class
 ///
-template<typename EnvType, typename PolicyType, typename PolicyAdaptorType>
+template<typename EnvType>
 class ValueIteration: public DPSolverBase<EnvType>
 {
 public:
@@ -46,21 +46,9 @@ public:
     typedef typename DPSolverBase<EnvType>::env_type env_type;
 
     ///
-    /// \brief policy_type
-    ///
-    typedef PolicyType policy_type;
-
-    ///
-    /// \brief policy_adaptor_type
-    ///
-    typedef PolicyAdaptorType policy_adaptor_type;
-
-    ///
     /// \brief ValueIteration
     ///
-    ValueIteration(const ValueIterationConfig config,
-                   policy_type& policy,
-                   policy_adaptor_type& policy_adaptor);
+    ValueIteration(const ValueIterationConfig config);
 
     ///
     /// \brief actions_before_training_begins. Execute any actions the
@@ -113,43 +101,26 @@ private:
     ///
     DynVec<real_t> v_;
 
-    ///
-    /// \brief policy_
-    ///
-    policy_type& policy_;
-
-    ///
-    /// \brief policy_imp_
-    ///
-    PolicyImprovement<EnvType, PolicyType, PolicyAdaptorType> policy_imp_;
-
 };
 
-template<typename EnvType, typename PolicyType, typename PolicyAdaptorType>
-ValueIteration<EnvType, PolicyType, PolicyAdaptorType>::ValueIteration(const ValueIterationConfig config,
-                                                                       policy_type& policy,
-                                                                       policy_adaptor_type& policy_adaptor)
+template<typename EnvType>
+ValueIteration<EnvType>::ValueIteration(const ValueIterationConfig config)
     :
    DPSolverBase<EnvType>(),
-   config_(config),
-   policy_(policy),
-   policy_imp_(config.gamma, DynVec<real_t>(),  policy, policy_adaptor)
+   config_(config)
 {}
 
 
-template<typename EnvType, typename PolicyType, typename PolicyAdaptorType>
+template<typename EnvType>
 void
-ValueIteration<EnvType, PolicyType, PolicyAdaptorType>::actions_before_training_begins(env_type& env){
-
+ValueIteration<EnvType>::actions_before_training_begins(env_type& env){
 	v_ = DynVec<real_t>::Zero(env.n_states());	
-    policy_imp_.actions_before_training_begins(env);
 }
 
-template<typename EnvType, typename PolicyType, typename PolicyAdaptorType>
+template<typename EnvType>
 EpisodeInfo
-ValueIteration<EnvType, PolicyType, 
-			   PolicyAdaptorType>::on_training_episode(env_type& env, 
-			                                           uint_t episode_idx){
+ValueIteration<EnvType>::on_training_episode(env_type& env, 
+											 uint_t episode_idx){
 
 	// start timing the training
     auto start = std::chrono::steady_clock::now();
@@ -185,23 +156,18 @@ ValueIteration<EnvType, PolicyType,
     return info;
 }
 
-template<typename EnvType, typename PolicyType, typename PolicyAdaptorType>
+template<typename EnvType>
 void
-ValueIteration<EnvType, PolicyType, PolicyAdaptorType>::actions_after_training_ends(env_type& env){
-
-    //policy_imp_.set_value_function(v_);
-    //policy_imp_.on_training_episode(env, 0);
-    //policy_.update( policy_imp_.policy()); //.make_copy();
-
+ValueIteration<EnvType>::actions_after_training_ends(env_type&){
     if(config_.save_path != rlenvscpp::consts::INVALID_STR){
         save(config_.save_path);
     }
 
 }
 
-template<typename EnvType, typename PolicyType, typename PolicyAdaptorType>
+template<typename EnvType>
 void
-ValueIteration<EnvType, PolicyType, PolicyAdaptorType>::save(const std::string& filename)const{
+ValueIteration<EnvType>::save(const std::string& filename)const{
 
     rlenvscpp::utils::io::CSVWriter file_writer(filename, ',');
     file_writer.open();
@@ -214,9 +180,9 @@ ValueIteration<EnvType, PolicyType, PolicyAdaptorType>::save(const std::string& 
     }
 }
 
-template<typename EnvType, typename PolicyType, typename PolicyAdaptorType>
+template<typename EnvType>
 cuberl::rl::policies::MaxTabularPolicy 
-ValueIteration<EnvType, PolicyType, PolicyAdaptorType>::build_policy(const env_type& env)const{
+ValueIteration<EnvType>::build_policy(const env_type& env)const{
 	
 	cuberl::rl::policies::MaxTabularPolicy policy;
 	cuberl::rl::policies::MaxTabularPolicyBuilder builder;

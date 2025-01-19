@@ -1,8 +1,6 @@
 #include "cubeai/base/cubeai_types.h"
 #include "cubeai/rl/algorithms/dp/value_iteration.h"
 #include "cubeai/rl/trainers/rl_serial_agent_trainer.h"
-#include "cubeai/rl/policies/uniform_discrete_policy.h"
-#include "cubeai/rl/policies/stochastic_adaptor_policy.h"
 
 #include "rlenvs/utils/io/csv_file_writer.h"
 #include "rlenvs/envs/api_server/apiserver.h"
@@ -20,8 +18,6 @@ const std::string POLICY = "policy.csv";
 
 using cuberl::real_t;
 using cuberl::uint_t;
-using cuberl::rl::policies::UniformDiscretePolicy;
-using cuberl::rl::policies::StochasticAdaptorPolicy;
 using cuberl::rl::algos::dp::ValueIteration;
 using cuberl::rl::algos::dp::ValueIterationConfig;
 using cuberl::rl::RLSerialAgentTrainer;
@@ -34,9 +30,7 @@ using rlenvscpp::envs::RESTApiServerWrapper;
 typedef FrozenLake<4> env_type;
 
 // value iteration solver
-typedef  ValueIteration<env_type,
-                        UniformDiscretePolicy,
-                        StochasticAdaptorPolicy<UniformDiscretePolicy>> solver_type;
+typedef  ValueIteration<env_type> solver_type;
 						
 }
 
@@ -59,19 +53,11 @@ int main() {
     env.reset();
     BOOST_LOG_TRIVIAL(info)<<"Done...";
 
-    // start with a uniform random policy i.e.
-    // the agnet knows nothing about the environment
-    UniformDiscretePolicy init_policy(env.n_states(), env.n_actions());
-
-    StochasticAdaptorPolicy<UniformDiscretePolicy> policy_adaptor(env.n_states(), 
-	                                                              env.n_actions(), 
-																  init_policy);
-
     ValueIterationConfig config;
     config.gamma = 0.99;
     config.tolerance = 1.0e-8;
 
-    solver_type algorithm(config, init_policy, policy_adaptor);
+    solver_type algorithm(config);
 
     RLSerialTrainerConfig trainer_config = {10, 10000, 1.0e-8};
 
