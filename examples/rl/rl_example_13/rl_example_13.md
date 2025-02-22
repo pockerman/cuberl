@@ -9,10 +9,25 @@ derive a policy from a state-action value function is to use a greedy approach i
 
 $$\pi(s) = max_{\alpha} Q(s, \alpha)$$
 
-
-
 In this example, we will implement a policy-based method. In particular, we will use one of the earliest policy-based methods namely the
 REINFORCE algorithm. Policy-based methods, as their name probably suggests, approximate policies directly. 
+In particular, we will use a neural network to represent the policy $\pi$ and use variants of the gradient
+descent algorithm in order to estimate the weights of the network.
+
+The REINFORCE algorithm samples trajectories from the environment 
+using the policy on hand and estimate the gradient using these samples. 
+The true gradient can be then estimated using:
+
+$$\nabla J(\boldsymbol{\theta}_{t}) = E_{\pi} \left[ G_t \nabla log \pi(\alpha | S_t,  \boldsymbol{\theta})\right] $$
+
+where $G_t$ is the discounted cumulative reward at time step $t$. 
+After the gradient calculation, we update the policy parameters using the following formula
+
+$$\boldsymbol{\theta} = \boldsymbol{\theta} + \eta \nabla_{\boldsymbol{\theta}} J( \pi_{\boldsymbol{\theta}})$$
+
+or by substituting the  expected value of the gradient:
+
+$$\boldsymbol{\theta} = \boldsymbol{\theta} + \eta G_t\nabla_{\boldsymbol{\theta}} log \pi(\alpha | S_t,  \boldsymbol{\theta})$$
 
 In this example we will use the ```gymnasium.CartPole``` environment.
 Specifically, we will use the class <a href="https://github.com/pockerman/rlenvs_from_cpp/blob/master/src/rlenvs/envs/gymnasium/classic_control/cart_pole_env.h">CartPole</a> class from
@@ -27,8 +42,7 @@ We will use this approach in <a href="#">Example 20: REINFORCE with baseline alg
 
 The REINFORCE algorithm is implemented in the class <a href="https://github.com/pockerman/cuberl/blob/master/include/cubeai/rl/algorithms/pg/simple_reinforce.h">ReinforceSolver</a>
 The solver is passed to the ```RLSerialAgentTrainer``` class that manages the loop over the specified number of episodes.
-The ```ReinforceSolver``` class overrides some virtual methods defined in the ```RLSolverBase``` class.
-
+The ```ReinforceSolver``` is derived from the ```RLSolverBase``` class and overrides some virtual methods.
 The class ```ReinforceSolver``` accepts two template parameters:
 
 - The environment type 
@@ -36,7 +50,7 @@ The class ```ReinforceSolver``` accepts two template parameters:
 
 
 The environment type is a standard argument for all RL solvers in ```cuberl```. The policy type represents the 
-PyTorch model that we will use. It should expose an ```act``` function that has the following signature
+PyTorch model that we will use. Specifically, it should expose an ```act``` function that has the following signature
 
 ```
 template<typename StateTp>
@@ -46,7 +60,9 @@ std::tuple<uint_t, torch_tensor_t> act(const StateTp& state)
 
 ## The ```PolicyNetImpl``` class 
 
-Below is the code for the network that implements the policy we want to use
+Below is the code for the network that implements the policy we want to use.
+The network specification is taken from <a href="https://github.com/pytorch/examples/blob/main/reinforcement_learning/reinforce.py">reinforce.py</a>.
+However, feel free to expeiment with this.
 
 ```
 const uint_t L1 = 4;
