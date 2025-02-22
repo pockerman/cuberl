@@ -25,6 +25,10 @@ struct TorchAdaptor{
 	
 	static value_type to_torch(const std::vector<real_t>& data, 
 	                           DeviceType dtype=DeviceType::CPU, bool requires_grad=false);
+							   
+	static value_type to_torch(const std::vector<uint_t>& data, 
+	                           DeviceType dtype=DeviceType::CPU, bool requires_grad=false);
+							   
 	static value_type to_torch(const std::vector<float_t>& data, 
 	                           DeviceType dtype=DeviceType::CPU, bool requires_grad=false);
 	static value_type to_torch(const std::vector<int_t>& data, 
@@ -35,7 +39,17 @@ struct TorchAdaptor{
 	                           DeviceType dtype=DeviceType::CPU, bool requires_grad=false);
 	
 	template<typename T>
-	static value_type stack(const std::vector<T>& values, DeviceType type=DeviceType::CPU);
+	static value_type stack(const std::vector<T>& values, 
+	                        DeviceType type=DeviceType::CPU,
+							bool requires_grad=false);
+							
+	static value_type cat(const std::vector<real_t>& values, 
+	                        DeviceType type=DeviceType::CPU,
+							bool requires_grad=false);
+	
+	template<typename T>
+	static value_type stack_as_float(const std::vector<std::vector<T>>& values, 
+	                                  DeviceType type=DeviceType::CPU);
 
     template<typename T>
     static std::vector<T> to_vector(torch_tensor_t tensor);
@@ -47,9 +61,28 @@ struct TorchAdaptor{
 	
     value_type stack(const std::vector<value_type>& values, DeviceType type=DeviceType::CPU)const;
 
-
-
 };
+
+
+template<typename T>
+TorchAdaptor::value_type
+TorchAdaptor::stack_as_float(const std::vector<std::vector<T>>& values, 
+							 DeviceType dtype){
+								 
+								 
+	std::vector<std::vector<float_t>> values_(values.size());
+								 
+	// make the input values floats
+	for(uint_t i=0; i<values.size(); ++i){
+		values_[i].resize(values[i].size());
+		for(uint_t j=0; j<values[i].size(); ++j){
+			values_[i][j] = static_cast<float>(values[i][j]);
+		}
+	}
+	
+	return TorchAdaptor::stack(values_, dtype);
+								 
+}
 
 }
 }

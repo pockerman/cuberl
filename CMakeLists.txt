@@ -7,7 +7,7 @@ SET(CUBEAILIB_VERSION_PATCH 0)
 SET(CUBEAILIB_VERSION "${CUBEAILIB_VERSION_MAJOR}.${CUBEAILIB_VERSION_MINOR}.${CUBEAILIB_VERSION_PATCH}")
 
 
-MESSAGE(STATUS "CubeAI lib Version ${CUBEAILIB_VERSION}")
+MESSAGE(STATUS "cuberl lib Version ${CUBEAILIB_VERSION}")
 
 
 # if PyTorch has been compiled with CUDA support
@@ -42,17 +42,17 @@ ENDIF(COMMAND cmake_policy)
 # Set the build type options supported
 # Debug and Release are the types supported
 SET(CMAKE_BUILD_TYPE "Debug")
-SET(CMAKE_CXX_COMPILER g++-11)
+#SET(CMAKE_CXX_COMPILER g++-11)
 SET(CMAKE_CXX_STANDARD 20)
-SET(CMAKE_CXX_STANDARD_REQUIRED True)
-SET(CMAKE_C_COMPILER gcc-11)
-SET(CMAKE_C_STANDARD 20)
-SET(CMAKE_C_STANDARD_REQUIRED True)
+#SET(CMAKE_CXX_STANDARD_REQUIRED True)
+#SET(CMAKE_C_COMPILER gcc-11)
+#SET(CMAKE_C_STANDARD 20)
+#SET(CMAKE_C_STANDARD_REQUIRED True)
 SET(CMAKE_LINKER_FLAGS "-pthread")
 
 SET(USE_OPENMP ON)
 SET(USE_LOG ON)
-SET(USE_PYTORCH OFF)
+SET(USE_PYTORCH ON)
 SET(USE_OPENCV OFF)
 SET(RLENVS_CPP_INCLUDE_DIRS "${PROJECT_SOURCE_DIR}/external/rlenvs_cpp/src") # required
 
@@ -77,7 +77,9 @@ ENDIF()
 
 # if we use PyTorch set up the path for libtorch
 IF(USE_PYTORCH)
-	SET(PYTORCH_PATH "/home/alex/MySoftware/libtorch")
+	#SET(PYTORCH_PATH "/home/alex/MySoftware/libtorch")
+	#SET(PYTORCH_PATH "/home/alex/MySoftware/libtorch_cu118")
+	SET(PYTORCH_PATH "/home/alex/MySoftware/libtorch_cpu/libtorch")
 ENDIF()
 
 IF(CMAKE_BUILD_TYPE STREQUAL "Debug")
@@ -169,6 +171,8 @@ INCLUDE_DIRECTORIES(include/)
 FILE(GLOB SRCS src/cubeai/base/*.cpp
                src/cubeai/rl/*.cpp
                src/cubeai/rl/*/*.cpp
+			   src/cubeai/rl/algorithms/*.cpp
+			   src/cubeai/rl/algorithms/*/*.cpp
                src/cubeai/utils/*.cpp
                src/cubeai/maths/*.cpp
                src/cubeai/maths/statistics/*.cpp

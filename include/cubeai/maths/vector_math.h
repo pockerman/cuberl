@@ -114,6 +114,13 @@ sum(IteratorType begin, IteratorType end, bool parallel=true){
     return sum_; 
 }
 
+
+template<typename VectorType>
+typename VectorType::value_type
+sum(const VectorType& vec,  bool parallel=true){
+	return sum(vec.begin(), vec.end(), parallel);
+}
+
 ///
 /// \brief mean Compute the mean value of the values in
 /// the provided iterator range

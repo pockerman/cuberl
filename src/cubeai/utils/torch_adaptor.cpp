@@ -70,6 +70,23 @@ TorchAdaptor::to_torch(const std::vector<int_t>& data,
 	return d;
 }
 
+TorchAdaptor::value_type
+TorchAdaptor::to_torch(const std::vector<uint_t>& data, 
+					   DeviceType dtype, 
+					   bool requires_grad){
+
+	// cast the data to lint
+	std::vector<lint_t> values_(data.size());
+								 
+	// make the input values floats
+	for(uint_t i=0; i<data.size(); ++i){
+		values_[i] = static_cast<lint_t>(data[i]);
+	}
+	
+	return TorchAdaptor::to_torch(values_, dtype, requires_grad);
+							
+}
+
  
 TorchAdaptor::value_type 
 TorchAdaptor::to_torch(const std::vector<lint_t>& data, 
@@ -86,14 +103,18 @@ TorchAdaptor::to_torch(const std::vector<lint_t>& data,
 
 template<>
 TorchAdaptor::value_type 
-TorchAdaptor::stack(const std::vector<TorchAdaptor::value_type>& values, DeviceType dtype){
+TorchAdaptor::stack(const std::vector<TorchAdaptor::value_type>& values, 
+                    DeviceType dtype,
+					bool requires_grad){
 	auto device_ =  dtype != DeviceType::CPU ? torch::kCUDA : torch::kCPU;
-    return torch::stack(values, 0).to(device_);
+    return torch::stack(values, 0).to(device_).set_requires_grad(requires_grad);
 }
 
 template<>
 TorchAdaptor::value_type 
-TorchAdaptor::stack(const std::vector<std::vector<real_t>>& values, DeviceType dtype){
+TorchAdaptor::stack(const std::vector<std::vector<real_t>>& values, 
+					DeviceType dtype,
+					bool requires_grad){
 	
 	std::vector<TorchAdaptor::value_type> t_values;
 	t_values.reserve(values.size());
@@ -104,12 +125,13 @@ TorchAdaptor::stack(const std::vector<std::vector<real_t>>& values, DeviceType d
 	}
 	
 	auto device_ =  dtype != DeviceType::CPU ? torch::kCUDA : torch::kCPU;
-    return torch::stack(t_values, 0).to(device_);
+    return torch::stack(t_values, 0).to(device_).set_requires_grad(requires_grad);
 }
 
 template<>
 TorchAdaptor::value_type 
-TorchAdaptor::stack(const std::vector<std::vector<float_t>>& values, DeviceType dtype){
+TorchAdaptor::stack(const std::vector<std::vector<float_t>>& values, 
+                    DeviceType dtype, bool requires_grad){
 	
 	std::vector<TorchAdaptor::value_type> t_values;
 	t_values.reserve(values.size());
@@ -120,12 +142,14 @@ TorchAdaptor::stack(const std::vector<std::vector<float_t>>& values, DeviceType 
 	}
 	
 	auto device_ =  dtype != DeviceType::CPU ? torch::kCUDA : torch::kCPU;
-    return torch::stack(t_values, 0).to(device_);
+    return torch::stack(t_values, 0).to(device_).set_requires_grad(requires_grad);
 }
+
 
 template<>
 TorchAdaptor::value_type 
-TorchAdaptor::stack(const std::vector<std::vector<lint_t>>& values, DeviceType dtype){
+TorchAdaptor::stack(const std::vector<std::vector<lint_t>>& values, 
+                    DeviceType dtype, bool requires_grad){
 	
 	std::vector<TorchAdaptor::value_type> t_values;
 	t_values.reserve(values.size());
@@ -136,12 +160,13 @@ TorchAdaptor::stack(const std::vector<std::vector<lint_t>>& values, DeviceType d
 	}
 	
 	auto device_ =  dtype != DeviceType::CPU ? torch::kCUDA : torch::kCPU;
-    return torch::stack(t_values, 0).to(device_);
+    return torch::stack(t_values, 0).to(device_).set_requires_grad(requires_grad);
 }
 
 template<>
 TorchAdaptor::value_type 
-TorchAdaptor::stack(const std::vector<std::vector<int_t>>& values, DeviceType dtype){
+TorchAdaptor::stack(const std::vector<std::vector<int_t>>& values, 
+                    DeviceType dtype, bool requires_grad){
 	
 	std::vector<TorchAdaptor::value_type> t_values;
 	t_values.reserve(values.size());
@@ -152,12 +177,13 @@ TorchAdaptor::stack(const std::vector<std::vector<int_t>>& values, DeviceType dt
 	}
 	
 	auto device_ =  dtype != DeviceType::CPU ? torch::kCUDA : torch::kCPU;
-    return torch::stack(t_values, 0).to(device_);
+    return torch::stack(t_values, 0).to(device_).set_requires_grad(requires_grad);
 }
 
 template<>
 TorchAdaptor::value_type 
-TorchAdaptor::stack(const std::vector<std::vector<bool>>& values, DeviceType dtype){
+TorchAdaptor::stack(const std::vector<std::vector<bool>>& values, 
+                    DeviceType dtype, bool requires_grad){
 	
 	std::vector<TorchAdaptor::value_type> t_values;
 	t_values.reserve(values.size());
@@ -168,7 +194,15 @@ TorchAdaptor::stack(const std::vector<std::vector<bool>>& values, DeviceType dty
 	}
 	
 	auto device_ =  dtype != DeviceType::CPU ? torch::kCUDA : torch::kCPU;
-    return torch::stack(t_values, 0).to(device_);
+    return torch::stack(t_values, 0).to(device_).set_requires_grad(requires_grad);
+}
+
+TorchAdaptor::value_type 
+TorchAdaptor::cat(const std::vector<real_t>& values, 
+				  DeviceType dtype, bool requires_grad){
+					  
+	auto device_ =  dtype != DeviceType::CPU ? torch::kCUDA : torch::kCPU;
+    return torch::cat(TorchAdaptor::to_torch(values, dtype, requires_grad), 0).to(device_).set_requires_grad(requires_grad);				  
 }
 
 torch_tensor_t

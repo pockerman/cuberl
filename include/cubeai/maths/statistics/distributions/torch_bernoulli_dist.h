@@ -1,13 +1,10 @@
-// SPDX-FileCopyrightText: 2024 <copyright holder> <email>
-// SPDX-License-Identifier: Apache-2.0
-
-/**
- * Major implementation is taken from  https://github.com/Omegastick/pytorch-cpp-rl/tree/master
- *
- */
-
 #ifndef TORCH_BERNOULLI_DIST_H
 #define TORCH_BERNOULLI_DIST_H
+
+///
+/// Major implementation is taken from:
+///  https://github.com/Omegastick/pytorch-cpp-rl/tree/master
+///
 
 #include "cubeai/base/cubeai_config.h"
 

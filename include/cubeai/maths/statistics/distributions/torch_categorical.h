@@ -25,20 +25,18 @@ class TorchCategorical final : public TorchDistributionBase
 
 public:
 
-
-    /**
-     * @brief Default constructor
-     *
-     */
+    ///
+	/// \brief Default constructor
+	///
+	///
     TorchCategorical() = default;
 
-    /**
-     * @brief Build the categorical distribution from given
-     * torch_tensor_t of probabilities. if the flag
-     * build_from_logits, then the given tensor is assumed
-     * to represent logits
-     *
-     */
+    ///
+	/// \brief Build the categorical distribution from given
+	///	torch_tensor_t of probabilities. if the flag
+	///	build_from_logits, then the given tensor is assumed
+	///	to represent logits
+	///
     TorchCategorical(torch_tensor_t probs, bool do_build_from_logits=false);
 
     ///
@@ -64,15 +62,14 @@ public:
     ///
     virtual torch_tensor_t sample(c10::ArrayRef<int64_t> sample_shape = {})override;
 
-
-    /**
-     * @brief build the distribution form logits
-     */
+    ///
+	/// \brief build the distribution form logits
+	///
     void build_from_logits(torch_tensor_t logits);
 
-    /**
-     * @brief build the distribution from probabilities
-     */
+    ///
+	/// \brief build the distribution from probabilities
+	///
     void build_from_probabilities(torch_tensor_t probs);
 
     ///

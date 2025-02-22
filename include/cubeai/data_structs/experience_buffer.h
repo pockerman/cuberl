@@ -82,6 +82,12 @@ public:
     /// \return
     ///
     value_type& operator[](uint_t idx){return buffer_[idx];}
+	
+	
+	///
+	/// \brief Resize the buffer
+	///
+	void resize(uint_t new_size, const experience_type& item = experience_type());
 
     ///
     /// \brief operator []
@@ -147,6 +153,12 @@ void
 ExperienceBuffer<ExperienceTp>::append(const experience_type& experience){
 
     buffer_.push_back(experience);
+}
+
+template<typename ExperienceTp>
+void
+ExperienceBuffer<ExperienceTp>::resize(uint_t new_size, const experience_type& item){
+	buffer_.resize(new_size, item);
 }
 
 template<typename ExperienceTp>
