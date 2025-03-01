@@ -1,5 +1,6 @@
 #include "cubeai/maths/vector_math.h"
 #include <cmath>
+#include <algorithm>
 
 namespace cuberl{
 namespace maths{
@@ -19,6 +20,28 @@ logspace(real_t start, real_t end, uint_t num, real_t base){
 
     return logspace;
 
+}
+
+std::vector<real_t>
+standardize(const std::vector<real_t>& vals, real_t tol){
+	
+	auto mean_val = mean(vals);
+	auto var = variance(vals.begin(), vals.end()) + tol;
+	
+	std::vector<real_t> std_vals;
+	std_vals.reserve(vals.size());
+	
+	auto standardize_ = [&std_vals, mean_val, var](const real_t& val){
+		
+		std_vals.push_back((val - mean_val) / var);
+	};
+	
+	std::for_each(vals.begin(),
+	              vals.end(),
+				  standardize_);
+
+	return std_vals;
+	
 }
 
 }

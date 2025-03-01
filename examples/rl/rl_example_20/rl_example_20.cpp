@@ -8,7 +8,6 @@
 
 #include "cubeai/base/cubeai_types.h"
 #include "cubeai/rl/algorithms/pg/reinforce.h"
-#include "cubeai/rl/algorithms/pg/reinforce_config.h"
 #include "cubeai/rl/trainers/rl_serial_agent_trainer.h"
 #include "cubeai/maths/optimization/optimizer_type.h"
 #include "cubeai/maths/optimization/pytorch_optimizer_factory.h"
@@ -46,6 +45,7 @@ using cuberl::torch_tensor_t;
 using cuberl::DeviceType;
 using cuberl::rl::algos::pg::ReinforceSolver;
 using cuberl::rl::algos::pg::ReinforceConfig;
+using cuberl::rl::algos::pg::BaselineEnumType;
 using cuberl::rl::RLSerialAgentTrainer;
 using cuberl::rl::RLSerialTrainerConfig;
 using cuberl::maths::stats::TorchCategorical;
@@ -64,25 +64,16 @@ class PolicyNetImpl: public torch::nn::Module
 {
 public:
 
-	///
-	/// \brief Constructor
-	///
     PolicyNetImpl();
 	
 	// To execute the network in C++, 
 	// we simply call the forward() method
     torch_tensor_t forward(torch_tensor_t state);
 
-	///
-	/// \brief act Every policy network should expose
-	/// an act function that takes a StateTp and returns
-	/// an std::tuple<uint_t, torch_tensor_t>
-	///
     template<typename StateTp>
     std::tuple<uint_t, torch_tensor_t> act(const StateTp& state);
 	
 	void make_play(){is_playing_ = true;}
-	
 private:
 
    torch::nn::Linear fc1_;
@@ -108,7 +99,6 @@ torch_tensor_t
 PolicyNetImpl::forward(torch_tensor_t x){
 
 	x = fc1_->forward(x);
-	
 	if(!is_playing_){
 		x = dp_ -> forward(x);
 		
@@ -177,9 +167,10 @@ int main(){
 								
 		opts.gamma = 0.999;
 		opts.normalize_rewards = false;
+		opts.max_itrs_per_episode = 200; // the max we can get according to docs
 		opts.n_episodes = N_EPISODES;
-		opts.max_itrs_per_episode = 500; 
 		opts.device_type = DeviceType::CPU;
+		opts.baseline_type = BaselineEnumType::STANDARDIZE;
 
         std::map<std::string, std::any> opt_options;
         opt_options.insert(std::make_pair("lr", LEARNING_RATE));
@@ -191,14 +182,12 @@ int main(){
         auto policy_optimizer = optim::pytorch::build_pytorch_optimizer(optim::OptimzerType::ADAM,
 																		*policy, pytorch_ops);
 
-		
         solver_type solver(opts, policy, policy_optimizer);
 		
         RLSerialTrainerConfig config;
         config.n_episodes = N_EPISODES;
         config.output_msg_frequency = 20;
         RLSerialAgentTrainer<env_type, solver_type> trainer(config, solver);
-		
 		
         trainer.train(env);
 
@@ -269,7 +258,6 @@ int main(){
 		episode_duration_csv_writer.close();
 		
 		BOOST_LOG_TRIVIAL(info)<<"Finished agent training";
-		
     }
     catch(std::exception& e){
         std::cout<<e.what()<<std::endl;

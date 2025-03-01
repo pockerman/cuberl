@@ -145,6 +145,16 @@ private:
 	///
 	std::tuple<real_t, real_t> train_sequential_(experience_buffer_type& buffer);
 	
+	///
+	/// \brief Train without baseline
+	///
+	std::tuple<real_t, real_t> train_without_baseline_(experience_buffer_type& buffer);
+	
+	///
+	/// \brief Train with baseline
+	///
+	std::tuple<real_t, real_t> train_with_baseline_(experience_buffer_type& buffer);
+	
 };
 
 template<typename EnvType, typename PolicyType>
@@ -241,30 +251,22 @@ ReinforceSolver<EnvType, PolicyType>::on_training_episode(env_type& env,
     auto itrs = create_episode_batch_(env, buffer);
 	
 	EpisodeInfo info;
-	if(config_.train_type == cuberl::utils::TrainEnumType::BATCH){
+	if(config_.baseline_type == cuberl::rl::algos::pg::BaselineEnumType::NONE){
 		
-		auto [episode_reward, total_episode_loss] =  train_batch_(buffer);
-		monitor_.policy_loss_values.push_back(total_episode_loss);
-	    monitor_.rewards.push_back(episode_reward);
-		
+		auto [episode_reward, total_episode_loss] = train_without_baseline_(buffer); 
 		info.episode_reward = episode_reward;
-		
 	}
 	else{
 		
-		auto [episode_reward, total_episode_loss] = train_sequential_(buffer);
-		monitor_.policy_loss_values.push_back(total_episode_loss);
-	    monitor_.rewards.push_back(episode_reward);
+		auto [episode_reward, total_episode_loss] =  train_with_baseline_(buffer);
 		info.episode_reward = episode_reward;
 	}
-	
 	monitor_.episode_duration.push_back(itrs);
 																			  
     auto end = std::chrono::steady_clock::now();
     std::chrono::duration<real_t> elapsed_seconds = end - start;
 
     // the info class to return for the episode
-    
     info.episode_index = episode_idx;
     info.episode_iterations = itrs;
     info.total_time = elapsed_seconds;
@@ -361,6 +363,77 @@ ReinforceSolver<EnvType, PolicyType>::train_sequential_(experience_buffer_type& 
 	return std::make_tuple(R, total_episode_loss / loss_vals.size());
 }
 
+template<typename EnvType, typename PolicyType>
+std::tuple<real_t, real_t> 
+ReinforceSolver<EnvType, PolicyType>::train_without_baseline_(experience_buffer_type& buffer){
+	
+	if(config_.train_type == cuberl::utils::TrainEnumType::BATCH){
+		
+		auto [episode_reward, total_episode_loss] =  train_batch_(buffer);
+		monitor_.policy_loss_values.push_back(total_episode_loss);
+	    monitor_.rewards.push_back(episode_reward);
+		return std::make_tuple(episode_reward, total_episode_loss);
+	}
+	else{
+		
+		auto [episode_reward, total_episode_loss] = train_sequential_(buffer);
+		monitor_.policy_loss_values.push_back(total_episode_loss);
+	    monitor_.rewards.push_back(episode_reward);
+		return std::make_tuple(episode_reward, total_episode_loss);
+		
+	}
+}
+
+template<typename EnvType, typename PolicyType>
+std::tuple<real_t, real_t> 
+ReinforceSolver<EnvType, PolicyType>::train_with_baseline_(experience_buffer_type& buffer){
+	
+	
+	typedef typename ReinforceMonitor<action_type, 
+	                                  state_type>::experience_tuple_type experience_tuple_type;
+	typedef std::vector<experience_tuple_type> batch_type;
+	
+	// the batch for this episode
+	auto batch = buffer.template get<batch_type>();
+	auto reward_batch    = monitor_.template get<real_t, 2>(batch);
+	
+	// compute the discounted rewards for this batch																	  
+	auto discounted_returns = cuberl::rl::algos::calculate_step_discounted_return(reward_batch,
+	                                                                              config_.gamma);
+	if(config_.baseline_type == BaselineEnumType::CONSTANT){
+		discounted_returns = compute_baseline_with_constant(discounted_returns,
+                                                            config_.baseline_constant);
+	}
+	else if(config_.baseline_type == BaselineEnumType::MEAN){
+		discounted_returns = compute_baseline_with_mean(discounted_returns);
+	}
+	else{
+		discounted_returns = compute_baseline_with_standardization(discounted_returns,
+		                                                           config_.eps);
+	}
+	
+	auto log_probs_batch = monitor_.template get<torch_tensor_t, 4>(batch);
+	std::vector<torch_tensor_t> loss_vals = compute_loss_item(discounted_returns, 
+													          log_probs_batch);
+															  
+															  
+	auto loss = cuberl::utils::pytorch::TorchAdaptor::stack(loss_vals, config_.device_type, 
+															true).sum();
+	policy_optimizer_ -> zero_grad();
+	loss.backward();
+	policy_optimizer_ -> step();
+	
+	auto total_episode_loss = loss.item().to<real_t>();
+	
+	// compute the undiscounted reward as the reward
+	// for this episode
+	auto R = cuberl::maths::sum(reward_batch);
+	
+	monitor_.policy_loss_values.push_back(total_episode_loss);
+	monitor_.rewards.push_back(R);
+	
+	return std::make_tuple(R, total_episode_loss);
+}
 
 }
 }

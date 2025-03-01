@@ -2,6 +2,7 @@
 #define REINFORCE_CONFIG_H
 
 #include "cubeai/base/cubeai_types.h"
+#include "rlenvs/rlenvs_consts.h"
 #include "cubeai/utils/train_enum_type.h"
 
 namespace cuberl {
@@ -9,7 +10,12 @@ namespace rl {
 namespace algos {
 namespace pg {
 	
-
+	using namespace rlenvscpp::consts;
+	
+///
+/// \brief Enumeration of the baseline types supported
+///
+enum class BaselineEnumType { NONE=-1, CONSTANT=0, MEAN=1, STANDARDIZE=2};
 	
 
 ///
@@ -25,6 +31,21 @@ struct ReinforceConfig
 	/// \brief How to train the algorithm
 	///
 	cuberl::utils::TrainEnumType train_type{cuberl::utils::TrainEnumType::BATCH};
+	
+	///
+	/// \brief The baseline to use
+	///
+	BaselineEnumType baseline_type{BaselineEnumType::NONE};
+	
+	///
+	/// \brief The device type that PyTorch calculations take place
+	///
+	DeviceType device_type;
+	
+	///
+	/// \brief The number of episodes
+	///
+	uint_t n_episodes;
  
 	///
 	/// \brief Max number of iterations per
@@ -32,18 +53,22 @@ struct ReinforceConfig
 	///
 	uint_t max_itrs_per_episode;
 	
-	
-	uint_t n_episodes;
-	
 	///
 	/// \brief The discount factor
 	///
     real_t gamma;
+	
+	///
+	/// \brief The constant to use when baseline_type = BaselineEnumType::CONSTANT
+	///
+	real_t baseline_constant{0.0};
+	
+	///
+	/// \brief Small constant to use as tolerance
+	/// Used when baseline_type = BaselineEnumType::STANDARDIZE 
+	///
+	real_t eps{TOLERANCE};
     
-	///
-	/// \brief The device type that PyTorch calculations take place
-	///
-	DeviceType device_type;
 
     ///
     /// \brief print

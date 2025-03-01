@@ -6,7 +6,9 @@
 #ifdef USE_PYTORCH
 
 #include "cubeai/base/cubeai_types.h"
+#include "cubeai/maths/vector_math.h"
 #include <vector>
+#include <algorithm>
 
 namespace cuberl {
 namespace rl {
@@ -37,6 +39,39 @@ compute_loss_item(const std::vector<real_t>& rewards,
 	return loss_items;
 }
 
+
+std::vector<real_t> 
+compute_baseline_with_constant(const std::vector<real_t>& rewards,
+							   real_t constant){
+
+	
+	std::vector<real_t> result;
+	result.reserve(rewards.size());
+	
+	static auto write_val = [&result, constant](const real_t& val){
+		result.push_back(val + constant);
+	};
+	
+	std::for_each(rewards.begin(),
+				 rewards.end(),
+				 write_val);
+	return result;
+								   
+}
+
+std::vector<real_t> 
+compute_baseline_with_mean(const std::vector<real_t>& rewards){
+	
+	using cuberl::maths::mean;
+	auto mean_val = mean(rewards);
+	return compute_baseline_with_constant(rewards, -mean_val);
+}
+
+std::vector<real_t> 
+compute_baseline_with_standardization(const std::vector<real_t>& rewards,
+                                      real_t eps){
+	return cuberl::maths::standardize(rewards, eps);
+}
 	
 	
 }

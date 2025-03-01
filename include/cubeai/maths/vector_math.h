@@ -134,10 +134,10 @@ mean(IteratorType begin, IteratorType end, bool parallel=true){
 
 }
 
-/**
-  * @brief mean Computes the mean value of the vector. If parallel=true
-  *  it uses std::reduce
-  */
+/// 
+/// \brief mean Computes the mean value of the vector. If parallel=true
+/// it uses std::reduce
+/// 
 template<utils::concepts::float_or_integral_vector VectorType>
 real_t
 mean(const VectorType& vector, bool parallel=true){
@@ -172,6 +172,23 @@ variance(IteratorType begin, IteratorType end, bool parallel=true){
 	return sq_sum / static_cast<value_type>(std::distance(begin, end));
 	
 }
+
+///
+/// \brief Compute the variance of the given std::vector
+/// of real values
+///
+inline
+real_t
+variance(const std::vector<real_t>& vals, bool parallel=true){
+	return variance(vals.begin(), vals.end(), parallel);
+}
+
+///
+/// \brief Standardize the given vector
+///
+std::vector<real_t>
+standardize(const std::vector<real_t>& vals, 
+            real_t tol=rlenvscpp::consts::TOLERANCE);
 
 ///
 /// \brief choice. Implements similar functionality

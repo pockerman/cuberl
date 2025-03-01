@@ -1,158 +1,62 @@
-# Example 13: REINFORCE algorithm on CartPole
+# Example 20: REINFORCE with baseline algorithm on CartPole
 
-The DQN algorithm we used in examples <a href="../rl_example_12/rl_example_12.md">Example 12: DQN algorithm on Gridworld</a>
-and <a href="../rl_example_15/rl_example_15.md">Example 15: DQN algorithm on Gridworld with experience replay</a> approximate a value function
-and in particular the state-action value function i.e. $Q(s, \alpha)$. 
-However, in reinforcement learning we are more interested in policies rather than value functions
-This is because a policy dictates how  an agent behaves in a given state. Indeed one way to 
-derive a policy from a state-action value function is to use a greedy approach i.e.
+The example <a href="https://github.com/pockerman/cuberl/blob/master/examples/rl/rl_example_13/rl_example_13.md"> REINFORCE algorithm on CartPole</a>
+used the REINFORCE algorithm to build an agent that can control the ```CratPole``` environment.
+The REINFORCE algorithm is very sensitive to gradient variance which in turn can affect
+training. 
 
-$$\pi(s) = max_{\alpha} Q(s, \alpha)$$
+In this example, we will extend the REINFORCE algorithm using a baseline.
+This is a generalisation of the REINFORCE algorithm to include a comparison 
+of the action value to an arbitrary baseline $b(s)$ [1]. 
+Hence, the gradient of the cost function is now proportional to 
 
-In this example, we will implement a policy-based method. In particular, we will use one of the earliest policy-based methods namely the
-REINFORCE algorithm. Policy-based methods, as their name probably suggests, approximate policies directly. 
-In particular, we will use a neural network to represent the policy $\pi$ and use variants of the gradient
-descent algorithm in order to estimate the weights of the network.
+$$\nabla J(\boldsymbol{\theta}_{t}) \propto \sum_{s} \mu(s) \sum_{\alpha}\left(q_{\pi}(s,\alpha) - b(s)\right )\nabla \pi(\alpha | s,  \boldsymbol{\theta})  $$
 
-The REINFORCE algorithm samples trajectories from the environment 
-using the policy on hand and estimate the gradient using these samples. 
-The true gradient can be then estimated using:
+Note that the baseline can be any function, even a random variable, as long as it does not vary with $\alpha$. 
+The update rule in this version of REINFORCE is [1].
 
-$$\nabla J(\boldsymbol{\theta}_{t}) = E_{\pi} \left[ G_t \nabla log \pi(\alpha | S_t,  \boldsymbol{\theta}) \right]$$
+$$\boldsymbol{\theta}_{t+1} = \boldsymbol{\theta}_{t} + \alpha \left(G_t - b(S_t)\right )\frac{\nabla \pi(A_t | S_t, \boldsymbol{\theta}_t)}{\pi(A_t | S_t, \boldsymbol{\theta}_t)}$$
 
-where $G_t$ is the discounted cumulative reward at time step $t$. 
-After the gradient calculation, we update the policy parameters using the following formula
+The baseline function, as mentioned above, can be any function even a unformly zero. 
+Thus, the update rule above is a generalization of the REINFORCE algorithm [1]. Although the baseline does not affect the expected value of the update, it can have a, large, effect on its variance [1].
+A choice for the baseline is an estimate of the state value i.e. $\hat{v}(S_t, \mathbf{w})$ where $\mathbf{w} \in \mathbb{R}^m$ is a weight vector.
 
-$$\boldsymbol{\theta} = \boldsymbol{\theta} + \eta \nabla_{\boldsymbol{\theta}} J( \pi_{\boldsymbol{\theta}})$$
 
-or by substituting the  expected value of the gradient:
-
-$$\boldsymbol{\theta} = \boldsymbol{\theta} + \eta G_t\nabla_{\boldsymbol{\theta}} log \pi(\alpha | S_t,  \boldsymbol{\theta})$$
-
-In this example we will use the ```gymnasium.CartPole``` environment.
+We will again use the ```gymnasium.CartPole``` environment.
 Specifically, we will use the class <a href="https://github.com/pockerman/rlenvs_from_cpp/blob/master/src/rlenvs/envs/gymnasium/classic_control/cart_pole_env.h">CartPole</a> class from
 <a href="https://github.com/pockerman/rlenvs_from_cpp/tree/master">rlenvs_from_cpp</a> library. This is a simple class that allows us to
 sent HTTP requests to a server that actually runs the environment. We need this as ```gymnasium.CartPole``` is written in Python and we 
 want to avoid the complexity of directly executing Python code from the C++ driver.
 
-We will use the policy network from PyTorch examples: <a href="https://github.com/pytorch/examples/blob/main/reinforcement_learning/reinforce.py">reinforce.py</a>.
-However, feel free to experiment with this. Note that the PyTorch implementation uses a baseline in the implementation.
-We will use this approach in <a href="#">Example 20: REINFORCE with baseline algorithm on CartPole</a>
+We will use the policy network we used in <a href="https://github.com/pockerman/cuberl/blob/master/examples/rl/rl_example_13/rl_example_13.md">REINFORCE algorithm on CartPole</a>
+The configuation of the REINFORCE solver supports three types of baseline values
+
+- A user specified constant
+- Mean value
+- Standardization
+
+In this example we will use standardization or whitening as a baseline. In this case the baseline term is given 
+by
 
 
-The REINFORCE algorithm is implemented in the class <a href="https://github.com/pockerman/cuberl/blob/master/include/cubeai/rl/algorithms/pg/simple_reinforce.h">ReinforceSolver</a>
-The solver is passed to the ```RLSerialAgentTrainer``` class that manages the loop over the specified number of episodes.
-The ```ReinforceSolver``` is derived from the ```RLSolverBase``` class and overrides some virtual methods.
-The class ```ReinforceSolver``` accepts two template parameters:
+----
+**Remark**
 
-- The environment type 
-- The policy type 
+The Medium  article https://medium.com/@fork.tree.ai/understanding-baseline-techniques-for-reinforce-53a1e2279b57
+provides a nice overview of baseline techniques.
 
+----
 
-The environment type is a standard argument for all RL solvers in ```cuberl```. The policy type represents the 
-PyTorch model that we will use. Specifically, it should expose an ```act``` function that has the following signature
+$$b(S_t) = \frac{G_t - \bar{G}}{\sigma_{G}}$$
 
-```
-template<typename StateTp>
-std::tuple<uint_t, torch_tensor_t> act(const StateTp& state)
-```
+Recall that $G_t$ is the total, discounted, reward over the episode i.e.
 
+$$G_t = \sum_{i} \gamma^ir_i$$
 
-## The ```PolicyNetImpl``` class 
+where $i$ denotes the iteration index within the episode.
 
-Below is the code for the network that implements the policy we want to use.
-The network specification is taken from <a href="https://github.com/pytorch/examples/blob/main/reinforcement_learning/reinforce.py">reinforce.py</a>.
-However, feel free to expeiment with this.
-
-```
-const uint_t L1 = 4;
-const uint_t L2 = 128;
-const uint_t L3 = 2;
-const real_t LEARNING_RATE = 0.01;
-
-
-// The class that models the Policy network to train
-class PolicyNetImpl: public torch::nn::Module
-{
-public:
-
-	///
-	/// \brief Constructor
-	///
-    PolicyNetImpl();
-	
-	// To execute the network in C++, 
-	// we simply call the forward() method
-    torch_tensor_t forward(torch_tensor_t state);
-
-	///
-	/// \brief act Every policy network should expose
-	/// an act function that takes a StateTp and returns
-	/// an std::tuple<uint_t, torch_tensor_t>
-	///
-    template<typename StateTp>
-    std::tuple<uint_t, torch_tensor_t> act(const StateTp& state);
-	
-private:
-
-   torch::nn::Linear fc1_;
-   torch::nn::Dropout dp_;
-   torch::nn::Linear fc2_;
-   bool is_playing_{false};
-};
-
-
-PolicyNetImpl::PolicyNetImpl()
-    :
-      fc1_(torch::nn::Linear(L1, L2)),
-	  dp_(torch::nn::Dropout(0.6)),
-      fc2_(torch::nn::Linear(L2, L3))
-{
-    register_module("fc1", fc1_);
-	register_module("dp", dp_);
-    register_module("fc2", fc2_);
-}
-
-
-torch_tensor_t
-PolicyNetImpl::forward(torch_tensor_t x){
-
-	x = fc1_->forward(x);
-	
-	if(!is_playing_){
-		x = dp_ -> forward(x);
-		
-	}
-    x = F::relu(x);
-    x = fc2_->forward(x);
-    return F::softmax(x,  F::SoftmaxFuncOptions(0));
-}
-
-
-template<typename StateTp>
-std::tuple<uint_t, torch_tensor_t>
-PolicyNetImpl::act(const StateTp& state){
-
-    auto torch_state = torch::tensor(state);
-    auto probs = forward(torch_state);
-	
-    auto m = TorchCategorical(probs, false);
-	
-    auto action = m.sample();
-    return std::make_tuple(action.item().toLong(), 
-	                       m.log_prob(action));
-
-}
-
-TORCH_MODULE(PolicyNet);
-```
-
-In ```ReinforceSolver``` expects a policy type that exposes an ```act``` function that
-returns the action type and the log probability of taking this action. 
-
-Note also that the network above uses  ```torch::nn::Dropout```. Dropout is some form of
-regularization that we should only use during training. 
-
+Other than that this example is similar to the aforementioned example. Feel free to experiment
+with the various baseline types. The dirver code is shown below.
 
 ## Driver code
 
@@ -163,13 +67,10 @@ regularization that we should only use during training.
 
 #include "cubeai/base/cubeai_types.h"
 #include "cubeai/rl/algorithms/pg/reinforce.h"
-#include "cubeai/rl/algorithms/pg/reinforce_config.h"
 #include "cubeai/rl/trainers/rl_serial_agent_trainer.h"
 #include "cubeai/maths/optimization/optimizer_type.h"
 #include "cubeai/maths/optimization/pytorch_optimizer_factory.h"
 #include "cubeai/maths/statistics/distributions/torch_categorical.h"
-# include "cubeai/utils/torch_adaptor.h"
-
 
 #include "rlenvs/utils/io/csv_file_writer.h"
 #include "rlenvs/envs/api_server/apiserver.h"
@@ -203,6 +104,7 @@ using cuberl::torch_tensor_t;
 using cuberl::DeviceType;
 using cuberl::rl::algos::pg::ReinforceSolver;
 using cuberl::rl::algos::pg::ReinforceConfig;
+using cuberl::rl::algos::pg::BaselineEnumType;
 using cuberl::rl::RLSerialAgentTrainer;
 using cuberl::rl::RLSerialTrainerConfig;
 using cuberl::maths::stats::TorchCategorical;
@@ -221,23 +123,16 @@ class PolicyNetImpl: public torch::nn::Module
 {
 public:
 
-	///
-	/// \brief Constructor
-	///
     PolicyNetImpl();
 	
 	// To execute the network in C++, 
 	// we simply call the forward() method
     torch_tensor_t forward(torch_tensor_t state);
 
-	///
-	/// \brief act Every policy network should expose
-	/// an act function that takes a StateTp and returns
-	/// an std::tuple<uint_t, torch_tensor_t>
-	///
     template<typename StateTp>
     std::tuple<uint_t, torch_tensor_t> act(const StateTp& state);
 	
+	void make_play(){is_playing_ = true;}
 private:
 
    torch::nn::Linear fc1_;
@@ -263,7 +158,6 @@ torch_tensor_t
 PolicyNetImpl::forward(torch_tensor_t x){
 
 	x = fc1_->forward(x);
-	
 	if(!is_playing_){
 		x = dp_ -> forward(x);
 		
@@ -332,9 +226,10 @@ int main(){
 								
 		opts.gamma = 0.999;
 		opts.normalize_rewards = false;
-		opts.max_itrs_per_episode = 500; // the max we can get according to docs
+		opts.max_itrs_per_episode = 200; // the max we can get according to docs
 		opts.n_episodes = N_EPISODES;
 		opts.device_type = DeviceType::CPU;
+		opts.baseline_type = BaselineEnumType::STANDARDIZE;
 
         std::map<std::string, std::any> opt_options;
         opt_options.insert(std::make_pair("lr", LEARNING_RATE));
@@ -346,14 +241,12 @@ int main(){
         auto policy_optimizer = optim::pytorch::build_pytorch_optimizer(optim::OptimzerType::ADAM,
 																		*policy, pytorch_ops);
 
-		
         solver_type solver(opts, policy, policy_optimizer);
 		
         RLSerialTrainerConfig config;
         config.n_episodes = N_EPISODES;
         config.output_msg_frequency = 20;
         RLSerialAgentTrainer<env_type, solver_type> trainer(config, solver);
-		
 		
         trainer.train(env);
 
@@ -424,7 +317,6 @@ int main(){
 		episode_duration_csv_writer.close();
 		
 		BOOST_LOG_TRIVIAL(info)<<"Finished agent training";
-		
     }
     catch(std::exception& e){
         std::cout<<e.what()<<std::endl;
@@ -443,12 +335,13 @@ int main(){
 }
 #endif
 
+
 ```
 
 Running the driver above produces the following plots.
 
 
-| ![reinforce-reward](images/reinforce_reward.png) |
+| ![reinforce-reward](images/reinforce_rewards.png) |
 |:--:|
 | **Figure 1: Undiscounted total reward for REINFORCE over training.**|
 
@@ -462,12 +355,5 @@ Running the driver above produces the following plots.
 
 ## Summary
 
-This example introduced the ```ReinforceSolver``` class that models the REINFORCE algorithm.
-
-The RINFORCE algorithm, just like all policy gradient methods, suffers from high variance in the gradient estimation.
-There are several reasons behind this high variance; e.g. sparse rewards or environment randomness.
-Regardless of reasons behind the high variance in the gradient, 
-this effect can be detrimental during learning as it destabilizes it. 
-Hence, reducing the high variance is important for feasible training. Using a bseline
-is one approach we can use in order to reduce the variance in the gradient approximation.
-We will use this in <a href="#">Example 20: REINFORCE with baseline algorithm on CartPole</a>.
+This example extened example <a href="https://github.com/pockerman/cuberl/blob/master/examples/rl/rl_example_13/rl_example_13.md"> REINFORCE algorithm on CartPole</a>
+by using a baseline term. Specifically, it used standarization or whitening as a baseline.
