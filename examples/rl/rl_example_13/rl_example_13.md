@@ -18,7 +18,9 @@ The REINFORCE algorithm samples trajectories from the environment
 using the policy on hand and estimate the gradient using these samples. 
 The true gradient can be then estimated using:
 
-$$\nabla J(\boldsymbol{\theta}_{t}) = E_{\pi} \left[ G_t \nabla log \pi(\alpha | S_t,  \boldsymbol{\theta}) \right]$$
+
+$$ \nabla J(\boldsymbol{\theta}_{t}) = E_{\pi} \left[ G_t \nabla log \pi(\alpha | S_t,  \boldsymbol{\theta}) \right] $$
+
 
 where $G_t$ is the discounted cumulative reward at time step $t$. 
 After the gradient calculation, we update the policy parameters using the following formula
