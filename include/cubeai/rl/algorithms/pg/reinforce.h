@@ -1,5 +1,5 @@
-#ifndef SIMPLE_REINFORCE_H
-#define SIMPLE_REINFORCE_H
+#ifndef REINFORCE_H
+#define REINFORCE_H
 
 ///
 /// \file simple_reinforce.h
