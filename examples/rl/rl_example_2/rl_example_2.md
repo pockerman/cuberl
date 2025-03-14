@@ -1,3 +1,32 @@
+# Example 2: Multi-armed bandits
+
+In this example we will look at how to solve the multi-armed bandits problem.
+The multi-armed bandits framework has a lot of application to online decision making such as 
+advertisement placement, and recommendation engines. The book 
+<a href="https://www.oreilly.com/library/view/bandit-algorithms-for/9781449341565/">Bandit Algorithms for Website Optimization</a>
+by John Myles White, discusses bandit algorithms for website optimization</a>.
+
+In this example we will simulate the multi-armed bandits problem using the following 
+sampling methodologies $\epsilon$-greedy and Thompson sampling.
+
+----
+**Remark**
+
+The article, by  James LeDoux, <a href="https://jamesrledoux.com/algorithms/bandit-algorithms-epsilon-ucb-exp-python/">
+Multi-Armed Bandits in Python: Epsilon Greedy, UCB1, Bayesian UCB, and EXP3</a>
+
+provides a nice overview of $\epsilon$-greedy and Thompson sampling
+
+----
+
+### $\epsilon$-greedy
+
+### Thompson sampling
+
+
+## Driver code
+
+```
 #include "cubeai/base/cubeai_types.h"
 #include "cubeai/maths/vector_math.h"
 
@@ -212,4 +241,36 @@ int main() {
    return 0;
 }
 
+```
 
+Running the driver above produces the following output (this may be different on your machine.
+
+```
+Running thompson sampling
+Thompson reward: 492
+Thompson selected levers: 358  78  13 299 252
+Running epsilon greedy sampling
+epsilon-greedy reward: 526
+epsilon-greedy selected levers: 852  32  36  34  46
+========================================
+Running thompson sampling
+Thompson reward: 468
+Thompson selected levers:  27  42  61  90 780
+Running epsilon greedy sampling
+epsilon-greedy reward: 141
+epsilon-greedy selected levers: 814  36  48  54  48
+
+```
+
+
+We can see that when all levers have the same probability of success Thompson sampling and
+$\epsilon$-greedy perform more or less the same, with $\epsilon$-greedy having some better performance.
+However, when the levers have different probability of success, Thompson sampling outperforms
+$\epsilon$-greedy by roughly a factor of 4. Notice that we can choose to force the $\epsilon$
+to decay as we do more steps assuming which means will get more exploitation. Most likely,
+this will have better performance. 
+
+
+## Summary
+
+This example implemented Thompson sampling and 

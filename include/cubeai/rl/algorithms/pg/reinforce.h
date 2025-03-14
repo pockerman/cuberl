@@ -4,7 +4,7 @@
 ///
 /// \file simple_reinforce.h
 ///
-/// Implements REINFORCE 
+/// Implements the REINFORCE algorithm
 ///
 
 #include "cubeai/base/cubeai_config.h"

@@ -24,19 +24,19 @@ class RandomTabularPolicy
 
 public:
 
-    /**
-     * @brief Constructor
-     */
+    /// 
+	/// \brief Constructor
+	/// 
     RandomTabularPolicy()=default;
 
-     /**
-     * @brief Constructor Initialize with a seed
-     */
+	///
+	/// \brief Constructor Initialize with a seed
+	///
     explicit RandomTabularPolicy(uint_t seed);
 
-     /**
-     * @brief operator(). Given a
-     */
+	///
+	/// \brief operator(). Given a
+	///
     template<typename MatType>
     uint_t operator()(const MatType& q_map, uint_t state_idx)const;
 

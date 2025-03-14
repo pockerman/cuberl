@@ -39,7 +39,7 @@ want to avoid the complexity of directly executing Python code from the C++ driv
 
 We will use the policy network from PyTorch examples: <a href="https://github.com/pytorch/examples/blob/main/reinforcement_learning/reinforce.py">reinforce.py</a>.
 However, feel free to experiment with this. Note that the PyTorch implementation uses a baseline in the implementation.
-We will use this approach in <a href="#">Example 20: REINFORCE with baseline algorithm on CartPole</a>
+We will use this approach in <a href="https://github.com/pockerman/cuberl/blob/master/examples/rl/rl_example_20/rl_example_20.md">REINFORCE with baseline algorithm on CartPole</a>
 
 
 The REINFORCE algorithm is implemented in the class <a href="https://github.com/pockerman/cuberl/blob/master/include/cubeai/rl/algorithms/pg/simple_reinforce.h">ReinforceSolver</a>

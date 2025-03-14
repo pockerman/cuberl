@@ -19,24 +19,22 @@ The following is an indicative list of examples.
 ### Reinforcement learning
 
 - <a href="https://pockerman-py-cubeai.readthedocs.io/en/latest/ExamplesCpp/rl/rl_example_0.html">DummyAgent on  ```MountainCar-v0```</a>
-- <a href="examples/example_2/example_2.cpp">Multi-armed bandit with epsilon-greedy policy</a>
-- <a href="examples/example_3/example_3.cpp">Multi-armed bandit with soft-max policy</a>
-- <a href="examples/example_4/example_4.cpp">Advertisement placement</a>
-- <a href="examples/rl/rl_example_6/rl_example_6.cpp">Iterative policy evaluation on ```FrozenLake-v0```</a>
-- <a href="examples/rl/rl_example_7/rl_example_7.cpp">Policy iteration on ```FrozenLake-v0```</a>
-- <a href="examples/rl/rl_example_8/rl_example_8.md">Value iteration on ```FrozenLake-v0```</a>
-- <a href="examples/rl/rl_example_9/rl_example_9.md">SARSA on ```CliffWalking-v0```</a>
-- <a href="examples/rl/rl_example_10/rl_example_10.md">Q-learning on ```CliffWalking-v0```</a>
-- <a href="examples/rl/rl_example_11/rl_example_11.md">A2C on ```CartPole-v1```</a>
+- <a href="examples/example_2/example_2.md">Multi-armed bandits</a>
+- <a href="examples/rl/rl_example_6/rl_example_6.cpp">Iterative policy evaluation on ```FrozenLake```</a>
+- <a href="examples/rl/rl_example_7/rl_example_7.cpp">Policy iteration on ```FrozenLake```</a>
+- <a href="examples/rl/rl_example_8/rl_example_8.md">Value iteration on ```FrozenLake```</a>
+- <a href="examples/rl/rl_example_9/rl_example_9.md">SARSA on ```CliffWalking```</a>
+- <a href="examples/rl/rl_example_10/rl_example_10.md">Q-learning on ```CliffWalking```</a>
+- <a href="examples/rl/rl_example_11/rl_example_11.md">A2C on ```CartPole```</a>
 - <a href="examples/rl/rl_example_12/rl_example_12.md">DQN on ```Gridworld```</a>
 - <a href="examples/rl/rl_example_15/rl_example_15.md">DQN on ```Gridworld``` with experience replay</a>
-- <a href="examples/rl/rl_example_13/rl_example_13.md">REINFORCE algorithm on ```CartPole-v0```</a>
-- <a href="examples/rl/rl_example_14/rl_example_14.cpp">Expected SARSA on ```CliffWalking-v0```</a>
-- <a href="examples/example_15/example_15.cpp">Approximate Monte Carlo on ```MountainCar-v0```</a>
-- <a href="examples/rl_example_16/rl_example_16.md">Monte Carlo tree search on ```Taxi-v3```</a>
-- <a href="examples/rl/rl_example_18.cpp">Double Q-learning on  ```CartPole-v0``` </a>
-- <a href="examples/rl/rl_example_19/rl_example_19.cpp">First visit Monte Carlo on ```FrozenLake-v0```</a>
-- <a href="examples/rl/rl_example_20/rl_example_20.md">Example 20: REINFORCE algorithm with baseline on ```CartPole```</a>
+- <a href="examples/rl/rl_example_13/rl_example_13.md">REINFORCE algorithm on ```CartPole```</a>
+- <a href="examples/rl/rl_example_14/rl_example_14.cpp">Expected SARSA on ```CliffWalking```</a>
+- <a href="examples/example_15/example_15.cpp">Approximate Monte Carlo on ```MountainCar```</a>
+- <a href="examples/rl_example_16/rl_example_16.md">Monte Carlo tree search on ```Taxi```</a>
+- <a href="examples/rl/rl_example_18.cpp">Double Q-learning on  ```CartPole``` </a>
+- <a href="examples/rl/rl_example_19/rl_example_19.cpp">First visit Monte Carlo on ```FrozenLake```</a>
+- <a href="examples/rl/rl_example_20/rl_example_20.md">REINFORCE algorithm with baseline on ```CartPole```</a>
 
 ### Filtering
 

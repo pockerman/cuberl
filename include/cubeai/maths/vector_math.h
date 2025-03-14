@@ -340,10 +340,10 @@ exponentiate(const torch_tensor_t tensor, typename VectorType::value_type v){
 
 
 
-/**
- * @brief applies softmax operation to the elements of the vector
- * and returns a vector with the result
- */
+/// 
+/// \brief applies softmax operation to the elements of the vector
+/// and returns a vector with the result
+/// 
 template<typename T>
 std::vector<T>
 softmax_vec(const std::vector<T>& vec, real_t tau=1.0){
@@ -365,10 +365,10 @@ softmax_vec(const std::vector<T>& vec, real_t tau=1.0){
 
 }
 
-/**
- * @brief applies softmax operation to the elements of the vector
- * and returns a vector with the result
- */
+///
+/// \brief applies softmax operation to the elements of the vector
+/// and returns a vector with the result
+///
 template<typename T>
 DynVec<T>
 softmax_vec(const DynVec<T>& vec, real_t tau=1.0){
@@ -388,10 +388,10 @@ softmax_vec(const DynVec<T>& vec, real_t tau=1.0){
 }
 
 
-/**
- * @brief applies softmax operation to the elements of the vector
- * and returns a vector with the result
- */
+///
+/// \brief applies softmax operation to the elements of the vector
+/// and returns a vector with the result
+///
 template<typename IteratorType>
 DynVec<typename IteratorType::value_type>
 softmax_vec(IteratorType begin, IteratorType end, real_t tau=1.0){
