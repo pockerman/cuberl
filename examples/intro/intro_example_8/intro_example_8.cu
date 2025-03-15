@@ -1,17 +1,18 @@
+#include <stdio.h>
+#include <cuda.h>
+
 #include "cubeai/base/cubeai_config.h"
 
 #ifdef USE_CUDA
 
 #include "cubeai/base/cubeai_types.h"
-#include <boost/log/trivial.hpp>
 
+#include <boost/log/trivial.hpp>
 #include <iostream>
-#include <stdio.h>
-#include <cuda.h>
 
 namespace exe{
 	
-	using cuberl::float_t;
+	using cubeai::float_t;
 
 __global__ void sum(float_t* v1, float_t* v2, float_t* v3){
 
@@ -69,6 +70,7 @@ int main() {
 	// copy the output from the GPU to host
 	cudaMemcpy(h_v3, d_v3, ARRAY_BYTES, cudaMemcpyDeviceToHost);
 
+
 	for(int i=0; i<ARRAY_SIZE; ++i){
 		std::cout<<h_v1[i]<<"+"<<h_v2[i]<<"="<<h_v3[i]<<std::endl;
 	}
@@ -87,7 +89,7 @@ int main() {
 #else
 #include <iostream>
 int main() {
-	std::cout<<"This example requires CUDA support enabled. Reconfigure cuberl and set USE_CUDA=ON"<<std::endl;
+	std::cout<<"This example requires CUDA support enabled. Reconfigure CubeRL and set USE_CUDA=ON"<<std::endl;
 	return 1;
 }
 #endif
