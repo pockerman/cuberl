@@ -18,7 +18,6 @@ The following is an indicative list of examples.
 
 ### Reinforcement learning
 
-- <a href="https://pockerman-py-cubeai.readthedocs.io/en/latest/ExamplesCpp/rl/rl_example_0.html">DummyAgent on  ```MountainCar-v0```</a>
 - <a href="examples/rl/rl_example_2/rl_example_2.md">Multi-armed bandits</a>
 - <a href="examples/rl/rl_example_6/rl_example_6.cpp">Iterative policy evaluation on ```FrozenLake```</a>
 - <a href="examples/rl/rl_example_7/rl_example_7.cpp">Policy iteration on ```FrozenLake```</a>
