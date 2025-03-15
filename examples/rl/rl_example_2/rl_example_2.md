@@ -1,27 +1,48 @@
 # Example 2: Multi-armed bandits
 
-In this example we will look at how to solve the multi-armed bandits problem.
-The multi-armed bandits framework has a lot of application to online decision making such as 
-advertisement placement, and recommendation engines. The book 
-<a href="https://www.oreilly.com/library/view/bandit-algorithms-for/9781449341565/">Bandit Algorithms for Website Optimization</a>
-by John Myles White, discusses bandit algorithms for website optimization</a>.
+In this example we will look at how to solve the <a href="https://en.wikipedia.org/wiki/Multi-armed_bandit">multi-armed bandits problem</a>.
+In particular, we will look at how to use two specific algorithms namely 
+$\epsilon$-greedy and <a href="https://en.wikipedia.org/wiki/Thompson_sampling">Thompson sampling</a>.
 
-In this example we will simulate the multi-armed bandits problem using the following 
-sampling methodologies $\epsilon$-greedy and Thompson sampling.
+The multi-armed bandits framework has a lot of applications to online decision making such as 
+advertisement placement, and recommendation engines. 
+An algorithm that solves the problem essentially provides a policy that optimizes
+for a given criteria e.g. reward accummulated over how to choose amonst the available options.
+
 
 ----
 **Remark**
 
 The article, by  James LeDoux, <a href="https://jamesrledoux.com/algorithms/bandit-algorithms-epsilon-ucb-exp-python/">
 Multi-Armed Bandits in Python: Epsilon Greedy, UCB1, Bayesian UCB, and EXP3</a>
-
-provides a nice overview of $\epsilon$-greedy and Thompson sampling
+provides a nice overview of $\epsilon$-greedy and Thompson sampling whilst the book 
+<a href="https://www.oreilly.com/library/view/bandit-algorithms-for/9781449341565/">Bandit Algorithms for Website Optimization</a>
+by John Myles White, discusses bandit algorithms for website optimization</a>.
 
 ----
 
-### $\epsilon$-greedy
+### $\epsilon$-greedy sampling
+
+Perhaps one of the simplest approaches to solve the bandits problem is an 
+$\epsilon$-greedy sampling strategy. As probably the name suggests, the algorithm
+most of the times will greedily select the action with the highest accummulated reward.
+However for a small probability, $\epsilon$, the algorithm will randomly select an action
+amonst the available ones. This is a very simple algorithm and often provides quite good results.
+
+The $\epsilon$-greedy sampling is implemented in the class ```cuberl::rl::policies::EpsilonGreedyPolicy```.
 
 ### Thompson sampling
+
+According to wikipedia, Thompson sampling is an approach for selecting actions that 
+simultaneously address the <a href="https://en.wikipedia.org/wiki/Exploration%E2%80%93exploitation_dilemma">exploration–exploitation dilemma</a>
+in the multi-armed bandit problem. When using Thompson sampling we choose the action that maximizes the expected reward with respect to a randomly drawn belief. 
+
+In the implementation below, we will use the <a href="https://en.wikipedia.org/wiki/Beta_distribution">Beta distribution</a>
+but this need not be the case. Feel free to experiment with this.
+
+
+The class ```rlenvscpp::envs::bandits::MultiArmedBandits``` conventietly wraps the multi-armed bandits
+framework into an environment we can utilise.
 
 
 ## Driver code
@@ -29,7 +50,7 @@ provides a nice overview of $\epsilon$-greedy and Thompson sampling
 ```
 #include "cubeai/base/cubeai_types.h"
 #include "cubeai/maths/vector_math.h"
-
+#include "cubeai/rl/policies/epsilon_greedy_policy.h"
 #include "rlenvs/utils/maths/statistics/distributions/beta_dist.h"
 #include "rlenvs/utils/maths/statistics/distributions/bernoulli_dist.h"
 #include "rlenvs/envs/multi_armed_bandits/multi_armed_bandits.h"
@@ -52,7 +73,7 @@ using cuberl::uint_t;
 using cuberl::int_t;
 using cuberl::DynMat;
 using cuberl::DynVec;
-
+using cuberl::rl::policies::EpsilonGreedyPolicy;
 using rlenvscpp::utils::maths::stats::BetaDist;
 using rlenvscpp::utils::maths::stats::BernoulliDist;
 using rlenvscpp::envs::bandits::MultiArmedBandits;
@@ -81,29 +102,11 @@ run_epsilon_greedy(MultiArmedBandits& env, real_t eps){
 		result.lever_pulls[a] = 0;
 	}
 	
-	// generate a number in [0, 1]
-	std::uniform_real_distribution<> real_dist_(0.0, 1.0);
-
-	// uniformly select an action
-	std::uniform_int_distribution<int_t> distribution(0, 
-	                                               static_cast<int>(env.n_actions())-1);
-												   
-	std::random_device rd;
-	std::mt19937 generator(rd());
+	EpsilonGreedyPolicy policy(eps);
 	
 	for(uint_t e=0; e < N_EPISODES; ++e){
-		
-		auto action = 0;
-		if(real_dist_(generator) > eps){
-			action = cuberl::maths::arg_max(max_rewards);
-		}
-		else{
-			
-			// randomly select an action
-			action = distribution(generator);
-		}
-		
-		
+	
+		auto action = policy.get_action(max_rewards);
 		auto time_step = env.step(action);
 		
 		// get the reward from the action
@@ -247,30 +250,36 @@ Running the driver above produces the following output (this may be different on
 
 ```
 Running thompson sampling
-Thompson reward: 492
-Thompson selected levers: 358  78  13 299 252
+Thompson reward: 484
+Thompson selected levers: 306 158 256 250  30
 Running epsilon greedy sampling
-epsilon-greedy reward: 526
-epsilon-greedy selected levers: 852  32  36  34  46
+epsilon-greedy reward: 486
+epsilon-greedy selected levers: 840  49  36  34  41
 ========================================
 Running thompson sampling
-Thompson reward: 468
-Thompson selected levers:  27  42  61  90 780
+Thompson reward: 447
+Thompson selected levers:  19   9  41 229 702
 Running epsilon greedy sampling
-epsilon-greedy reward: 141
-epsilon-greedy selected levers: 814  36  48  54  48
+epsilon-greedy reward: 140
+epsilon-greedy selected levers: 840  36  45  37  42
 
 ```
 
 
 We can see that when all levers have the same probability of success Thompson sampling and
 $\epsilon$-greedy perform more or less the same, with $\epsilon$-greedy having some better performance.
+Notice also that Thompson sampling somehow spreads the decision making amongst the equally good levers.
 However, when the levers have different probability of success, Thompson sampling outperforms
-$\epsilon$-greedy by roughly a factor of 4. Notice that we can choose to force the $\epsilon$
-to decay as we do more steps assuming which means will get more exploitation. Most likely,
-this will have better performance. 
+$\epsilon$-greedy by roughly a factor of 4.  Also notice that Thompson sampling favours the last lever
+as one would expect. In contrast, $\epsilon$-greedy seems to favour the lever with the lowest
+success probability.
 
+Although we did not implement this here, we can decay $\epsilon$ over time. This makes sense since as the 
+agent spends more time in the game it aquires more knowledge and therefore it does not need to explore as often as
+it needs in the early stages. Alternatively, we can have the agent acting completely at random at the beginning
+and the then fully exploit.
 
+ 
 ## Summary
 
-This example implemented Thompson sampling and 
+This example implemented Thompson sampling and  $\epsilon$-greedy in order to solve the multi-armed Bandits problem.

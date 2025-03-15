@@ -30,6 +30,12 @@ class EpsilonGreedyPolicy
 {
 public:
 
+	
+	///
+	/// \brief The type returned when calling this->operator()
+	///
+	typedef uint_t output_type;
+	
     constexpr static real_t MIN_EPS = 0.01;
     constexpr static real_t MAX_EPS = 1.0;
     constexpr static real_t EPSILON_DECAY_FACTOR = 0.01;
@@ -43,7 +49,6 @@ public:
     ///	\brief Constructor. Creates an epsilon-greedy tabular policy
     ///
     explicit EpsilonGreedyPolicy(real_t eps, uint_t seed);
-
 
     ///
 	/// \brief Constructor Creates an epsilon greedy policy with an
@@ -59,20 +64,34 @@ public:
     /// \brief operator() Select action for the given state
     ///
     template<typename MapType>
-    uint_t operator()(const MapType& q_map, uint_t state)const;
+    output_type operator()(const MapType& q_map, uint_t state)const;
 
 
-    /**
-     * @brief Get an action i.e. index from the given values
-     */
+    ///
+	/// \brief Get an action i.e. index from the given values
+	///
     template<typename VecType>
-    uint_t operator()(const VecType& vec)const;
+    output_type operator()(const VecType& vec)const;
+	
+	///
+	/// \brief get_action. Given a
+	///
+    template<typename MatType>
+    output_type get_action(const MatType& q_map, uint_t state_idx);
+	
+	///
+	/// \brief get_action. Given a vector always returns the position
+	/// of the maximum occuring element. If the given vector is empty returns
+	/// CubeAIConsts::invalid_size_type
+	///
+    template<typename VecTp>
+    output_type get_action(const VecTp& q_map);
 
 #ifdef USE_PYTORCH
-    uint_t operator()(const torch_tensor_t& vec, torch_tensor_value_type<real_t>)const;
-	uint_t operator()(const torch_tensor_t& vec, torch_tensor_value_type<float_t>)const;
-	uint_t operator()(const torch_tensor_t& vec, torch_tensor_value_type<int_t>)const;
-	uint_t operator()(const torch_tensor_t& vec, torch_tensor_value_type<lint_t>)const;
+    output_type operator()(const torch_tensor_t& vec, torch_tensor_value_type<real_t>)const;
+	output_type operator()(const torch_tensor_t& vec, torch_tensor_value_type<float_t>)const;
+	output_type operator()(const torch_tensor_t& vec, torch_tensor_value_type<int_t>)const;
+	output_type operator()(const torch_tensor_t& vec, torch_tensor_value_type<lint_t>)const;
 #endif
 
     ///
@@ -159,10 +178,26 @@ EpsilonGreedyPolicy::EpsilonGreedyPolicy(real_t eps, uint_t seed)
 
 
 template<typename VecType>
-uint_t
+EpsilonGreedyPolicy::output_type
 EpsilonGreedyPolicy::operator()(const VecType& vec)const{
 
     // generate a number in [0, 1]
+    std::uniform_real_distribution<> real_dist_(0.0, 1.0);
+
+    if(real_dist_(generator_) > eps_){
+        // select greedy action with probability 1 - epsilon
+        return max_policy_.get_action(vec);
+    }
+
+    // else select a random action
+    return random_policy_(vec);
+}
+
+
+template<typename VecTp>
+EpsilonGreedyPolicy::output_type
+EpsilonGreedyPolicy::get_action(const VecTp& vec){
+	// generate a number in [0, 1]
     std::uniform_real_distribution<> real_dist_(0.0, 1.0);
 
     if(real_dist_(generator_) > eps_){

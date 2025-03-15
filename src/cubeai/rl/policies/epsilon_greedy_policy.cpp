@@ -16,7 +16,7 @@ namespace policies {
 	
 	
 #ifdef USE_PYTORCH
-    uint_t 
+    EpsilonGreedyPolicy::output_type 
 	EpsilonGreedyPolicy::operator()(const torch_tensor_t& tensor, torch_tensor_value_type<real_t>)const{
 		
 		auto vec = cuberl::utils::pytorch::TorchAdaptor::to_vector<real_t>(tensor);
@@ -32,7 +32,7 @@ namespace policies {
 		return random_policy_(vec);
 		
 	}
-	uint_t 
+	EpsilonGreedyPolicy::output_type 
 	EpsilonGreedyPolicy::operator()(const torch_tensor_t& tensor, torch_tensor_value_type<float_t>)const{
 		
 		auto vec = cuberl::utils::pytorch::TorchAdaptor::to_vector<float_t>(tensor);
@@ -48,7 +48,7 @@ namespace policies {
 		return random_policy_(vec);
 		
 	}
-	uint_t 
+	EpsilonGreedyPolicy::output_type 
 	EpsilonGreedyPolicy::operator()(const torch_tensor_t& tensor, torch_tensor_value_type<int_t>)const{
 		
 		auto vec = cuberl::utils::pytorch::TorchAdaptor::to_vector<int_t>(tensor);
@@ -64,8 +64,9 @@ namespace policies {
 		return random_policy_(vec);
 		
 	}
-	uint_t 
-	EpsilonGreedyPolicy::operator()(const torch_tensor_t& tensor, torch_tensor_value_type<lint_t>)const{
+	EpsilonGreedyPolicy::output_type 
+	EpsilonGreedyPolicy::operator()(const torch_tensor_t& tensor, 
+									torch_tensor_value_type<lint_t>)const{
 		auto vec = cuberl::utils::pytorch::TorchAdaptor::to_vector<lint_t>(tensor);
 
 		std::uniform_real_distribution<> real_dist_(0.0, 1.0);
@@ -82,7 +83,7 @@ namespace policies {
 
 
 template<>
-uint_t
+EpsilonGreedyPolicy::output_type
 EpsilonGreedyPolicy::operator()(const DynMat<real_t>& mat, uint_t state_idx)const{
 
 #ifdef CUBERL_DEBUG
@@ -93,7 +94,7 @@ EpsilonGreedyPolicy::operator()(const DynMat<real_t>& mat, uint_t state_idx)cons
 }
 
 template<>
-uint_t
+EpsilonGreedyPolicy::output_type
 EpsilonGreedyPolicy::operator()(const std::vector<std::vector<real_t>>& mat,
                                 uint_t state_idx)const{
 #ifdef CUBERL_DEBUG
@@ -102,6 +103,30 @@ EpsilonGreedyPolicy::operator()(const std::vector<std::vector<real_t>>& mat,
 
     return (*this)(mat[state_idx]);
 
+}
+
+
+template<>
+EpsilonGreedyPolicy::output_type 
+EpsilonGreedyPolicy::get_action(const std::vector<std::vector<real_t>>& mat,
+                                uint_t state_idx){
+	
+#ifdef CUBERL_DEBUG
+    assert(state_idx < mat.size() && "Invalid state index. Should be state_idx < q_map.size()");
+#endif
+
+    return get_action(mat[state_idx]);
+}
+
+template<>
+EpsilonGreedyPolicy::output_type 
+EpsilonGreedyPolicy::get_action(const DynMat<real_t>& mat, uint_t state_idx){
+	
+#ifdef CUBERL_DEBUG
+    assert(state_idx < mat.size() && "Invalid state index. Should be state_idx < q_map.size()");
+#endif
+
+    return get_action(mat.row(state_idx));
 }
 
 void 

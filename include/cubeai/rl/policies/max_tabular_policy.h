@@ -156,9 +156,6 @@ MaxTabularPolicyBuilder::build_from_state_function(const EnvType& env,
 		auto state_vals = cuberl::rl::algos::state_actions_from_v(env, v, 
 																  gamma, s);
 																  
-																  
-		std::cout<<"State vals: "<<state_vals<<std::endl;
-																  
 		action_type action = policy.get_action(state_vals);
 		policy.state_action_map_[s] = action;
 	}

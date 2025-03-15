@@ -1,6 +1,6 @@
 #include "cubeai/base/cubeai_types.h"
 #include "cubeai/maths/vector_math.h"
-
+#include "cubeai/rl/policies/epsilon_greedy_policy.h"
 #include "rlenvs/utils/maths/statistics/distributions/beta_dist.h"
 #include "rlenvs/utils/maths/statistics/distributions/bernoulli_dist.h"
 #include "rlenvs/envs/multi_armed_bandits/multi_armed_bandits.h"
@@ -23,7 +23,7 @@ using cuberl::uint_t;
 using cuberl::int_t;
 using cuberl::DynMat;
 using cuberl::DynVec;
-
+using cuberl::rl::policies::EpsilonGreedyPolicy;
 using rlenvscpp::utils::maths::stats::BetaDist;
 using rlenvscpp::utils::maths::stats::BernoulliDist;
 using rlenvscpp::envs::bandits::MultiArmedBandits;
@@ -52,29 +52,11 @@ run_epsilon_greedy(MultiArmedBandits& env, real_t eps){
 		result.lever_pulls[a] = 0;
 	}
 	
-	// generate a number in [0, 1]
-	std::uniform_real_distribution<> real_dist_(0.0, 1.0);
-
-	// uniformly select an action
-	std::uniform_int_distribution<int_t> distribution(0, 
-	                                               static_cast<int>(env.n_actions())-1);
-												   
-	std::random_device rd;
-	std::mt19937 generator(rd());
+	EpsilonGreedyPolicy policy(eps);
 	
 	for(uint_t e=0; e < N_EPISODES; ++e){
-		
-		auto action = 0;
-		if(real_dist_(generator) > eps){
-			action = cuberl::maths::arg_max(max_rewards);
-		}
-		else{
-			
-			// randomly select an action
-			action = distribution(generator);
-		}
-		
-		
+	
+		auto action = policy.get_action(max_rewards);
 		auto time_step = env.step(action);
 		
 		// get the reward from the action
