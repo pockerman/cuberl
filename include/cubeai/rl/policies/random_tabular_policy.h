@@ -85,11 +85,6 @@ public:
 
 private:
 	
-	///
-	/// \brief Random device to use when not using seed
-	///
-	//std::random_device rd_;
-
     ///
 	/// \brief The random engine generator
 	///
