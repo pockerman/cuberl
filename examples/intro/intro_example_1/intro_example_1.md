@@ -44,7 +44,8 @@ where $x \sim U(a,b)$. By the
 
 $$\hat{I}\rightarrow E\left[\omega(X)\right] = I$$
 
-Notice that the law of large numbers, see @sec-limit-theorems-clt, provides us with probability convergence. Hence $\hat{I}$ will converge in probability to $I$. The standard error, $\hat{se}$, for the estimate is [1]
+Notice that the law of large numbers provides us with probability convergence. 
+Hence $\hat{I}$ will converge in probability to $I$. The standard error, $\hat{se}$, for the estimate is [1]
 
 $$\hat{se} = \frac{s}{\sqrt{n}}$$
 
