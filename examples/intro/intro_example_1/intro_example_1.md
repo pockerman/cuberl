@@ -26,7 +26,7 @@ Let's begine by rewriting $I$ as follows
 
 $$I=\int_a^b \omega(x)f(x) dx$$
 
-where $\omega=h(x)(b-a)$ and $f(x) = 1/(b-a)$ and $f$ is the probability density for a uniform random variable over $(a,b)$ [1]. 
+where $\omega=h(x)(b-a)$ and $f(x) = 1/(b-a)$ i.e. $f$ is the probability density for a uniform random variable over $(a,b)$ [1]. 
 Recall that the expectation for a continuous variable $X$ is given by
 
 $$E\left[X\right]=\int xf(x)dx$$
