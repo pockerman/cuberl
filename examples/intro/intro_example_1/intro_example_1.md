@@ -5,7 +5,7 @@ we will see how to read a json file, how to use boost logging, various types exp
 We will do so by using a simple <a href="https://en.wikipedia.org/wiki/Monte_Carlo_integration">Monte Carlo integration</a> example.
 
 
-## Monte Carl intergration
+## Monte Carlo intergration
 
 Frequently in applications we need to evaluate integrals for which no analytical solution exists. 
 Numerical methods can help us overcome this. Monte Carlo is just one of these methods. 
