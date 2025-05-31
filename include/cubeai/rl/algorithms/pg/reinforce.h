@@ -210,7 +210,6 @@ ReinforceSolver<EnvType,
       // on the seen state. 
       auto [action, log_prob] = policy_ptr_ -> act(old_timestep.observation());
 	  
-
       // execute the selected action on the environment
       auto new_timestep = env.step(action);
 	  auto reward = new_timestep.reward();
@@ -302,7 +301,9 @@ ReinforceSolver<EnvType, PolicyType>::train_batch_(experience_buffer_type& buffe
 													          log_probs_batch);
 															  
 															  
-	auto loss = cuberl::utils::pytorch::TorchAdaptor::stack(loss_vals, config_.device_type, true).sum();
+	auto loss = cuberl::utils::pytorch::TorchAdaptor::stack(loss_vals, 
+	                                                        config_.device_type, 
+															true).sum();
 	policy_optimizer_ -> zero_grad();
 	loss.backward();
 	policy_optimizer_ -> step();
@@ -417,7 +418,8 @@ ReinforceSolver<EnvType, PolicyType>::train_with_baseline_(experience_buffer_typ
 													          log_probs_batch);
 															  
 															  
-	auto loss = cuberl::utils::pytorch::TorchAdaptor::stack(loss_vals, config_.device_type, 
+	auto loss = cuberl::utils::pytorch::TorchAdaptor::stack(loss_vals, 
+	                                                        config_.device_type, 
 															true).sum();
 	policy_optimizer_ -> zero_grad();
 	loss.backward();

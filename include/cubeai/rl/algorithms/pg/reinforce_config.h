@@ -5,6 +5,9 @@
 #include "rlenvs/rlenvs_consts.h"
 #include "cubeai/utils/train_enum_type.h"
 
+#include <ostream>
+#include <string>
+
 namespace cuberl {
 namespace rl {
 namespace algos {

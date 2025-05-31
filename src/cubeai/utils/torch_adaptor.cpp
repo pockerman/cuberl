@@ -225,12 +225,15 @@ TorchAdaptor::operator()(const std::vector<int>& data)const{
     return torch::tensor(data);
 };
 
+/*
 TorchAdaptor::value_type
 TorchAdaptor::stack(const std::vector<value_type>& values, DeviceType dtype)const{
 
 	auto device_ =  dtype != DeviceType::CPU ? torch::kCUDA : torch::kCPU;
     return torch::stack(values, 0).to(device_);
 }
+
+*/
 
 template<>
 std::vector<int>

@@ -43,6 +43,9 @@ struct TorchAdaptor{
 	                        DeviceType type=DeviceType::CPU,
 							bool requires_grad=false);
 							
+//	static value_type stack(const std::vector<value_type>& values, 
+//	                        DeviceType type=DeviceType::CPU)const;
+							
 	static value_type cat(const std::vector<real_t>& values, 
 	                        DeviceType type=DeviceType::CPU,
 							bool requires_grad=false);
@@ -59,7 +62,7 @@ struct TorchAdaptor{
 	torch_tensor_t operator()(const std::vector<float_t>& data)const;
     torch_tensor_t operator()(const std::vector<int>& data)const;
 	
-    value_type stack(const std::vector<value_type>& values, DeviceType type=DeviceType::CPU)const;
+    
 
 };
 
