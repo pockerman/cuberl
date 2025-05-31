@@ -5,7 +5,7 @@ we will see how to read a json file, how to use boost logging, various types exp
 We will do so by using a simple <a href="https://en.wikipedia.org/wiki/Monte_Carlo_integration">Monte Carlo integration</a> example.
 
 
-## Monte Carl intergration
+## Monte Carlo intergration
 
 Frequently in applications we need to evaluate integrals for which no analytical solution exists. 
 Numerical methods can help us overcome this. Monte Carlo is just one of these methods. 
@@ -26,7 +26,7 @@ Let's begine by rewriting $I$ as follows
 
 $$I=\int_a^b \omega(x)f(x) dx$$
 
-where $\omega=h(x)(b-a)$ and $f(x) = 1/(b-a)$ and $f$ is the probability density for a uniform random variable over $(a,b)$ [1]. 
+where $\omega=h(x)(b-a)$ and $f(x) = 1/(b-a)$ i.e. $f$ is the probability density for a uniform random variable over $(a,b)$ [1]. 
 Recall that the expectation for a continuous variable $X$ is given by
 
 $$E\left[X\right]=\int xf(x)dx$$
@@ -44,7 +44,8 @@ where $x \sim U(a,b)$. By the
 
 $$\hat{I}\rightarrow E\left[\omega(X)\right] = I$$
 
-Notice that the law of large numbers, see @sec-limit-theorems-clt, provides us with probability convergence. Hence $\hat{I}$ will converge in probability to $I$. The standard error, $\hat{se}$, for the estimate is [1]
+Notice that the law of large numbers provides us with probability convergence. 
+Hence $\hat{I}$ will converge in probability to $I$. The standard error, $\hat{se}$, for the estimate is [1]
 
 $$\hat{se} = \frac{s}{\sqrt{n}}$$
 
