@@ -5,7 +5,7 @@
 #include "cubeai/base/cubeai_types.h"
 #include "cubeai/maths/statistics/distributions/torch_categorical.h"
 #include "cubeai/rl/trainers/rl_serial_agent_trainer.h"
-#include "cubeai/rl/algorithms/actor_critic/a2c.h"
+#include "cubeai/rl/algorithms/pg/a2c.h"
 #include "cubeai/maths/optimization/optimizer_type.h"
 #include "cubeai/maths/optimization/pytorch_optimizer_factory.h"
 
@@ -26,8 +26,8 @@ using cuberl::real_t;
 using cuberl::uint_t;
 using cuberl::torch_tensor_t;
 using cuberl::maths::stats::TorchCategorical;
-using cuberl::rl::algos::ac::A2CConfig;
-using cuberl::rl::algos::ac::A2CSolver;
+using cuberl::rl::algos::pg::A2CConfig;
+using cuberl::rl::algos::pg::A2CSolver;
 using cuberl::rl::RLSerialAgentTrainer;
 using cuberl::rl::RLSerialTrainerConfig;
 using rlenvscpp::envs::RESTApiServerWrapper;

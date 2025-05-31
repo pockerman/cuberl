@@ -38,6 +38,8 @@ IF(COMMAND cmake_policy)
 	CMAKE_POLICY(SET CMP0048 NEW)
 ENDIF(COMMAND cmake_policy)
 
+OPTION(ENABLE_WEBOTS_FLAG OFF)
+
 # configure the project accordingly
 # Set the build type options supported
 # Debug and Release are the types supported
@@ -61,6 +63,21 @@ SET(DATA_SET_FOLDER ${PROJECT_SOURCE_DIR}/data)
 SET(ENABLE_EXAMPLES_FLAG ON)
 SET(ENABLE_TESTS_FLAG ON) # Testing
 SET(ENABLE_DOC_FLAG OFF) # Documentation
+
+# if we enable Webots then specify the paths
+# Note that if rlenvscpp is compiled with
+# Webots then this flags has to be ON
+IF(ENABLE_WEBOTS_FLAG)
+	# we have webots include the directories
+    SET(WEBOTS_LIB_DIRS "/home/alex/qi3/rlenvs_from_cpp/external/webots/lib/controller")    
+    SET(WEBOTS_INCLUDE_DIRS "/home/alex/qi3/rlenvs_from_cpp/external/webots/include/controller/cpp")
+	
+	INCLUDE_DIRECTORIES(${WEBOTS_INCLUDE_DIRS})
+	LINK_DIRECTORIES(${WEBOTS_LIB_DIRS})
+	SET(USE_CUBERL_WEBOTS ON)
+ELSE()
+	MESSAGE( WARNING  "Building without Webots.")
+ENDIF()
 
 
 IF(USE_CUDA)
