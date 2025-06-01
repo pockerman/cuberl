@@ -62,7 +62,6 @@ The cubeai library has a host of dependencies:
 In addition, the library also incorporates, see ```(include/cubeai/extern)```, the following libraries (you don't need to install these):
 
 - <a href="https://github.com/elnormous/HTTPRequest">HTTPRequest</a>
-- <a href="http://github.com/aantron/better-enums">better-enums</a>
 - <a href="https://github.com/nlohmann/json">nlohmann/json</a>
 
 ### Enabling PyTorch and CUDA
