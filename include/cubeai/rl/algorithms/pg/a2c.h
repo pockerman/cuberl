@@ -281,7 +281,6 @@ A2CSolver<EnvType, PolicyType, CriticType>::create_episode_batch_(env_type& env,
     uint_t itrs = 0;
     for(; itrs < config_.max_itrs_per_episode; ++itrs){
 		
-		
 		auto [action, log_prob] = policy_ -> act(old_timestep.observation());
 		auto values = critic_ -> evaluate(old_timestep.observation());
 
@@ -335,9 +334,14 @@ A2CSolver<EnvType, PolicyType, CriticType>::train_with_batch_(experience_buffer_
 	auto logprobs_batch = monitor_.template get<torch_tensor_t, 4>(batch);
 	
 	
-	auto torch_rewards_batch = TorchAdaptor::to_torch(rewards_batch, 
+	// compute the discounted rewards for this batch																	  
+	auto discounted_returns = cuberl::rl::algos::calculate_step_discounted_return(rewards_batch,
+	                                                                              config_.gamma);
+	
+	auto torch_rewards_batch = TorchAdaptor::to_torch(discounted_returns, 
 		                                              config_.device_type, 
 												      false);
+													  
 	auto torch_values_batch = TorchAdaptor::stack(values_batch, 
 	                                              config_.device_type
 												  );

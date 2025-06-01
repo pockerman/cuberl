@@ -472,4 +472,4 @@ Regardless of reasons behind the high variance in the gradient,
 this effect can be detrimental during learning as it destabilizes it. 
 Hence, reducing the high variance is important for feasible training. Using a bseline
 is one approach we can use in order to reduce the variance in the gradient approximation.
-We will use this in <a href="#">Example 20: REINFORCE with baseline algorithm on CartPole</a>.
+We will use this in <a href="https://github.com/pockerman/cuberl/blob/master/examples/rl/rl_example_20/rl_example_20.md">Example 20: REINFORCE with baseline algorithm on CartPole</a>.

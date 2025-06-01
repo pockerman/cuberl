@@ -306,8 +306,7 @@ int main(){
 
 int main(){
 
-    std::cout<<"This example requires the flag USE_RLENVS_CPP to be true."<<std::endl;
-    std::cout<<"Reconfigures and rebuild the library by setting the flag USE_RLENVS_CPP  to ON."<<std::endl;
+    std::cout<<"This example requires PyTorch. Reconfigure cuberl with USE_PYTORCH fag turned ON."<<std::endl;
     return 1;
 }
 #endif
