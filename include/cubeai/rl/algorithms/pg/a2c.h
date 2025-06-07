@@ -2,7 +2,7 @@
 #define A2C_H
 
 /// 
-/// Implements synchronous shared-weights advantage-actor critic, A2C, algorithm
+/// Implements synchronous  advantage-actor critic, A2C, algorithm
 /// Currently the implementation of this class assumes that
 /// PyTorch is used to model the deep networks
 /// 
@@ -19,14 +19,7 @@
 #include "cubeai/rl/episode_info.h"
 #include "cubeai/rl/algorithms/pg/a2c_config.h"
 #include "cubeai/rl/algorithms/pg/a2c_monitor.h"
-
-//#include "cubeai/utils/cubeai_concepts.h"
-
-//#include "cubeai/utils/torch_adaptor.h"
-
 #include "cubeai/data_structs/experience_buffer.h"
-
-//#include "cubeai/maths/vector_math.h"
 
 
 #include <torch/torch.h>
