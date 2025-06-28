@@ -36,6 +36,7 @@ namespace rl_example_12{
 	
 using cuberl::real_t;
 using cuberl::uint_t;
+using cuberl::int_t;
 using cuberl::float_t;
 using cuberl::torch_tensor_t;
 
@@ -44,25 +45,24 @@ using cuberl::rl::RLSerialTrainerConfig;
 using cuberl::rl::policies::EpsilonGreedyPolicy;
 using cuberl::containers::ExperienceBuffer;
 using rlenvscpp::envs::grid_world::Gridworld;
+using rlenvscpp::utils::io::CSVWriter;
 
 	
 const std::string EXPERIMENT_ID = "1";
 
-const uint_t l1 = 64;
-const uint_t l2 = 150;
-const uint_t l3 = 100;
-const uint_t l4 = 4;
-const uint_t SEED = 42;
-const uint_t BATCH_SIZE = 200;
-const uint_t EXPERIENCE_BUFFER_SIZE = 1000;
-const uint_t TOTAL_EPOCHS = 1000;
-const uint_t TOTAL_ITRS_PER_EPOCH = 50;
-const real_t GAMMA = 0.9;
-const real_t EPSILON = 0.3;
-const real_t LEARNING_RATE = 1.0e-3;
+constexpr uint_t l1 = 64;
+constexpr uint_t l2 = 150;
+constexpr uint_t l3 = 100;
+constexpr uint_t l4 = 4;
+constexpr uint_t SEED = 42;
+constexpr uint_t BATCH_SIZE = 200;
+constexpr uint_t EXPERIENCE_BUFFER_SIZE = 1000;
+constexpr uint_t TOTAL_EPOCHS = 1000;
+constexpr uint_t TOTAL_ITRS_PER_EPOCH = 50;
+constexpr real_t GAMMA = 0.9;
+constexpr real_t EPSILON = 0.3;
+constexpr real_t LEARNING_RATE = 1.0e-3;
 
-
-// The class that models the Policy network to train
 class QNetImpl: public torch::nn::Module
 {
 public:
@@ -77,7 +77,6 @@ private:
    torch::nn::Linear fc3_;
 
 };
-
 
 QNetImpl::QNetImpl()
     :
@@ -107,7 +106,8 @@ TORCH_MODULE(QNet);
 typedef Gridworld<4> env_type;
 typedef env_type::time_step_type time_step_type;
 
-typedef std::tuple<std::vector<float_t>, uint_t, real_t, std::vector<float_t>, bool> experience_tuple_type;
+typedef std::tuple<std::vector<float_t>, uint_t, float_t,
+	               std::vector<float_t>, uint_t> experience_tuple_type;
 
 typedef ExperienceBuffer<experience_tuple_type> experience_buffer_type;
 typedef env_type::state_type state_type;
@@ -160,7 +160,7 @@ int main(){
     try{
 
         BOOST_LOG_TRIVIAL(info)<<"Starting agent training...";
-        BOOST_LOG_TRIVIAL(info)<<"Numebr of episodes to trina: "<<TOTAL_EPOCHS;
+        BOOST_LOG_TRIVIAL(info)<<"Number of episodes to train: "<<TOTAL_EPOCHS;
 
         // let's create a directory where we want to
         //store all the results from running a simulation
@@ -174,7 +174,6 @@ int main(){
         // create a 4x4 grid
         auto env = env_type();
 
-        
 		// initialize the environment using random mode
 		std::unordered_map<std::string, std::any> options;
         options["mode"] = std::any(rlenvscpp::envs::grid_world::GridWorldInitType::RANDOM);
@@ -204,9 +203,8 @@ int main(){
 		// track the average loss per epoch
         std::vector<real_t> losses;
         losses.reserve(TOTAL_EPOCHS);
-		
-		experience_buffer_type experience_buffer(EXPERIENCE_BUFFER_SIZE);
 
+		experience_buffer_type experience_buffer(EXPERIENCE_BUFFER_SIZE);
 
 		// hold random values
 		std::vector<float_t> rand_vec(64, 0.0);
@@ -220,14 +218,12 @@ int main(){
 
             // for every new epoch we reset the environment
             auto time_step = env.reset();
-            
 			uint_t step_counter = 0;
-			
-			
+
 			// the loss associated with the epoch
 			std::vector<real_t> epoch_loss;
 			epoch_loss.reserve(TOTAL_ITRS_PER_EPOCH);
-            
+
 			auto done = false;
 			while(!done){
 
@@ -252,7 +248,7 @@ int main(){
 				// step in the environment
                 time_step = env.step(action_idx);
 				auto reward = time_step.reward();
-				auto step_finished = time_step.done();
+				auto step_finished = time_step.done() ? static_cast<uint_t>(1) : static_cast<uint_t>(0);
 				
 				auto obs2 = flattened_observation(time_step.observation());
 				rand_vec = cuberl::maths::randomize(rand_vec, a, b, 64);
@@ -261,9 +257,7 @@ int main(){
 				
 				auto torch_state_2 = cuberl::utils::pytorch::TorchAdaptor::to_torch(obs2, 
 																		 DeviceType::CPU);
-																		 
-																		 
-				
+
 				experience_tuple_type exp = {obs1, action_idx, reward, obs2, step_finished}; 
 				
 				// put the observation into the buffer
@@ -281,10 +275,10 @@ int main(){
 					
 					// stack the experiences
 					auto state_1_batch = get<std::vector<float_t>, 0>(batch_sample);
-					auto action_batch  = get<int_t, 1>(batch_sample);
+					auto action_batch   = get<uint_t, 1>(batch_sample);
 					auto state_2_batch = get<std::vector<float_t>, 3>(batch_sample);
-					auto reward_batch  = get<real_t, 2>(batch_sample);
-					auto done_batch    = get<bool, 4>(batch_sample);
+					auto reward_batch          = get<float_t, 2>(batch_sample);
+					auto done_batch     = get<uint_t, 4>(batch_sample);
 					
 					auto state_1_batch_t = cuberl::utils::pytorch::TorchAdaptor::stack(state_1_batch, 
 																			cuberl::DeviceType::CPU);
@@ -319,7 +313,6 @@ int main(){
 					
 					BOOST_LOG_TRIVIAL(info)<<"Loss at epoch: "<<loss.item<real_t>();
 					epoch_loss.push_back(loss.item<real_t>());
-					
 				}
 				
 				step_counter += 1;
@@ -351,20 +344,11 @@ int main(){
         // save the rewards per episode for visualization
         // purposes
         auto filename = std::string("experiments/") + EXPERIMENT_ID;
-        filename += "/dqn_grid_world_policy_rewards.csv";
-        rlenvscpp::utils::io::CSVWriter csv_writer(filename, 
-												   rlenvscpp::utils::io::CSVWriter::default_delimiter());
+        filename += "/dqn_grid_world_policy_loss.csv";
+        CSVWriter csv_writer(filename, CSVWriter::default_delimiter());
         csv_writer.open();
 		csv_writer.write_column_vector(losses);
-        
-        // save the policy also so that we can load it and check
-        // use it
-        auto policy_model_filename = std::string("experiments/") + EXPERIMENT_ID;
-        policy_model_filename += std::string("/dqn_grid_world_policy.pth");
-        torch::serialize::OutputArchive archive;
-        qnet -> save(archive);
-        archive.save_to(policy_model_filename);
-
+    	csv_writer.close();
     }
     catch(std::exception& e){
         std::cout<<e.what()<<std::endl;

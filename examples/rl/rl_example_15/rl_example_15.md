@@ -1,27 +1,22 @@
 # Example 15: DQN algorithm on Gridworld with experience replay
 
-In this example, we will train an agent so that it learns to navigate itself in a grid.
-Specifically, we will be using the ```Gridworld``` environmant from the book <a href="https://www.manning.com/books/deep-reinforcement-learning-in-action">Deep Reinforcement Learning in Action</a>.
-We have implemented this environment in <a herf="https://github.com/pockerman/rlenvs_from_cpp">rlenvs_from_cpp</a>; check the class <a href="https://github.com/pockerman/rlenvs_from_cpp/blob/master/src/rlenvs/envs/grid_world/grid_world_env.h">Gridworld</a>. 
+Example <a href="#">Example 12: DQN algorithm on Gridworld</a> trained a DQN-based agent to navigate in the
+```Gridworld``` environment. We assumed that the environment was static which made it very easy for the agent to learn how
+to act on a given state. In this example, we will assume that the environment is random and we will use an experience buffer
+to train again a DQN agent.
 
-We will use the DQN algorithm, see <a href="https://www.manning.com/books/deep-reinforcement-learning-in-action">Deep Reinforcement Learning in Action</a> and references therein,
-in order to train our agent and we will TensorBoard to monitor the training. We will use a static environment configuration in this example something that makes this problem a lot easier to work on.
-
-We will code the same model as is done in the <a href="https://www.manning.com/books/deep-reinforcement-learning-in-action">Deep Reinforcement Learning in Action</a> book so you may also want to follow the code therein.
+We will code the same model as is done in the <a href="https://www.manning.com/books/deep-reinforcement-learning-in-action">Deep Reinforcement Learning in Action</a> 
+book so you may also want to follow the code therein.
 
 ## Driver code
 
 ```
-/**
- * Use DQN on Gridworld
- *
- * */
+
 #include "cubeai/base/cubeai_config.h"
 
-#if defined(USE_PYTORCH) && defined(USE_RLENVS_CPP)
+#ifdef USE_PYTORCH
 
 #include "cubeai/base/cubeai_types.h"
-#include "cubeai/io/csv_file_writer.h"
 #include "cubeai/rl/trainers/rl_serial_agent_trainer.h"
 #include "cubeai/maths/optimization/optimizer_type.h"
 #include "cubeai/maths/optimization/pytorch_optimizer_factory.h"
@@ -29,6 +24,8 @@ We will code the same model as is done in the <a href="https://www.manning.com/b
 #include "cubeai/utils/torch_adaptor.h"
 #include "cubeai/maths/vector_math.h"
 #include "cubeai/data_structs/experience_buffer.h"
+
+#include "rlenvs/utils/io/csv_file_writer.h"
 #include "rlenvs/envs/grid_world/grid_world_env.h"
 
 #include <boost/log/trivial.hpp>
@@ -47,45 +44,42 @@ namespace rl_example_12{
 
 	namespace F = torch::nn::functional;
 	
-using cubeai::real_t;
-using cubeai::uint_t;
-using cubeai::float_t;
-using cubeai::torch_tensor_t;
+using cuberl::real_t;
+using cuberl::uint_t;
+using cuberl::int_t;
+using cuberl::float_t;
+using cuberl::torch_tensor_t;
 
-using cubeai::rl::RLSerialAgentTrainer;
-using cubeai::rl::RLSerialTrainerConfig;
-using cubeai::rl::policies::EpsilonGreedyPolicy;
-using cubeai::containers::ExperienceBuffer;
-using rlenvs_cpp::envs::grid_world::Gridworld;
+using cuberl::rl::RLSerialAgentTrainer;
+using cuberl::rl::RLSerialTrainerConfig;
+using cuberl::rl::policies::EpsilonGreedyPolicy;
+using cuberl::containers::ExperienceBuffer;
+using rlenvscpp::envs::grid_world::Gridworld;
+using rlenvscpp::utils::io::CSVWriter;
 
 	
 const std::string EXPERIMENT_ID = "1";
 
-const uint_t l1 = 64;
-const uint_t l2 = 150;
-const uint_t l3 = 100;
-const uint_t l4 = 4;
-const uint_t SEED = 42;
-const uint_t BATCH_SIZE = 200;
-const uint_t EXPERIENCE_BUFFER_SIZE = 1000;
-const uint_t TOTAL_EPOCHS = 1000;
-const uint_t TOTAL_ITRS_PER_EPOCH = 50;
-const real_t GAMMA = 0.9;
-const real_t EPSILON = 0.3;
-const real_t LEARNING_RATE = 1.0e-3;
+constexpr uint_t l1 = 64;
+constexpr uint_t l2 = 150;
+constexpr uint_t l3 = 100;
+constexpr uint_t l4 = 4;
+constexpr uint_t SEED = 42;
+constexpr uint_t BATCH_SIZE = 200;
+constexpr uint_t EXPERIENCE_BUFFER_SIZE = 1000;
+constexpr uint_t TOTAL_EPOCHS = 1000;
+constexpr uint_t TOTAL_ITRS_PER_EPOCH = 50;
+constexpr real_t GAMMA = 0.9;
+constexpr real_t EPSILON = 0.3;
+constexpr real_t LEARNING_RATE = 1.0e-3;
 
-
-// The class that models the Policy network to train
 class QNetImpl: public torch::nn::Module
 {
 public:
 
-
     QNetImpl();
-
     torch_tensor_t forward(torch_tensor_t);
 
-    
 private:
 
    torch::nn::Linear fc1_;
@@ -93,7 +87,6 @@ private:
    torch::nn::Linear fc3_;
 
 };
-
 
 QNetImpl::QNetImpl()
     :
@@ -123,7 +116,8 @@ TORCH_MODULE(QNet);
 typedef Gridworld<4> env_type;
 typedef env_type::time_step_type time_step_type;
 
-typedef std::tuple<std::vector<float_t>, uint_t, real_t, std::vector<float_t>, bool> experience_tuple_type;
+typedef std::tuple<std::vector<float_t>, uint_t, float_t,
+	               std::vector<float_t>, uint_t> experience_tuple_type;
 
 typedef ExperienceBuffer<experience_tuple_type> experience_buffer_type;
 typedef env_type::state_type state_type;
@@ -171,12 +165,12 @@ get(const std::vector<experience_tuple_type>& experience){
 int main(){
 
     using namespace rl_example_12;
-	using namespace cubeai;
+	using namespace cuberl;
 
     try{
 
         BOOST_LOG_TRIVIAL(info)<<"Starting agent training...";
-        BOOST_LOG_TRIVIAL(info)<<"Numebr of episodes to trina: "<<TOTAL_EPOCHS;
+        BOOST_LOG_TRIVIAL(info)<<"Number of episodes to train: "<<TOTAL_EPOCHS;
 
         // let's create a directory where we want to
         //store all the results from running a simulation
@@ -190,10 +184,9 @@ int main(){
         // create a 4x4 grid
         auto env = env_type();
 
-        
 		// initialize the environment using random mode
 		std::unordered_map<std::string, std::any> options;
-        options["mode"] = std::any(rlenvs_cpp::envs::grid_world::to_string(rlenvs_cpp::envs::grid_world::GridWorldInitType::RANDOM));
+        options["mode"] = std::any(rlenvscpp::envs::grid_world::GridWorldInitType::RANDOM);
 
         env.make("v0", options);
 
@@ -220,9 +213,8 @@ int main(){
 		// track the average loss per epoch
         std::vector<real_t> losses;
         losses.reserve(TOTAL_EPOCHS);
-		
-		experience_buffer_type experience_buffer(EXPERIENCE_BUFFER_SIZE);
 
+		experience_buffer_type experience_buffer(EXPERIENCE_BUFFER_SIZE);
 
 		// hold random values
 		std::vector<float_t> rand_vec(64, 0.0);
@@ -236,50 +228,46 @@ int main(){
 
             // for every new epoch we reset the environment
             auto time_step = env.reset();
-            
 			uint_t step_counter = 0;
-			
-			
+
 			// the loss associated with the epoch
 			std::vector<real_t> epoch_loss;
 			epoch_loss.reserve(TOTAL_ITRS_PER_EPOCH);
-            
+
 			auto done = false;
 			while(!done){
 
 				auto obs1 = flattened_observation(time_step.observation());
 				
-				rand_vec = cubeai::maths::randomize(rand_vec, a, b, 64);
-				rand_vec = cubeai::maths::divide(rand_vec, 100.0);
+				rand_vec = cuberl::maths::randomize(rand_vec, a, b, 64);
+				rand_vec = cuberl::maths::divide(rand_vec, 100.0);
 				
 				// randomize the flattened observation by adding
 				// some noise
 				obs1 = maths::add(obs1, rand_vec);
-				auto torch_state_1 = torch_utils::TorchAdaptor::to_torch(obs1, 
-																		 DeviceType::CPU);
+				auto torch_state_1 = cuberl::utils::pytorch::TorchAdaptor::to_torch(obs1, 
+																		            DeviceType::CPU);
                 
                 // get the qvals
                 auto qvals = qnet(torch_state_1);
                 auto action_idx = policy(qvals, 
-				                         cubeai::torch_tensor_value_type<float_t>());
+				                         cuberl::torch_tensor_value_type<float_t>());
 				
 				BOOST_LOG_TRIVIAL(info)<<"Action selected: "<<action_idx<<std::endl;
 
 				// step in the environment
                 time_step = env.step(action_idx);
 				auto reward = time_step.reward();
-				auto step_finished = time_step.done();
+				auto step_finished = time_step.done() ? static_cast<uint_t>(1) : static_cast<uint_t>(0);
 				
 				auto obs2 = flattened_observation(time_step.observation());
-				rand_vec = cubeai::maths::randomize(rand_vec, a, b, 64);
-				rand_vec = cubeai::maths::divide(rand_vec, 100.0);
+				rand_vec = cuberl::maths::randomize(rand_vec, a, b, 64);
+				rand_vec = cuberl::maths::divide(rand_vec, 100.0);
 				obs2 = maths::add(obs2, rand_vec);
 				
-				auto torch_state_2 = torch_utils::TorchAdaptor::to_torch(obs2, 
+				auto torch_state_2 = cuberl::utils::pytorch::TorchAdaptor::to_torch(obs2, 
 																		 DeviceType::CPU);
-																		 
-																		 
-				
+
 				experience_tuple_type exp = {obs1, action_idx, reward, obs2, step_finished}; 
 				
 				// put the observation into the buffer
@@ -297,31 +285,31 @@ int main(){
 					
 					// stack the experiences
 					auto state_1_batch = get<std::vector<float_t>, 0>(batch_sample);
-					auto action_batch  = get<int_t, 1>(batch_sample);
+					auto action_batch   = get<uint_t, 1>(batch_sample);
 					auto state_2_batch = get<std::vector<float_t>, 3>(batch_sample);
-					auto reward_batch  = get<real_t, 2>(batch_sample);
-					auto done_batch    = get<bool, 4>(batch_sample);
+					auto reward_batch          = get<float_t, 2>(batch_sample);
+					auto done_batch     = get<uint_t, 4>(batch_sample);
 					
-					auto state_1_batch_t = torch_utils::TorchAdaptor::stack(state_1_batch, 
-																			cubeai::DeviceType::CPU);
+					auto state_1_batch_t = cuberl::utils::pytorch::TorchAdaptor::stack(state_1_batch, 
+																			cuberl::DeviceType::CPU);
 					auto q1 = qnet(state_1_batch_t);
 					
 					// tell the model that we don't use grad here
 					qnet->eval();
 					
-					auto state_2_batch_t = torch_utils::TorchAdaptor::stack(state_2_batch, 
-																			cubeai::DeviceType::CPU);
+					auto state_2_batch_t = cuberl::utils::pytorch::TorchAdaptor::stack(state_2_batch, 
+																			cuberl::DeviceType::CPU);
 					auto q2 = qnet(state_2_batch_t);
 				
 					// we are training again
 					qnet->train();
 					
-					auto reward_batch_t = torch_utils::TorchAdaptor::to_torch(reward_batch, 
-																			  cubeai::DeviceType::CPU);
-					auto done_batch_t = torch_utils::TorchAdaptor::to_torch(done_batch, 
-																			  cubeai::DeviceType::CPU);
-					auto action_batch_t = torch_utils::TorchAdaptor::to_torch(action_batch, 
-																			  cubeai::DeviceType::CPU);
+					auto reward_batch_t = cuberl::utils::pytorch::TorchAdaptor::to_torch(reward_batch, 
+																		cuberl::DeviceType::CPU);
+					auto done_batch_t =   cuberl::utils::pytorch::TorchAdaptor::to_torch(done_batch, 
+																		cuberl::DeviceType::CPU);
+					auto action_batch_t = cuberl::utils::pytorch::TorchAdaptor::to_torch(action_batch, 
+																			  cuberl::DeviceType::CPU);
 															
 					auto state_max = torch::max(q2, 1);
 					auto state_max_val = std::get<0>(state_max);
@@ -335,7 +323,6 @@ int main(){
 					
 					BOOST_LOG_TRIVIAL(info)<<"Loss at epoch: "<<loss.item<real_t>();
 					epoch_loss.push_back(loss.item<real_t>());
-					
 				}
 				
 				step_counter += 1;
@@ -360,26 +347,18 @@ int main(){
 				policy.set_eps_value(eps);
 			}*/
 			
-			losses.push_back(cubeai::maths::mean(epoch_loss.begin(),
+			losses.push_back(cuberl::maths::mean(epoch_loss.begin(),
 													epoch_loss.end()));
         }
 
         // save the rewards per episode for visualization
         // purposes
         auto filename = std::string("experiments/") + EXPERIMENT_ID;
-        filename += "/dqn_grid_world_policy_rewards.csv";
-        cubeai::io::CSVWriter csv_writer(filename, cubeai::io::CSVWriter::default_delimiter());
+        filename += "/dqn_grid_world_policy_loss.csv";
+        CSVWriter csv_writer(filename, CSVWriter::default_delimiter());
         csv_writer.open();
 		csv_writer.write_column_vector(losses);
-        
-        // save the policy also so that we can load it and check
-        // use it
-        auto policy_model_filename = std::string("experiments/") + EXPERIMENT_ID;
-        policy_model_filename += std::string("/dqn_grid_world_policy.pth");
-        torch::serialize::OutputArchive archive;
-        qnet -> save(archive);
-        archive.save_to(policy_model_filename);
-
+    	csv_writer.close();
     }
     catch(std::exception& e){
         std::cout<<e.what()<<std::endl;
@@ -393,20 +372,17 @@ int main(){
 #include <iostream>
 int main(){
 
-	std::cout<<"This example requires PyTorch and rlenvscpplib."<<std::endl;
-	std::cout<<"Reconfigure cuberl with USE_PYTORCH and USE_RLENVS_CPP flags turned ON."<<std::endl;
+	std::cout<<"This example requires PyTorch"<<std::endl;
+	std::cout<<"Reconfigure cuberl with USE_PYTORCH flag turned ON."<<std::endl;
     return 0;
 }
 #endif
 
-
-```
-
-Running the code above produces the following output:
-
-```
-
 ```
 
 The average per epoch loss is shown in the figure below
+
+| ![average-per-epoch-loss](./average_loss.png) |
+|:--:|
+| **Figure: Average loss per epoch.**|
 

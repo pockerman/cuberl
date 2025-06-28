@@ -1,4 +1,4 @@
-# EXample 12: DQN algorithm on Gridworld
+# Example 12: DQN algorithm on Gridworld
 
 In this example, we will train an agent so that it learns to navigate itself in a grid.
 Specifically, we will be using the ```Gridworld``` environmant from the book <a href="https://www.manning.com/books/deep-reinforcement-learning-in-action">Deep Reinforcement Learning in Action</a>.
