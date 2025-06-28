@@ -1,33 +1,32 @@
 # EXample 12: DQN algorithm on Gridworld
 
 In this example, we will train an agent so that it learns to navigate itself in a grid.
-Specifically, we will be using the ```Gridworld``` environmant from the book <a href="https://www.manning.com/books/deep-reinforcement-learning-in-action">Deep Reinforcement Learning in Action</a>.
-We have implemented this environment in <a herf="https://github.com/pockerman/rlenvs_from_cpp">rlenvs_from_cpp</a>; check the class <a href="https://github.com/pockerman/rlenvs_from_cpp/blob/master/src/rlenvs/envs/grid_world/grid_world_env.h">Gridworld</a>. 
+Specifically, we will be using the ```Gridworld``` environment from the book <a href="https://www.manning.com/books/deep-reinforcement-learning-in-action">Deep Reinforcement Learning in Action</a>.
+The environment is implemented in <a herf="https://github.com/pockerman/rlenvs_from_cpp">rlenvs_from_cpp</a>; 
+check the class <a href="https://github.com/pockerman/rlenvs_from_cpp/blob/master/src/rlenvs/envs/grid_world/grid_world_env.h">Gridworld</a>. 
 
 We will use the DQN algorithm, see <a href="https://www.manning.com/books/deep-reinforcement-learning-in-action">Deep Reinforcement Learning in Action</a> and references therein,
-in order to train our agent and we will TensorBoard to monitor the training. We will use a static environment configuration in this example something that makes this problem a lot easier to work on.
-
-We will code the same model as is done in the <a href="https://www.manning.com/books/deep-reinforcement-learning-in-action">Deep Reinforcement Learning in Action</a> book so you may also want to follow the code therein.
+in order to train our agent. We will use a static environment configuration in this example something that makes this problem a lot easier to work on.
+This example uses the same model as is done in the <a href="https://www.manning.com/books/deep-reinforcement-learning-in-action">Deep Reinforcement Learning in Action</a> 
+book so you may also want to follow the code therein.
 
 ## Driver code
 
 ```
-/**
- * Use DQN on Gridworld
- *
- * */
 #include "cubeai/base/cubeai_config.h"
 
-#if defined(USE_PYTORCH) && defined(USE_RLENVS_CPP)
+#ifdef USE_PYTORCH
 
 #include "cubeai/base/cubeai_types.h"
-#include "cubeai/io/csv_file_writer.h"
+
 #include "cubeai/rl/trainers/rl_serial_agent_trainer.h"
 #include "cubeai/maths/optimization/optimizer_type.h"
 #include "cubeai/maths/optimization/pytorch_optimizer_factory.h"
 #include "cubeai/rl/policies/epsilon_greedy_policy.h"
 #include "cubeai/utils/torch_adaptor.h"
 #include "cubeai/maths/vector_math.h"
+
+#include "rlenvs/utils/io/csv_file_writer.h"
 #include "rlenvs/envs/grid_world/grid_world_env.h"
 
 #include <boost/log/trivial.hpp>
@@ -47,47 +46,39 @@ const std::string EXPERIMENT_ID = "3";
 
 namespace F = torch::nn::functional;
 
-using cubeai::real_t;
-using cubeai::uint_t;
-using cubeai::float_t;
-using cubeai::torch_tensor_t;
+using cuberl::real_t;
+using cuberl::uint_t;
+using cuberl::float_t;
+using cuberl::torch_tensor_t;
+using cuberl::rl::RLSerialAgentTrainer;
+using cuberl::rl::RLSerialTrainerConfig;
+using cuberl::rl::policies::EpsilonGreedyPolicy;
+using rlenvscpp::envs::grid_world::Gridworld;
+using rlenvscpp::utils::io::CSVWriter;
 
-using cubeai::rl::RLSerialAgentTrainer;
-using cubeai::rl::RLSerialTrainerConfig;
-using cubeai::rl::policies::EpsilonGreedyPolicy;
-using rlenvs_cpp::envs::grid_world::Gridworld;
-
-const uint_t l1 = 64;
-const uint_t l2 = 150;
-const uint_t l3 = 100;
-const uint_t l4 = 4;
-const uint_t SEED = 42;
-const uint_t TOTAL_EPOCHS = 1000;
-const uint_t TOTAL_ITRS_PER_EPOCH = 50;
-const real_t GAMMA = 0.9;
-const real_t EPSILON = 1.0;
-const real_t LEARNING_RATE = 1.0e-3;
+constexpr uint_t l1 = 64;
+constexpr uint_t l2 = 150;
+constexpr uint_t l3 = 100;
+constexpr uint_t l4 = 4;
+constexpr uint_t SEED = 42;
+constexpr uint_t TOTAL_EPOCHS = 1000;
+constexpr uint_t TOTAL_ITRS_PER_EPOCH = 50;
+constexpr real_t GAMMA = 0.9;
+constexpr real_t EPSILON = 1.0;
+constexpr real_t LEARNING_RATE = 1.0e-3;
 
 
 // The class that models the Policy network to train
-class QNetImpl: public torch::nn::Module
+class QNetImpl final : public torch::nn::Module
 {
 public:
-
-
     QNetImpl();
-
     torch_tensor_t forward(torch_tensor_t);
-
-    
 private:
-
    torch::nn::Linear fc1_;
    torch::nn::Linear fc2_;
    torch::nn::Linear fc3_;
-
 };
-
 
 QNetImpl::QNetImpl()
     :
@@ -145,7 +136,7 @@ int main(){
     try{
 
         BOOST_LOG_TRIVIAL(info)<<"Starting agent training...";
-        BOOST_LOG_TRIVIAL(info)<<"Numebr of episodes to trina: "<<TOTAL_EPOCHS;
+        BOOST_LOG_TRIVIAL(info)<<"Number of episodes to train: "<<TOTAL_EPOCHS;
 
         // let's create a directory where we want to
         //store all the results from running a simulation
@@ -167,7 +158,6 @@ int main(){
         BOOST_LOG_TRIVIAL(info)<<"Number of actions available: "<<env.n_actions();
         BOOST_LOG_TRIVIAL(info)<<"Number of states available: "<<env.n_states();
 
-
         // the network to train for the q values
         QNet qnet;
 
@@ -177,52 +167,59 @@ int main(){
         // we will use an epsilon-greedy policy
         EpsilonGreedyPolicy policy(	EPSILON, 
 									SEED, 
-									cubeai::rl::policies::EpsilonDecayOption::NONE);
+									cuberl::rl::policies::EpsilonDecayOption::NONE);
 
         // the loss function to use
         auto loss_fn = torch::nn::MSELoss();
 
         std::vector<real_t> losses;
+		std::vector<real_t> rewards;
         losses.reserve(TOTAL_EPOCHS);
+		rewards.reserve(TOTAL_EPOCHS);
 
         // loop over the epochs
         for(uint_t epoch=0; epoch < TOTAL_EPOCHS; ++epoch){
 
-            BOOST_LOG_TRIVIAL(info)<<"Starting epoch: "<<epoch<<std::endl;
+            BOOST_LOG_TRIVIAL(info)<<"Starting epoch: "<<epoch;
 
             // for every new epoch we reset the environment
             auto time_step = env.reset();
             auto done = false;
 			uint_t step_counter = 0;
 			std::vector<real_t> epoch_loss;
+			std::vector<real_t> epoch_rewards;
 			std::vector<float_t> rand_vec(64, 0.0);
 			epoch_loss.reserve(TOTAL_ITRS_PER_EPOCH);
+
             while(!done){
 
 				auto obs = flattened_observation(time_step.observation());
 				
 				float_t a = 0.0;
 				float_t b = 1.0;
-				rand_vec = cubeai::maths::randomize(rand_vec, a, b, 64);
-				rand_vec = cubeai::maths::divide(rand_vec, 10.0);
+				rand_vec = cuberl::maths::randomize(rand_vec, a, b, 64);
+				rand_vec = cuberl::maths::divide(rand_vec, 10.0);
 				
 				// randomize the flattened observation
-				obs = cubeai::maths::add(obs, rand_vec);
-				auto torch_state = cubeai::torch_utils::TorchAdaptor::to_torch(obs, cubeai::DeviceType::CPU);
+				obs = cuberl::maths::add(obs, rand_vec);
+				auto torch_state = cuberl::utils::pytorch::TorchAdaptor::to_torch(obs, 
+				                                                                  cuberl::DeviceType::CPU);
                 
                 // get the qvals
                 auto qvals = qnet(torch_state);
-                auto action_idx = policy(qvals, cubeai::torch_tensor_value_type<float_t>());
+                auto action_idx = policy(qvals, cuberl::torch_tensor_value_type<float_t>());
 				
-				BOOST_LOG_TRIVIAL(info)<<"Action selected: "<<action_idx<<std::endl;
+				BOOST_LOG_TRIVIAL(info)<<"\tAction selected: "<<action_idx<<std::endl;
 
 				// step in the environment
                 time_step = env.step(action_idx);
+
 				obs = flattened_observation(time_step.observation());
 				// randomize the flattened observation
-				obs = cubeai::maths::add(obs, rand_vec);
+				obs = cuberl::maths::add(obs, rand_vec);
 				
-                torch_state = cubeai::torch_utils::TorchAdaptor::to_torch(obs, cubeai::DeviceType::CPU);
+                torch_state = cuberl::utils::pytorch::TorchAdaptor::to_torch(obs, 
+				                                                             cuberl::DeviceType::CPU);
 
                 // tell the model that we don't use grad here
                 qnet->eval();
@@ -235,37 +232,37 @@ int main(){
                 auto max_q = torch::max(new_q_vals);
                 auto reward = time_step.reward();
 				
-				BOOST_LOG_TRIVIAL(info)<<"Reward: "<<reward;
-				
-				// update done
-				done = time_step.done();
-				
-				if(done){ //#Q
-					//done = true;
-					BOOST_LOG_TRIVIAL(info)<<"Reward: "<<reward;
-					BOOST_LOG_TRIVIAL(info)<<"Finishing epoch at step: "<<step_counter;
-				}
-				
-					
+				BOOST_LOG_TRIVIAL(info)<<"\tReward: "<<reward;
+
                 auto y = torch::tensor({reward});
                 if(reward == -1.0){
                     y +=  max_q * GAMMA;
                 }
 
-                // the target according to Qvals
-                auto X = torch::tensor({qvals.squeeze()[action_idx].item<float_t>()});
+            	// in the code below to break the computation graph
+            	// and prevent gradients from flowing backward through
+            	// parts of the model that shouldn't be updated during backpropagation.
+            	y = y.detach();
+            	auto X = qvals.squeeze()[action_idx].unsqueeze(0);
 				
                 // calculate the loss
                 auto loss = loss_fn(X, y); 
-                optimizer_ptr -> zero_grad();
-				
+
+            	optimizer_ptr -> zero_grad();
 				loss.backward();
-				
                 optimizer_ptr -> step();
 
-                BOOST_LOG_TRIVIAL(info)<<"Loss at epoch: "<<loss.item<real_t>();
                 epoch_loss.push_back(loss.item<real_t>());
+            	epoch_rewards.push_back(reward);
 				step_counter += 1;
+
+            	BOOST_LOG_TRIVIAL(info)<<"\tLoss at epoch: "<<loss.item<real_t>();
+
+            	// update done
+            	done = time_step.done();
+            	if(done){
+            		BOOST_LOG_TRIVIAL(info)<<"\tFinishing epoch at step: "<<step_counter;
+            	}
             }
 
             BOOST_LOG_TRIVIAL(info)<<"Epoch finished...";
@@ -277,26 +274,29 @@ int main(){
 				policy.set_eps_value(eps);
 			}
 			
-			losses.push_back(cubeai::maths::mean(epoch_loss.begin(),
+			losses.push_back(cuberl::maths::mean(epoch_loss.begin(),
 													epoch_loss.end()));
+			rewards.push_back(cuberl::maths::mean(epoch_rewards.begin(),
+                                                    epoch_rewards.end()));
         }
 
         // save the rewards per episode for visualization
         // purposes
         auto filename = std::string("experiments/") + EXPERIMENT_ID;
         filename += "/dqn_grid_world_policy_rewards.csv";
-        cubeai::io::CSVWriter csv_writer(filename, cubeai::io::CSVWriter::default_delimiter());
-        csv_writer.open();
-		csv_writer.write_column_vector(losses);
-        
-        // save the policy also so that we can load it and check
-        // use it
-        auto policy_model_filename = std::string("experiments/") + EXPERIMENT_ID;
-        policy_model_filename += std::string("/dqn_grid_world_policy.pth");
-        torch::serialize::OutputArchive archive;
-        qnet -> save(archive);
-        archive.save_to(policy_model_filename);
 
+        CSVWriter rewards_csv_writer(filename, CSVWriter::default_delimiter());
+        rewards_csv_writer.open();
+		rewards_csv_writer.write_column_vector(rewards);
+		rewards_csv_writer.close();
+
+    	filename = std::string("experiments/") + EXPERIMENT_ID;
+    	filename += "/dqn_grid_world_policy_losses.csv";
+
+    	CSVWriter losses_csv_writer(filename, CSVWriter::default_delimiter());
+    	losses_csv_writer.open();
+    	losses_csv_writer.write_column_vector(losses);
+    	losses_csv_writer.close();
     }
     catch(std::exception& e){
         std::cout<<e.what()<<std::endl;
@@ -310,49 +310,93 @@ int main(){
 #include <iostream>
 int main(){
 
-	std::cout<<"This example requires PyTorch and rlenvscpplib."<<std::endl;
-	std::cout<<"Reconfigure cuberl with USE_PYTORCH and USE_RLENVS_CPP flags turned ON."<<std::endl;
+	std::cout<<"This example requires PyTorch"<<std::endl;
+	std::cout<<"Reconfigure cuberl with USE_PYTORCH flag turned ON."<<std::endl;
     return 0;
 }
 #endif
+
 
 ```
 
 Running the code above produces the following output:
 
 ```
-[2024-09-22 15:21:59.327047] [0x00007f1454f2f000] [info]    Starting agent training...
-[2024-09-22 15:21:59.327062] [0x00007f1454f2f000] [info]    Numebr of episodes to trina: 1000
-[2024-09-22 15:22:00.527724] [0x00007f1454f2f000] [info]    Creating the environment...
-[2024-09-22 15:22:00.528006] [0x00007f1454f2f000] [info]    Done...
-[2024-09-22 15:22:00.528012] [0x00007f1454f2f000] [info]    Environment name: Gridworld
-[2024-09-22 15:22:00.528018] [0x00007f1454f2f000] [info]    Number of actions available: 4
-[2024-09-22 15:22:00.528022] [0x00007f1454f2f000] [info]    Number of states available: 16
-[2024-09-22 15:22:00.554437] [0x00007f1454f2f000] [info]    Starting epoch: 0
+[2025-06-28 09:22:40.880018] [0x00007f2d122e96c0] [info]    Starting agent training...
+[2025-06-28 09:22:40.880034] [0x00007f2d122e96c0] [info]    Number of episodes to train: 1000
+[2025-06-28 09:22:40.880258] [0x00007f2d122e96c0] [info]    Creating the environment...
+[2025-06-28 09:22:40.880571] [0x00007f2d122e96c0] [info]    Done...
+[2025-06-28 09:22:40.880577] [0x00007f2d122e96c0] [info]    Environment name: Gridworld
+[2025-06-28 09:22:40.880583] [0x00007f2d122e96c0] [info]    Number of actions available: 4
+[2025-06-28 09:22:40.880589] [0x00007f2d122e96c0] [info]    Number of states available: 16
+[2025-06-28 09:22:40.906067] [0x00007f2d122e96c0] [info]    Starting epoch: 0
+[2025-06-28 09:22:40.935573] [0x00007f2d122e96c0] [info]    	Action selected: 1
 
-[2024-09-22 15:22:00.599219] [0x00007f1454f2f000] [info]    Action selected: 3
+[2025-06-28 09:22:40.938906] [0x00007f2d122e96c0] [info]    	Reward: -1
+[2025-06-28 09:22:40.959139] [0x00007f2d122e96c0] [info]    	Loss at epoch: 0.916412
+[2025-06-28 09:22:40.959847] [0x00007f2d122e96c0] [info]    	Action selected: 3
 
-[2024-09-22 15:22:00.601347] [0x00007f1454f2f000] [info]    Reward: -1
-[2024-09-22 15:22:00.607770] [0x00007f1454f2f000] [info]    Loss at epoch: 1.02671
-[2024-09-22 15:22:00.608588] [0x00007f1454f2f000] [info]    Action selected: 2
+[2025-06-28 09:22:40.959968] [0x00007f2d122e96c0] [info]    	Reward: -1
+[2025-06-28 09:22:40.960585] [0x00007f2d122e96c0] [info]    	Loss at epoch: 1.00951
+[2025-06-28 09:22:40.960717] [0x00007f2d122e96c0] [info]    	Action selected: 3
 
-[2024-09-22 15:22:00.608693] [0x00007f1454f2f000] [info]    Reward: -1
-[2024-09-22 15:22:00.608754] [0x00007f1454f2f000] [info]    Loss at epoch: 0.989844
-[2024-09-22 15:22:00.608844] [0x00007f1454f2f000] [info]    Action selected: 3
+[2025-06-28 09:22:40.960817] [0x00007f2d122e96c0] [info]    	Reward: -1
+[2025-06-28 09:22:40.961204] [0x00007f2d122e96c0] [info]    	Loss at epoch: 0.909553
+[2025-06-28 09:22:40.961301] [0x00007f2d122e96c0] [info]    	Action selected: 0
 
-[2024-09-22 15:22:00.608925] [0x00007f1454f2f000] [info]    Reward: -1
-[2024-09-22 15:22:00.608974] [0x00007f1454f2f000] [info]    Loss at epoch: 1.01939
-[2024-09-22 15:22:00.609058] [0x00007f1454f2f000] [info]    Action selected: 3
+[2025-06-28 09:22:40.961388] [0x00007f2d122e96c0] [info]    	Reward: -1
+[2025-06-28 09:22:40.961730] [0x00007f2d122e96c0] [info]    	Loss at epoch: 0.928638
+[2025-06-28 09:22:40.961826] [0x00007f2d122e96c0] [info]    	Action selected: 2
 
-[2024-09-22 15:22:00.609138] [0x00007f1454f2f000] [info]    Reward: -1
-[2024-09-22 15:22:00.609183] [0x00007f1454f2f000] [info]    Loss at epoch: 1.02671
-[2024-09-22 15:22:00.609268] [0x00007f1454f2f000] [info]    Action selected: 2
+[2025-06-28 09:22:40.961911] [0x00007f2d122e96c0] [info]    	Reward: -1
+[2025-06-28 09:22:40.962236] [0x00007f2d122e96c0] [info]    	Loss at epoch: 1.04332
+[2025-06-28 09:22:40.962330] [0x00007f2d122e96c0] [info]    	Action selected: 3
+
+[2025-06-28 09:22:40.962415] [0x00007f2d122e96c0] [info]    	Reward: -1
+[2025-06-28 09:22:40.962731] [0x00007f2d122e96c0] [info]    	Loss at epoch: 0.94848
+[2025-06-28 09:22:40.962823] [0x00007f2d122e96c0] [info]    	Action selected: 2
+
+[2025-06-28 09:22:40.962907] [0x00007f2d122e96c0] [info]    	Reward: -1
+[2025-06-28 09:22:40.963226] [0x00007f2d122e96c0] [info]    	Loss at epoch: 1
+[2025-06-28 09:22:40.963320] [0x00007f2d122e96c0] [info]    	Action selected: 2
+
+[2025-06-28 09:22:40.963405] [0x00007f2d122e96c0] [info]    	Reward: -10
+[2025-06-28 09:22:40.963723] [0x00007f2d122e96c0] [info]    	Loss at epoch: 100
+[2025-06-28 09:22:40.963729] [0x00007f2d122e96c0] [info]    	Finishing epoch at step: 8
+[2025-06-28 09:22:40.963746] [0x00007f2d122e96c0] [info]    Epoch finished...
+[2025-06-28 09:22:40.964847] [0x00007f2d122e96c0] [info]    Starting epoch: 1
+[2025-06-28 09:22:40.965032] [0x00007f2d122e96c0] [info]    	Action selected: 0
+
+[2025-06-28 09:22:40.965122] [0x00007f2d122e96c0] [info]    	Reward: -1
+[2025-06-28 09:22:40.965463] [0x00007f2d122e96c0] [info]    	Loss at epoch: 1
+[2025-06-28 09:22:40.965562] [0x00007f2d122e96c0] [info]    	Action selected: 1
+
+[2025-06-28 09:22:40.965646] [0x00007f2d122e96c0] [info]    	Reward: -1
+[2025-06-28 09:22:40.965969] [0x00007f2d122e96c0] [info]    	Loss at epoch: 1
+[2025-06-28 09:22:40.966065] [0x00007f2d122e96c0] [info]    	Action selected: 0
+
+[2025-06-28 09:22:40.966149] [0x00007f2d122e96c0] [info]    	Reward: -1
+[2025-06-28 09:22:40.966467] [0x00007f2d122e96c0] [info]    	Loss at epoch: 1
+[2025-06-28 09:22:40.966560] [0x00007f2d122e96c0] [info]    	Action selected: 0
+
+[2025-06-28 09:22:40.966643] [0x00007f2d122e96c0] [info]    	Reward: -1
+[2025-06-28 09:22:40.966957] [0x00007f2d122e96c0] [info]    	Loss at epoch: 1
+[2025-06-28 09:22:40.967051] [0x00007f2d122e96c0] [info]    	Action selected: 0
+
+[2025-06-28 09:22:40.967134] [0x00007f2d122e96c0] [info]    	Reward: -1
+[2025-06-28 09:22:40.967450] [0x00007f2d122e96c0] [info]    	Loss at epoch: 1
+[2025-06-28 09:22:40.967544] [0x00007f2d122e96c0] [info]    	Action selected: 1
+
 ...
 ```
 
 The average per epoch loss is shown in the figure below
 
-| ![average-per-epoch-loss](./average_loss.png) |
-|:--:|
-| **Figure: Average loss per epoch.**|
+| ![average-per-epoch-loss](./average_epoch_loss.png) |
+|:---------------------------------------------------:|
+|         **Figure: Average loss per epoch.**         |
+
+| ![average-per-epoch-loss](./average_epoch_reward.png) |
+|:-----------------------------------------------------:|
+|         **Figure: Average reward per epoch.**         |
 

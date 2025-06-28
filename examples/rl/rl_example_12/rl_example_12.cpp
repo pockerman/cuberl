@@ -1,7 +1,3 @@
-/**
- * Use DQN on Gridworld
- *
- * */
 #include "cubeai/base/cubeai_config.h"
 
 #ifdef USE_PYTORCH
@@ -43,35 +39,31 @@ using cuberl::rl::RLSerialAgentTrainer;
 using cuberl::rl::RLSerialTrainerConfig;
 using cuberl::rl::policies::EpsilonGreedyPolicy;
 using rlenvscpp::envs::grid_world::Gridworld;
+using rlenvscpp::utils::io::CSVWriter;
 
-const uint_t l1 = 64;
-const uint_t l2 = 150;
-const uint_t l3 = 100;
-const uint_t l4 = 4;
-const uint_t SEED = 42;
-const uint_t TOTAL_EPOCHS = 1000;
-const uint_t TOTAL_ITRS_PER_EPOCH = 50;
-const real_t GAMMA = 0.9;
-const real_t EPSILON = 1.0;
-const real_t LEARNING_RATE = 1.0e-3;
+constexpr uint_t l1 = 64;
+constexpr uint_t l2 = 150;
+constexpr uint_t l3 = 100;
+constexpr uint_t l4 = 4;
+constexpr uint_t SEED = 42;
+constexpr uint_t TOTAL_EPOCHS = 1000;
+constexpr uint_t TOTAL_ITRS_PER_EPOCH = 50;
+constexpr real_t GAMMA = 0.9;
+constexpr real_t EPSILON = 1.0;
+constexpr real_t LEARNING_RATE = 1.0e-3;
 
 
 // The class that models the Policy network to train
-class QNetImpl: public torch::nn::Module
+class QNetImpl final : public torch::nn::Module
 {
 public:
-
     QNetImpl();
     torch_tensor_t forward(torch_tensor_t);
-
 private:
-
    torch::nn::Linear fc1_;
    torch::nn::Linear fc2_;
    torch::nn::Linear fc3_;
-
 };
-
 
 QNetImpl::QNetImpl()
     :
@@ -129,7 +121,7 @@ int main(){
     try{
 
         BOOST_LOG_TRIVIAL(info)<<"Starting agent training...";
-        BOOST_LOG_TRIVIAL(info)<<"Numebr of episodes to trina: "<<TOTAL_EPOCHS;
+        BOOST_LOG_TRIVIAL(info)<<"Number of episodes to train: "<<TOTAL_EPOCHS;
 
         // let's create a directory where we want to
         //store all the results from running a simulation
@@ -151,7 +143,6 @@ int main(){
         BOOST_LOG_TRIVIAL(info)<<"Number of actions available: "<<env.n_actions();
         BOOST_LOG_TRIVIAL(info)<<"Number of states available: "<<env.n_states();
 
-
         // the network to train for the q values
         QNet qnet;
 
@@ -167,20 +158,24 @@ int main(){
         auto loss_fn = torch::nn::MSELoss();
 
         std::vector<real_t> losses;
+		std::vector<real_t> rewards;
         losses.reserve(TOTAL_EPOCHS);
+		rewards.reserve(TOTAL_EPOCHS);
 
         // loop over the epochs
         for(uint_t epoch=0; epoch < TOTAL_EPOCHS; ++epoch){
 
-            BOOST_LOG_TRIVIAL(info)<<"Starting epoch: "<<epoch<<std::endl;
+            BOOST_LOG_TRIVIAL(info)<<"Starting epoch: "<<epoch;
 
             // for every new epoch we reset the environment
             auto time_step = env.reset();
             auto done = false;
 			uint_t step_counter = 0;
 			std::vector<real_t> epoch_loss;
+			std::vector<real_t> epoch_rewards;
 			std::vector<float_t> rand_vec(64, 0.0);
 			epoch_loss.reserve(TOTAL_ITRS_PER_EPOCH);
+
             while(!done){
 
 				auto obs = flattened_observation(time_step.observation());
@@ -199,10 +194,11 @@ int main(){
                 auto qvals = qnet(torch_state);
                 auto action_idx = policy(qvals, cuberl::torch_tensor_value_type<float_t>());
 				
-				BOOST_LOG_TRIVIAL(info)<<"Action selected: "<<action_idx<<std::endl;
+				BOOST_LOG_TRIVIAL(info)<<"\tAction selected: "<<action_idx<<std::endl;
 
 				// step in the environment
                 time_step = env.step(action_idx);
+
 				obs = flattened_observation(time_step.observation());
 				// randomize the flattened observation
 				obs = cuberl::maths::add(obs, rand_vec);
@@ -221,37 +217,37 @@ int main(){
                 auto max_q = torch::max(new_q_vals);
                 auto reward = time_step.reward();
 				
-				BOOST_LOG_TRIVIAL(info)<<"Reward: "<<reward;
-				
-				// update done
-				done = time_step.done();
-				
-				if(done){ //#Q
-					//done = true;
-					BOOST_LOG_TRIVIAL(info)<<"Reward: "<<reward;
-					BOOST_LOG_TRIVIAL(info)<<"Finishing epoch at step: "<<step_counter;
-				}
-				
-					
+				BOOST_LOG_TRIVIAL(info)<<"\tReward: "<<reward;
+
                 auto y = torch::tensor({reward});
                 if(reward == -1.0){
                     y +=  max_q * GAMMA;
                 }
 
-                // the target according to Qvals
-                auto X = torch::tensor({qvals.squeeze()[action_idx].item<float_t>()});
+            	// in the code below to break the computation graph
+            	// and prevent gradients from flowing backward through
+            	// parts of the model that shouldn't be updated during backpropagation.
+            	y = y.detach();
+            	auto X = qvals.squeeze()[action_idx].unsqueeze(0);
 				
                 // calculate the loss
                 auto loss = loss_fn(X, y); 
-                optimizer_ptr -> zero_grad();
-				
+
+            	optimizer_ptr -> zero_grad();
 				loss.backward();
-				
                 optimizer_ptr -> step();
 
-                BOOST_LOG_TRIVIAL(info)<<"Loss at epoch: "<<loss.item<real_t>();
                 epoch_loss.push_back(loss.item<real_t>());
+            	epoch_rewards.push_back(reward);
 				step_counter += 1;
+
+            	BOOST_LOG_TRIVIAL(info)<<"\tLoss at epoch: "<<loss.item<real_t>();
+
+            	// update done
+            	done = time_step.done();
+            	if(done){
+            		BOOST_LOG_TRIVIAL(info)<<"\tFinishing epoch at step: "<<step_counter;
+            	}
             }
 
             BOOST_LOG_TRIVIAL(info)<<"Epoch finished...";
@@ -265,25 +261,27 @@ int main(){
 			
 			losses.push_back(cuberl::maths::mean(epoch_loss.begin(),
 													epoch_loss.end()));
+			rewards.push_back(cuberl::maths::mean(epoch_rewards.begin(),
+                                                    epoch_rewards.end()));
         }
 
         // save the rewards per episode for visualization
         // purposes
         auto filename = std::string("experiments/") + EXPERIMENT_ID;
         filename += "/dqn_grid_world_policy_rewards.csv";
-        rlenvscpp::utils::io::CSVWriter csv_writer(filename, 
-		                                           rlenvscpp::utils::io::CSVWriter::default_delimiter());
-        csv_writer.open();
-		csv_writer.write_column_vector(losses);
-        
-        // save the policy also so that we can load it and check
-        // use it
-        auto policy_model_filename = std::string("experiments/") + EXPERIMENT_ID;
-        policy_model_filename += std::string("/dqn_grid_world_policy.pth");
-        torch::serialize::OutputArchive archive;
-        qnet -> save(archive);
-        archive.save_to(policy_model_filename);
 
+        CSVWriter rewards_csv_writer(filename, CSVWriter::default_delimiter());
+        rewards_csv_writer.open();
+		rewards_csv_writer.write_column_vector(rewards);
+		rewards_csv_writer.close();
+
+    	filename = std::string("experiments/") + EXPERIMENT_ID;
+    	filename += "/dqn_grid_world_policy_losses.csv";
+
+    	CSVWriter losses_csv_writer(filename, CSVWriter::default_delimiter());
+    	losses_csv_writer.open();
+    	losses_csv_writer.write_column_vector(losses);
+    	losses_csv_writer.close();
     }
     catch(std::exception& e){
         std::cout<<e.what()<<std::endl;
