@@ -35,6 +35,7 @@ The following is an indicative list of examples.
 - <a href="examples/rl/rl_example_18.cpp">Double Q-learning on  ```CartPole``` </a>
 - <a href="examples/rl/rl_example_19/rl_example_19.cpp">First visit Monte Carlo on ```FrozenLake```</a>
 - <a href="examples/rl/rl_example_20/rl_example_20.md">REINFORCE algorithm with baseline on ```CartPole```</a>
+- <a href="examples/rl/rl_example_22/rl_example_22.md">PPO on ```LunarLander```</a>
 
 ### Filtering
 
