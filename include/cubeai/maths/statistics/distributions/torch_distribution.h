@@ -31,7 +31,7 @@ public:
     ///
     /// \brief entropy
     ///
-    virtual torch_tensor_t entropy() = 0;
+    virtual torch_tensor_t entropy() const = 0;
 
     ///
     /// \brief log_prob

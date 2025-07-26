@@ -67,6 +67,11 @@ struct PPOConfig
     ///
     uint_t buffer_size{100};
 
+	uint_t max_passes_over_batch{4};
+
+
+	real_t clip_epsilon {0.5};
+
     ///
     ///
     ///

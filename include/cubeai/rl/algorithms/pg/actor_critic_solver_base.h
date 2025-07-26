@@ -85,6 +85,10 @@ public:
 	/// \brief The monitor type to use
 	///
 	typedef MonitorType monitor_type;
+
+	///
+	typedef typename monitor_type::experience_buffer_type experience_buffer_type;
+	typedef typename monitor_type::experience_tuple_type experience_tuple_type;
 	
 	///
 	/// \brief The solver configuration type
@@ -179,6 +183,14 @@ protected:
 	///
     std::unique_ptr<torch::optim::Optimizer> critic_optimizer_;
 
+
+    ///
+    /// @tparam ExperienceBufferType
+    /// @param env
+    /// @return
+	uint_t
+	create_episode_batch_(env_type& env, uint_t /*episode_idx*/, experience_buffer_type& buffer);
+
 };
 
 template<typename EnvType, typename PolicyType, 
@@ -234,6 +246,59 @@ ACSolverBase<EnvType, PolicyType, CriticType,
 	monitor_.rewards.reserve(config_.n_episodes);
 	monitor_.episode_duration.reserve(config_.n_episodes);
     set_train_mode();
+}
+
+template<typename EnvType, typename PolicyType,
+		 typename CriticType, typename MonitorType,
+		 typename ConfigType>
+uint_t
+ACSolverBase<EnvType, PolicyType, CriticType,
+				 MonitorType, ConfigType>::create_episode_batch_(env_type& env, uint_t /*episode_idx*/, experience_buffer_type& buffer)
+{
+
+	/// we want to push into the monitor
+	/// experience tuples
+
+	typedef typename MonitorType::experience_tuple_type experience_tuple_type;
+
+	// reset the environment
+	//  for every episode reset the environment
+	auto old_timestep = env.reset();
+
+	// loop over the iterations
+	uint_t itrs = 0;
+	for(; itrs < config_.max_itrs_per_episode; ++itrs){
+
+		auto [action, log_prob] = policy_ -> act(old_timestep.observation());
+		auto values = critic_ -> evaluate(old_timestep.observation());
+
+
+
+		// step into the environment
+		auto next_time_step = env.step(action);
+		auto next_state = next_time_step.observation();
+		auto reward = next_time_step.reward();
+
+		experience_tuple_type exp = {old_timestep.observation(),
+			action,
+			reward,
+			next_time_step.done(),
+			log_prob,
+			values};
+
+		// put the observation into the buffer
+		buffer.append(exp);
+
+		// if the step is done then break
+		if (next_time_step.done()){
+			break;
+		}
+
+		old_timestep = next_time_step;
+
+	}
+
+	return itrs + 1;
 }
 
 }
