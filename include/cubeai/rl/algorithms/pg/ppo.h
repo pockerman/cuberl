@@ -24,6 +24,7 @@
 
 #ifdef CUBERL_DEBUG
 #include <cassert>
+#include <boost/log/trivial.hpp>
 #endif
 
 #include <chrono>
@@ -134,6 +135,10 @@ template<typename EnvType, typename PolicyType, typename CriticType>
 std::tuple<real_t, real_t>
 PPOSolver<EnvType, PolicyType, CriticType>::train_with_batch_(experience_buffer_type& buffer){
 
+#ifdef CUBERL_DEBUG
+BOOST_LOG_TRIVIAL(info)<<"PPO: Training with batch...: ";
+#endif
+
 
 		// because of the way we treat the values
 		// we loose the requires_grad so we need to set it
@@ -145,29 +150,43 @@ PPOSolver<EnvType, PolicyType, CriticType>::train_with_batch_(experience_buffer_
 		// the batch for this episode
 		auto batch = buffer.template get<batch_type>();
 		auto states = this -> monitor_.template get<state_type, 0>(batch);
+		std::vector<std::vector<float_t>> states_f(states.size());
+
+		for (uint_t i=0; i < states.size(); ++i)
+		{
+			states_f[i] = std::vector<float_t>(states[i].begin(), states[i].end());
+		}
+
+
 		auto actions = this -> monitor_.template get<action_type, 1>(batch);
-		auto rewards_batch  = this -> monitor_.template get<real_t, 2>(batch);
+		std::vector<std::vector<float_t>> actions_f(actions.size());
+
+		for (uint_t i=0; i < actions.size(); ++i)
+		{
+			actions_f[i] = std::vector<float_t>(actions[i].begin(), actions[i].end());
+		}
+
+
+		auto rewards_batch    = this -> monitor_.template get<float_t, 2>(batch);
 		auto values_batch   = this -> monitor_.template get<torch_tensor_t, 5>(batch);
 		auto logprobs_batch = this -> monitor_.template get<torch_tensor_t, 4>(batch);
 
 		// compute the discounted rewards for this batch
-		auto discounted_returns = calculate_step_discounted_return(rewards_batch, this->config_.gamma);
-		auto torch_states_batch = TorchAdaptor::stack(states,  this -> config_.device_type, true);
-		auto torch_actions_batch = TorchAdaptor::stack(actions,this ->  config_.device_type, true);
-		auto torch_rewards_batch = TorchAdaptor::to_torch(discounted_returns, this -> config_.device_type, false);
+		auto discounted_returns = calculate_step_discounted_return(rewards_batch, static_cast<float_t>(this->config_.gamma));
+		auto torch_states_batch = TorchAdaptor::stack(states_f,  this -> config_.device_type, true);
+		auto torch_actions_batch = TorchAdaptor::stack(actions_f,this ->  config_.device_type, true);
+		auto torch_rewards_batch = TorchAdaptor::to_torch(discounted_returns, this -> config_.device_type, false).detach();
 		auto torch_values_batch = TorchAdaptor::stack(values_batch, this -> config_.device_type);
-		auto old_torch_logprobs_batch = TorchAdaptor::stack(logprobs_batch, this -> config_.device_type);
+		auto old_torch_logprobs_batch = TorchAdaptor::stack(logprobs_batch, this -> config_.device_type).detach();
 
 		// form the advantage
-		auto advantages = torch_rewards_batch - torch_values_batch;
+		auto advantages = (torch_rewards_batch - torch_values_batch).detach();
+
 
 		std::vector<real_t> loss_vals(this -> config_.max_passes_over_batch, 0.0);
 		for (uint_t p=0; p < this -> config_.max_passes_over_batch; ++p)
 		{
 			auto [new_log_probs, entropy, _] = this -> policy_ -> evaluate(torch_states_batch, torch_actions_batch);
-
-			//auto new_log_probs = torch::log(this -> policy_ -> forward(torch_states_batch).gather(1, torch_actions_batch.unsqueeze(1)).squeeze());
-			//auto entropy = -(new_log_probs * new_log_probs.log()).sum(1).mean();
 
 			auto ratio = (new_log_probs - old_torch_logprobs_batch).exp();
 			auto surr1 = ratio * advantages;
@@ -193,6 +212,9 @@ PPOSolver<EnvType, PolicyType, CriticType>::train_with_batch_(experience_buffer_
 		auto avg_loss = cuberl::maths::mean(loss_vals);
 		this -> monitor_.policy_loss_values.push_back(avg_loss);
 		this -> monitor_.rewards.push_back(R);
+#ifdef CUBERL_DEBUG
+BOOST_LOG_TRIVIAL(info)<<"PPO: Done...: ";
+#endif
 		return std::make_tuple(R, avg_loss);
 
 }

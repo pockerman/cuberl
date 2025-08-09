@@ -61,7 +61,7 @@ namespace cuberl
             torch_tensor_t mean()const {return mean_;}
 
             ///
-            /// \brief Returns the standard devaition
+            /// \brief Returns the standard deviation
             ///
             torch_tensor_t std()const {return sd_;}
         private:
@@ -71,9 +71,9 @@ namespace cuberl
 
             ///
             /// \brief Ssample. Sample from the distribution
-            /// TODO: Depreacted and should be removed
+            /// TODO: Deprecated and should be removed
             ///
-            virtual torch_tensor_t sample(c10::ArrayRef<int64_t> sample_shape) {}
+            virtual torch_tensor_t sample(c10::ArrayRef<int64_t> /*sample_shape*/) { return torch_tensor_t(); }
         };
     }
 }

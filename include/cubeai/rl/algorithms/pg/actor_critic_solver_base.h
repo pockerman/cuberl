@@ -24,8 +24,10 @@
 
 #include <torch/torch.h>
 
+
 #ifdef CUBERL_DEBUG
 #include <cassert>
+#include <boost/log/trivial.hpp>
 #endif
 
 #include <string>
@@ -253,8 +255,12 @@ template<typename EnvType, typename PolicyType,
 		 typename ConfigType>
 uint_t
 ACSolverBase<EnvType, PolicyType, CriticType,
-				 MonitorType, ConfigType>::create_episode_batch_(env_type& env, uint_t /*episode_idx*/, experience_buffer_type& buffer)
+				 MonitorType, ConfigType>::create_episode_batch_(env_type& env, uint_t episode_idx, experience_buffer_type& buffer)
 {
+
+#ifdef CUBERL_DEBUG
+BOOST_LOG_TRIVIAL(info)<<"Collecting batch for episode: "<<episode_idx;
+#endif
 
 	/// we want to push into the monitor
 	/// experience tuples
@@ -271,9 +277,7 @@ ACSolverBase<EnvType, PolicyType, CriticType,
 
 		auto [action, log_prob] = policy_ -> act(old_timestep.observation());
 		auto values = critic_ -> evaluate(old_timestep.observation());
-
-
-
+		
 		// step into the environment
 		auto next_time_step = env.step(action);
 		auto next_state = next_time_step.observation();
@@ -297,6 +301,11 @@ ACSolverBase<EnvType, PolicyType, CriticType,
 		old_timestep = next_time_step;
 
 	}
+	
+#ifdef CUBERL_DEBUG
+BOOST_LOG_TRIVIAL(info)<<"Done... ";
+#endif
+
 
 	return itrs + 1;
 }
