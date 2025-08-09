@@ -50,7 +50,7 @@ public:
     /// \brief entropy
     /// \return
     ///
-    virtual torch_tensor_t entropy() override;
+    virtual torch_tensor_t entropy() const override;
 
     ///
     /// \brief log_prob

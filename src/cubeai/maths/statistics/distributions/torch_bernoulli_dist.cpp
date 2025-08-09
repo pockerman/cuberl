@@ -35,7 +35,7 @@ num_events_()
 
 
 torch_tensor_t
-TorchBernoulliDist::entropy(){
+TorchBernoulliDist::entropy()const{
    return torch::binary_cross_entropy_with_logits(logits_, probs_,
                                                   torch::Tensor(),
                                                   torch::Tensor(), torch::Reduction::None);

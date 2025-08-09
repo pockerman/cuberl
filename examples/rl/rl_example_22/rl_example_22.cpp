@@ -3,20 +3,23 @@
 #ifdef USE_PYTORCH
 
 #include "cubeai/base/cubeai_types.h"
-#include "cubeai/maths/statistics/distributions/torch_categorical.h"
+
 #include "cubeai/rl/trainers/rl_serial_agent_trainer.h"
 #include "cubeai/rl/algorithms/pg/ppo.h"
 #include "cubeai/rl/algorithms/pg/ppo_config.h"
 #include "cubeai/maths/optimization/optimizer_type.h"
+#include "cubeai/maths/statistics/distributions/torch_normal.h"
 #include "cubeai/maths/optimization/pytorch_optimizer_factory.h"
+#include "cubeai/utils/torch_adaptor.h"
 
 #include "rlenvs/utils/io/csv_file_writer.h"
 #include "rlenvs/envs/api_server/apiserver.h"
-#include "rlenvs/envs/gymnasium/classic_control/cart_pole_env.h"
+#include "rlenvs/envs/gymnasium/box2d/lunar_lander_env.h"
 
 #include <boost/log/trivial.hpp>
 #include <torch/torch.h>
 
+#include <vector>
 #include <iostream>
 #include <unordered_map>
 #include <filesystem>
@@ -33,20 +36,21 @@ using cuberl::real_t;
 using cuberl::uint_t;
 using cuberl::torch_tensor_t;
 using cuberl::DeviceType;
-using cuberl::maths::stats::TorchCategorical;
+using cuberl::maths::stats::TorchNormalDist;
 using cuberl::rl::algos::pg::PPOConfig;
 using cuberl::rl::algos::pg::PPOSolver;
 using cuberl::rl::RLSerialAgentTrainer;
 using cuberl::rl::RLSerialTrainerConfig;
+using cuberl::utils::pytorch::TorchAdaptor;
 using rlenvscpp::envs::RESTApiServerWrapper;
 
-typedef  rlenvscpp::envs::gymnasium::CartPole env_type;
+typedef  rlenvscpp::envs::gymnasium::LunarLanderContinuousEnv env_type;
 
 /// Layer sizes for Actor
-const uint_t L1 = 4;
+const uint_t L1 = 8;
 const uint_t L2 = 128;
-const uint_t L3 = 2;
-const real_t LEARNING_RATE = 0.01;
+const uint_t L3 = 64;
+constexpr real_t LEARNING_RATE = 0.001;
 const auto N_EPISODES = 2000;
 
 
@@ -57,15 +61,25 @@ public:
 
     
     ActorNetImpl();
-	torch_tensor_t forward(torch_tensor_t state);
+	 std::pair<torch::Tensor, torch::Tensor> forward(torch_tensor_t state);
+
 	template<typename StateTp>
-	std::tuple<uint_t, torch_tensor_t> act(const StateTp& state);
+	std::tuple<std::vector<real_t>,torch_tensor_t> act(const StateTp& state);
+
+    /// Evaluate the actor
+    /// @param states //
+    /// @param actions
+    /// @return
+    std::tuple<torch_tensor_t, torch_tensor_t, torch_tensor_t>
+	evaluate(torch_tensor_t states, torch_tensor_t actions);
 			   
 private:
 
     torch::nn::Linear fc1_;
 	torch::nn::Dropout dp_;
     torch::nn::Linear  fc2_;
+	torch::nn::Linear  mean_layer_;
+	torch::nn::Linear log_std_;
 
 };
 
@@ -74,37 +88,65 @@ ActorNetImpl::ActorNetImpl()
 torch::nn::Module(),
 fc1_(torch::nn::Linear(L1, L2)),
 dp_(torch::nn::Dropout(0.6)),
-fc2_(torch::nn::Linear(L2, L3))
+fc2_(torch::nn::Linear(L2, L3)),
+mean_layer_(torch::nn::Linear(64, 2)),
+log_std_(torch::nn::Linear(64, 2))
 {
    register_module("fc1_", fc1_);
    register_module("dp_",  dp_);
    register_module("fc2_", fc2_);
+   register_module("mean_layer_", mean_layer_);
+   register_module("log_std_", log_std_);
 }
 
 template<typename StateTp>
-std::tuple<uint_t, torch_tensor_t> 
+std::tuple<std::vector<real_t>, torch_tensor_t>
 ActorNetImpl::act(const StateTp& state){
-	
-	auto torch_state = torch::tensor(state);
-    auto probs = forward(torch_state);
-	
-	auto m = TorchCategorical(probs, false);
-	
-	auto action = m.sample();
-    return std::make_tuple(action.item().toLong(), 
-	                       m.log_prob(action));
+
+	auto torch_state = torch::tensor(state, torch::dtype(torch::kFloat32));
+	auto [mean, log_std] = this->forward(torch_state);
+	auto std = torch::exp(log_std);
+
+	auto dist = TorchNormalDist(mean, std);
+
+	// sample an action
+	auto raw_action = dist.sample();
+	auto action = torch::tanh(raw_action);
+
+	auto log_prob = -0.5 * (((raw_action - mean) / (std + 1e-8)).pow(2)
+							+ 2 * log_std
+							+ std::log(2 * M_PI));
+	log_prob = log_prob.sum(-1); // sum over action dims
+
+	auto log_det_jacobian = torch::log(1 - action.pow(2) + 1e-6).sum(-1);
+	auto corrected_log_prob = log_prob - log_det_jacobian;
+
+	auto clamped_action = TorchAdaptor::to_vector<real_t>(action.to(torch::kDouble));
+	return {clamped_action, corrected_log_prob};
 }
 
-
-torch_tensor_t
+std::pair<torch_tensor_t, torch_tensor_t>
 ActorNetImpl::forward(torch_tensor_t state){
-	
-	state = fc1_->forward(state);
-	state = dp_ -> forward(state);
-		
-	state = F::relu(state);
-    state = fc2_->forward(state);
-    return F::softmax(state,  F::SoftmaxFuncOptions(0));
+
+	state = torch::relu(fc1_ -> forward(state));
+	state = torch::relu(fc2_ -> forward(state));
+	auto mean = mean_layer_-> forward(state);
+	auto log_std = log_std_-> forward(state);
+	//auto std = torch::exp(log_std);
+
+	// Clamp for numerical stability
+	log_std = torch::clamp(log_std, -20.0f, 2.0f);
+
+	return {mean, log_std};
+}
+
+std::tuple<torch_tensor_t, torch_tensor_t, torch_tensor_t>
+ActorNetImpl::evaluate(torch_tensor_t states, torch_tensor_t actions) {
+	auto [mean, std] = this->forward(states);
+	auto dist = TorchNormalDist(mean, std);
+	auto log_probs = dist.log_prob(actions).sum(1);
+	auto entropy = dist.entropy().sum(1).mean();
+	return {log_probs, entropy, mean};
 }
 
 
@@ -112,27 +154,23 @@ ActorNetImpl::forward(torch_tensor_t state){
 class CriticNetImpl: public torch::nn::Module
 {
 public:
-
     CriticNetImpl();
     torch_tensor_t forward(torch_tensor_t state);
 	
 	template<typename StateTp>
-	torch_tensor_t evaluate(const StateTp& state); 
-
+	torch_tensor_t evaluate(const StateTp& state);
 private:
-
     torch::nn::Linear fc1_;
     torch::nn::Linear fc2_;
     torch::nn::Linear fc3_;
-
 };
 
 
 CriticNetImpl::CriticNetImpl()
 :
 torch::nn::Module(),
-fc1_(torch::nn::Linear(4, 128)),
-fc2_(torch::nn::Linear(128, 256)),
+fc1_(torch::nn::Linear(L1, L2)),
+fc2_(torch::nn::Linear(L2, 256)),
 fc3_(torch::nn::Linear(256, 1))
 {
    register_module("fc1_", fc1_);
@@ -183,7 +221,7 @@ int main(){
 		BOOST_LOG_TRIVIAL(info)<<"Creating environment...";
         std::unordered_map<std::string, std::any> options;
 
-        env.make("v1", options);
+        env.make("v3", options);
         env.reset();
 		
         BOOST_LOG_TRIVIAL(info)<<"Done...";
@@ -231,7 +269,7 @@ int main(){
 		auto experiment_path = std::string("experiments/") + EXPERIMENT_ID;
 		
 		// write the loss values
-		auto& policy_loss_vals  = solver.get_monitor().policy_loss_values;
+		auto& policy_loss_vals= solver.get_monitor().policy_loss_values;
 		
 		rlenvscpp::utils::io::CSVWriter loss_csv_writer(experiment_path + "/" + "policy_loss.csv",
 														  rlenvscpp::utils::io::CSVWriter::default_delimiter());
@@ -259,9 +297,7 @@ int main(){
 		}
 		
 		critic_csv_writer.close();
-		
-		
-		
+
 		auto& rewards  = solver.get_monitor().rewards;
 		rlenvscpp::utils::io::CSVWriter rewards_csv_writer(experiment_path + "/" + "rewards.csv",
 														  rlenvscpp::utils::io::CSVWriter::default_delimiter());
@@ -286,11 +322,9 @@ int main(){
 			std::tuple<uint_t, real_t> row = {episode_counter++, episode_duration[i]};
 			episode_duration_csv_writer.write_row(row);
 		}
-		
-		episode_duration_csv_writer.close();
-		
-		BOOST_LOG_TRIVIAL(info)<<"Finished agent training";
 
+		episode_duration_csv_writer.close();
+		BOOST_LOG_TRIVIAL(info)<<"Finished agent training";
     }
     catch(std::exception& e){
         std::cout<<e.what()<<std::endl;
@@ -310,3 +344,5 @@ int main(){
     return 1;
 }
 #endif
+
+

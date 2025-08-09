@@ -29,7 +29,7 @@ num_events_()
 
 
 torch_tensor_t
-TorchCategorical::entropy(){
+TorchCategorical::entropy()const{
     auto p_log_p = logits_ * probs_;
     return -p_log_p.sum(-1);
 }
