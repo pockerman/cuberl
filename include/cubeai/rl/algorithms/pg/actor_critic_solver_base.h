@@ -277,7 +277,7 @@ BOOST_LOG_TRIVIAL(info)<<"Collecting batch for episode: "<<episode_idx;
 
 		auto [action, log_prob] = policy_ -> act(old_timestep.observation());
 		auto values = critic_ -> evaluate(old_timestep.observation());
-		
+
 		// step into the environment
 		auto next_time_step = env.step(action);
 		auto next_state = next_time_step.observation();
