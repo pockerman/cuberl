@@ -194,14 +194,11 @@ FILE(GLOB SRCS src/cubeai/base/*.cpp
                src/cubeai/maths/statistics/*.cpp
                src/cubeai/maths/statistics/distributions/*.cpp
                src/cubeai/maths/optimization/*.cpp
+		       src/cubeai/control/*.cpp
                #src/cubeai/planning/*.cpp
 	)
 
-
-
-ADD_LIBRARY(cubeailib SHARED ${SRCS}
-		include/cubeai/maths/statistics/distributions/torch_normal.h
-		src/cubeai/maths/statistics/distributions/torch_normal.cpp)
+ADD_LIBRARY(cubeailib SHARED ${SRCS})
 SET_TARGET_PROPERTIES(cubeailib PROPERTIES LINKER_LANGUAGE CXX)
 INSTALL(TARGETS cubeailib DESTINATION ${CMAKE_INSTALL_PREFIX})
 

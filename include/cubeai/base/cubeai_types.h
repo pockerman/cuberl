@@ -40,7 +40,17 @@ namespace cuberl
     ///
     /// \brief General matrix type
     ///
-    using rlenvscpp::DynMat; 
+    using rlenvscpp::DynMat;
+
+	///
+	/// \brief Square matrix type
+	///
+	using rlenvscpp::SquareMat;
+
+	///
+	/// General fixed size at compile time matrix
+	///
+	using rlenvscpp::Mat;
 
 	///
 	/// \brief General row vector
