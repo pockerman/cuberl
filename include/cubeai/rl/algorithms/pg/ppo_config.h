@@ -3,7 +3,7 @@
 
 
 #include "cubeai/base/cubeai_types.h"
-#include "rlenvs/rlenvs_consts.h"
+//#include "rlenvs/rlenvs_consts.h"
 #include "cubeai/utils/train_enum_type.h"
 
 #include <ostream>
@@ -14,7 +14,7 @@ namespace rl {
 namespace algos {
 namespace pg {
 	
-using namespace rlenvscpp::consts;
+//using namespace rlenvscpp::consts;
 	
 ///
 /// \brief The PPOConfig struct. Configuration for PPOSolver class

@@ -44,7 +44,6 @@ std::vector<real_t>
 compute_baseline_with_constant(const std::vector<real_t>& rewards,
 							   real_t constant){
 
-	
 	std::vector<real_t> result;
 	result.reserve(rewards.size());
 	

@@ -2,7 +2,7 @@
 #define EPISODE_INFO_H
 
 #include "cubeai/base/cubeai_types.h"
-#include "rlenvs/rlenvs_consts.h"
+#include "bitrl/bitrl_consts.h"
 #include <chrono>
 #include <string>
 #include <map>
@@ -18,8 +18,8 @@ namespace rl {
 struct EpisodeInfo
 {
 
-    uint_t episode_index{rlenvscpp::consts::INVALID_ID};
-    uint_t episode_iterations{rlenvscpp::consts::INVALID_ID};
+    uint_t episode_index{bitrl::consts::INVALID_ID};
+    uint_t episode_iterations{bitrl::consts::INVALID_ID};
     bool stop_training{false};
 
     ///

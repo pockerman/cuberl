@@ -12,7 +12,7 @@
 #include "cubeai/base/cubeai_types.h"
 #include "cubeai/maths/vector_math.h"
 #include "cubeai/rl/policies/softmax_policy.h"
-#include "rlenvs/utils/io/csv_file_writer.h"
+#include "bitrl/utils/io/csv_file_writer.h"
 #include <cmath>
 #include <utility>
 #include <tuple>
@@ -156,7 +156,7 @@ int main() {
         std::cout<<"\tReward obtained: "<<rewards[i]<<std::endl;
     }
 
-    auto csv_writer = rlenvscpp::utils::io::CSVWriter("rewards.csv", ',');
+    auto csv_writer = bitrl::utils::io::CSVWriter("rewards.csv", ',');
 
     csv_writer.write_column_vector(rewards);
 

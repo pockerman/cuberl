@@ -8,8 +8,6 @@
 
 #include <utility>
 
-#include "rlenvs/envs/grid_world/grid_world_env.h"
-
 namespace cuberl
 {
     namespace control

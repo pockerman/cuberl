@@ -1,6 +1,6 @@
 #include "cubeai/base/cubeai_types.h"
-#include "rlenvs/utils/iteration_counter.h"
-#include "rlenvs/utils/maths/statistics/distributions/normal_dist.h"
+#include "bitrl/utils/iteration_counter.h"
+#include "bitrl/utils/maths/statistics/distributions/normal_dist.h"
 #include "cubeai/maths/vector_math.h"
 #include <boost/log/trivial.hpp>
 
@@ -18,8 +18,8 @@ using cuberl::real_t;
 using cuberl::uint_t;
 using cuberl::DynMat;
 using cuberl::DynVec;
-using rlenvscpp::utils::maths::stats::NormalDist;
-using rlenvscpp::utils::IterationCounter;
+using bitrl::utils::maths::stats::NormalDist;
+using bitrl::utils::IterationCounter;
 
 // we will sample from the normal distribution
 // with mu = 4.0 and std = 1.0
