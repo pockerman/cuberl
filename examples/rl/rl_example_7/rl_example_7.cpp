@@ -2,8 +2,8 @@
 #include "cubeai/rl/algorithms/dp/policy_iteration.h"
 #include "cubeai/rl/trainers/rl_serial_agent_trainer.h"
 #include "cubeai/rl/policies/uniform_discrete_policy.h"
-#include "rlenvs/envs/api_server/apiserver.h"
-#include "rlenvs/envs/gymnasium/toy_text/frozen_lake_env.h"
+#include "bitrl/network/rest_rl_env_client.h"
+#include "bitrl/envs/gymnasium/toy_text/frozen_lake_env.h"
 
 
 #include <boost/log/trivial.hpp>
@@ -24,8 +24,8 @@ using cuberl::rl::algos::dp::PolicyIterationSolver;
 using cuberl::rl::algos::dp::PolicyIterationConfig;
 using cuberl::rl::RLSerialAgentTrainer;
 using cuberl::rl::RLSerialTrainerConfig;
-using rlenvscpp::envs::gymnasium::FrozenLake;
-using rlenvscpp::envs::RESTApiServerWrapper;
+using bitrl::envs::gymnasium::FrozenLake;
+using bitrl::network::RESTRLEnvClient;
 
 typedef FrozenLake<4> env_type;
 }
@@ -35,15 +35,15 @@ int main() {
 	BOOST_LOG_TRIVIAL(info)<<"Starting agent training";
     using namespace rl_example_7;
 	
-	RESTApiServerWrapper server(SERVER_URL, true);
+	RESTRLEnvClient server(SERVER_URL, true);
 
      // create the environment
     FrozenLake<4> env(server);
     std::unordered_map<std::string, std::any> options;
-
+	std::unordered_map<std::string, std::any> reset_options;
 	BOOST_LOG_TRIVIAL(info)<<"Creating environment...";
 	
-    env.make("v1", options);
+    env.make("v1", options, reset_options);
     env.reset();
     BOOST_LOG_TRIVIAL(info)<<"Done...";
 

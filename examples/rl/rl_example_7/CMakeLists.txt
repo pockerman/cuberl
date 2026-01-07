@@ -18,6 +18,5 @@ ENDIF()
 
 TARGET_LINK_LIBRARIES(${EXECUTABLE} pthread)
 TARGET_LINK_LIBRARIES(${EXECUTABLE} openblas)
-
-target_link_libraries(${EXECUTABLE} tbb)
-target_link_libraries(${EXECUTABLE} boost_log)
+TARGET_LINK_LIBRARIES(${EXECUTABLE} tbb)
+TARGET_LINK_LIBRARIES(${EXECUTABLE} boost_log)

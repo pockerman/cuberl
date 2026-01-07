@@ -3,8 +3,8 @@
 #include "cubeai/rl/trainers/rl_serial_agent_trainer.h"
 #include "cubeai/rl/policies/uniform_discrete_policy.h"
 
-#include "rlenvs/envs/gymnasium/toy_text/frozen_lake_env.h"
-#include "rlenvs/envs/api_server/apiserver.h"
+#include "bitrl/envs/gymnasium/toy_text/frozen_lake_env.h"
+#include "bitrl/network/rest_rl_env_client.h"
 
 #include <iostream>
 
@@ -20,8 +20,8 @@ using cuberl::rl::algos::dp::IterativePolicyEvalutationSolver;
 using cuberl::rl::algos::dp::IterativePolicyEvalConfig;
 using cuberl::rl::RLSerialAgentTrainer;
 using cuberl::rl::RLSerialTrainerConfig;
-using rlenvscpp::envs::gymnasium::FrozenLake;
-using rlenvscpp::envs::RESTApiServerWrapper;
+using bitrl::envs::gymnasium::FrozenLake;
+using bitrl::network::RESTRLEnvClient;
 typedef FrozenLake<4> env_type;
 
 }
@@ -30,16 +30,16 @@ int main() {
 
     using namespace rl_example_6;
 	
-	RESTApiServerWrapper server(SERVER_URL, true);
+	RESTRLEnvClient server(SERVER_URL, true);
 
     // create the environment
     FrozenLake<4> env(server);
 
     std::cout<<"Environment URL: "<<env.get_url()<<std::endl;
     std::unordered_map<std::string, std::any> options;
-
+	std::unordered_map<std::string, std::any> reset_options;
     std::cout<<"Creating the environment..."<<std::endl;
-    env.make("v1", options);
+    env.make("v1", options, reset_options);
     env.reset();
     std::cout<<"Done..."<<std::endl;
 

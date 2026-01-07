@@ -143,7 +143,8 @@ int main() {
 		std::vector<real_t> p(5, 0.5);
 		std::unordered_map<std::string, std::any> options;
 		options["p"] = std::any(p);
-		env.make("v0", options);
+    	std::unordered_map<std::string, std::any> reset_options;
+		env.make("v0", options, reset_options);
 		env.reset();
 		
 		std::cout<<"Running thompson sampling"<<std::endl;
@@ -175,7 +176,8 @@ int main() {
 		p[4] = 0.5;
 		std::unordered_map<std::string, std::any> options;
 		options["p"] = std::any(p);
-		env.make("v0", options);
+    	std::unordered_map<std::string, std::any> reset_options;
+		env.make("v0", options, reset_options);
 		env.reset();
 		
 		std::cout<<"Running thompson sampling"<<std::endl;
