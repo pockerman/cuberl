@@ -238,7 +238,7 @@ namespace rl::algos::td
 	void
 	QLearningSolver<EnvTp, PolicyType>::save(const std::string& filename)const{
 
-		rlenvscpp::utils::io::CSVWriter file_writer(filename, ',');
+		bitrl::utils::io::CSVWriter file_writer(filename, ',');
 		file_writer.open();
 
 		std::vector<std::string> col_names(1 + q_table_.cols());
@@ -276,7 +276,7 @@ namespace rl::algos::td
 	                                                    const  action_type& /*next_action*/, real_t reward){
 
 		auto q_current = q_table_(cstate, action);
-		auto q_next = next_state != rlenvscpp::consts::INVALID_ID ? cuberl::maths::get_row_max(q_table_, next_state) : 0.0;
+		auto q_next = next_state != bitrl::consts::INVALID_ID ? cuberl::maths::get_row_max(q_table_, next_state) : 0.0;
 
 
 		auto td_target = reward + config_.gamma * q_next;

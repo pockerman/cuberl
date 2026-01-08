@@ -1,10 +1,10 @@
 #include "cubeai/base/cubeai_types.h"
 #include "cubeai/estimation/extended_kalman_filter.h"
-#include "rlenvs/utils/iteration_counter.h"
-#include "rlenvs/utils/io/csv_file_writer.h"
-#include "rlenvs/dynamics/diff_drive_dynamics.h"
-#include "rlenvs/dynamics/system_state.h"
-#include "rlenvs/utils/unit_converter.h"
+#include "bitrl/utils/iteration_counter.h"
+#include "bitrl/utils/io/csv_file_writer.h"
+#include "bitrl/dynamics/diff_drive_dynamics.h"
+#include "bitrl/dynamics/system_state.h"
+#include "bitrl/utils/unit_converter.h"
 
 #include <boost/log/trivial.hpp>
 #include <iostream>
@@ -22,10 +22,10 @@ using cuberl::DynMat;
 using cuberl::DynVec;
 using cuberl::estimation::ExtendedKalmanFilter;
 
-using rlenvscpp::utils::io::CSVWriter;
-using rlenvscpp::utils::IterationCounter;
-using rlenvscpp::dynamics::DiffDriveDynamics;
-using rlenvscpp::dynamics::SysState;
+using bitrl::utils::io::CSVWriter;
+using bitrl::utils::IterationCounter;
+using bitrl::dynamics::DiffDriveDynamics;
+using bitrl::dynamics::SysState;
 
 
 class ObservationModel
@@ -167,13 +167,13 @@ int main() {
 			BOOST_LOG_TRIVIAL(info)<<"Simulation time: "<<time;
             
             if(counter == 50){
-              w = rlenvscpp::utils::unit_converter::degrees_to_rad(45.0);
+              w = bitrl::utils::unit_converter::degrees_to_rad(45.0);
             }
             else if(counter == 100){
-               w = rlenvscpp::utils::unit_converter::degrees_to_rad(-45.0);
+               w = bitrl::utils::unit_converter::degrees_to_rad(-45.0);
             }
             else if(counter == 150){
-               w = rlenvscpp::utils::unit_converter::degrees_to_rad(-45.0);
+               w = bitrl::utils::unit_converter::degrees_to_rad(-45.0);
             }
             else{
                 w = 0.0;
@@ -190,7 +190,7 @@ int main() {
             ekf.update(z);
 
             BOOST_LOG_TRIVIAL(info)<<"Position: "<<ekf.get("X")<<", "<<ekf.get("Y");
-            BOOST_LOG_TRIVIAL(info)<<"Orientation: (degrees)"<<rlenvscpp::utils::unit_converter::rad_to_degrees(ekf.get("Theta"));
+            BOOST_LOG_TRIVIAL(info)<<"Orientation: (degrees)"<<bitrl::utils::unit_converter::rad_to_degrees(ekf.get("Theta"));
             BOOST_LOG_TRIVIAL(info)<<"V: "<<vt<<", W: "<<w;
 
             std::vector<real_t> row(7, 0.0);

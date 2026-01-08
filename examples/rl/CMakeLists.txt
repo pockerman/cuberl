@@ -1,6 +1,6 @@
 ADD_SUBDIRECTORY(rl_example_1)
 ADD_SUBDIRECTORY(rl_example_2)
-#ADD_SUBDIRECTORY(rl_example_3)
+ADD_SUBDIRECTORY(rl_example_3)
 ADD_SUBDIRECTORY(rl_example_6)
 ADD_SUBDIRECTORY(rl_example_7)
 ADD_SUBDIRECTORY(rl_example_8)
@@ -11,19 +11,11 @@ ADD_SUBDIRECTORY(rl_example_12)
 ADD_SUBDIRECTORY(rl_example_13)
 ADD_SUBDIRECTORY(rl_example_14)
 ADD_SUBDIRECTORY(rl_example_15)
-ADD_SUBDIRECTORY(rl_example_16)
+
 ADD_SUBDIRECTORY(rl_example_19)
 ADD_SUBDIRECTORY(rl_example_20)
 #ADD_SUBDIRECTORY(rl_example_21)
 ADD_SUBDIRECTORY(rl_example_22)
 
-
-
-#ADD_SUBDIRECTORY(rl_example_17)
-#ADD_SUBDIRECTORY(rl_example_18)
-
-#ADD_SUBDIRECTORY(example_15)
-
-#ADD_SUBDIRECTORY(example_17)
 
 

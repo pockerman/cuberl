@@ -6,7 +6,7 @@
 #ifdef USE_PYTORCH
 
 #include "cubeai/base/cubeai_types.h"
-#include "rlenvs/rlenvs_consts.h"
+#include "bitrl/bitrl_consts.h"
 
 #include <vector>
 
@@ -15,7 +15,7 @@ namespace rl {
 namespace algos {
 namespace pg {
 	
-	using namespace rlenvscpp::consts;
+	//using namespace bitrl::consts;
 	
 ///
 /// \brief compute_loss_item. Compute the product -rewards[i] * log_probs[i]
@@ -46,7 +46,7 @@ compute_baseline_with_mean(const std::vector<real_t>& rewards);
 ///
 std::vector<real_t> 
 compute_baseline_with_standardization(const std::vector<real_t>& rewards, 
-                                      real_t eps=TOLERANCE);
+                                      real_t eps=bitrl::consts::TOLERANCE);
 	
 }
 }

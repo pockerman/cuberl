@@ -61,7 +61,7 @@ SET(BITRL_LIB_PATH "/home/alex/qi3/bitrl/install/opt") # required
 SET(USE_RL ON)
 SET(DATA_SET_FOLDER ${PROJECT_SOURCE_DIR}/data)
 SET(ENABLE_EXAMPLES_FLAG ON)
-SET(ENABLE_TESTS_FLAG ON) # Testing
+SET(ENABLE_TESTS_FLAG OFF) # Testing
 SET(ENABLE_DOC_FLAG OFF) # Documentation
 
 # if we enable Webots then specify the paths

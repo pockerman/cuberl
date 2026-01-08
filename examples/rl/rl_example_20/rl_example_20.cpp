@@ -13,9 +13,9 @@
 #include "cubeai/maths/optimization/pytorch_optimizer_factory.h"
 #include "cubeai/maths/statistics/distributions/torch_categorical.h"
 
-#include "rlenvs/utils/io/csv_file_writer.h"
-#include "rlenvs/envs/api_server/apiserver.h"
-#include "rlenvs/envs/gymnasium/classic_control/cart_pole_env.h"
+#include "bitrl/utils/io/csv_file_writer.h"
+#include "bitrl/network/rest_rl_env_client.h"
+#include "bitrl/envs/gymnasium/classic_control/cart_pole_env.h"
 
 #include <boost/log/trivial.hpp>
 
@@ -49,8 +49,8 @@ using cuberl::rl::algos::pg::BaselineEnumType;
 using cuberl::rl::RLSerialAgentTrainer;
 using cuberl::rl::RLSerialTrainerConfig;
 using cuberl::maths::stats::TorchCategorical;
-using rlenvscpp::envs::RESTApiServerWrapper;	
-using rlenvscpp::envs::gymnasium::CartPole;
+	using bitrl::network::RESTRLEnvClient;
+using bitrl::envs::gymnasium::CartPole;
 
 
 const uint_t L1 = 4;
@@ -146,13 +146,14 @@ int main(){
 
 		BOOST_LOG_TRIVIAL(info)<<"Creating environment...";
 		
-		RESTApiServerWrapper server(SERVER_URL, true);
+		RESTRLEnvClient server(SERVER_URL, true);
         auto env = CartPole(server);
 	
         std::unordered_map<std::string, std::any> options;
+    	std::unordered_map<std::string, std::any> reset_options;
 
         // with Gymnasium v0 is not working
-        env.make("v1", options);
+        env.make("v1", options, reset_options);
         env.reset();
 
         BOOST_LOG_TRIVIAL(info)<<"Done...";
@@ -216,8 +217,8 @@ int main(){
 		
 		
 		BOOST_LOG_TRIVIAL(info)<<"Loss values size: "<<loss_vals.size();
-		rlenvscpp::utils::io::CSVWriter loss_csv_writer(experiment_path + "/" + "loss.csv",
-														  rlenvscpp::utils::io::CSVWriter::default_delimiter());
+		bitrl::utils::io::CSVWriter loss_csv_writer(experiment_path + "/" + "loss.csv",
+														  bitrl::utils::io::CSVWriter::default_delimiter());
 		loss_csv_writer.open();
 		
 		auto episode_counter = 0;
@@ -230,8 +231,8 @@ int main(){
 		
 		
 		auto& rewards  = solver.get_monitor().rewards;
-		rlenvscpp::utils::io::CSVWriter rewards_csv_writer(experiment_path + "/" + "rewards.csv",
-														  rlenvscpp::utils::io::CSVWriter::default_delimiter());
+		bitrl::utils::io::CSVWriter rewards_csv_writer(experiment_path + "/" + "rewards.csv",
+														  bitrl::utils::io::CSVWriter::default_delimiter());
 		rewards_csv_writer.open();
 		
 		episode_counter = 0;
@@ -245,8 +246,8 @@ int main(){
 		
 		
 		auto& episode_duration  = solver.get_monitor().episode_duration;
-		rlenvscpp::utils::io::CSVWriter episode_duration_csv_writer(experiment_path + "/" + "episode_duration.csv",
-														            rlenvscpp::utils::io::CSVWriter::default_delimiter());
+		bitrl::utils::io::CSVWriter episode_duration_csv_writer(experiment_path + "/" + "episode_duration.csv",
+														            bitrl::utils::io::CSVWriter::default_delimiter());
 		episode_duration_csv_writer.open();
 		
 		episode_counter = 0;

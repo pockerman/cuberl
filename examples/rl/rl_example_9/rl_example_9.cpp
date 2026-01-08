@@ -79,7 +79,7 @@ int main(){
 		auto reward = trainer.episodes_total_rewards();
 		auto iterations = trainer.n_itrs_per_episode();
 	
-		rlenvscpp::utils::io::CSVWriter csv_writer(REWARD_PER_ITR);
+		bitrl::utils::io::CSVWriter csv_writer(REWARD_PER_ITR);
 		csv_writer.open();
 		
 		csv_writer.write_column_names({"epoch", "reward"});

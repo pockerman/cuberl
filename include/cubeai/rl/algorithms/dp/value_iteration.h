@@ -168,7 +168,7 @@ namespace rl::algos::dp
 	void
 	ValueIteration<EnvType>::save(const std::string& filename)const{
 
-		rlenvscpp::utils::io::CSVWriter file_writer(filename, ',');
+		bitrl::utils::io::CSVWriter file_writer(filename, ',');
 		file_writer.open();
 
 		file_writer.write_column_names({"state_index", "value_function"});
