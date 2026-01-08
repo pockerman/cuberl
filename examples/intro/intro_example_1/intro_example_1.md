@@ -62,7 +62,7 @@ $$\hat{I} \pm z_{\alpha/2}\hat{se}$$
 The driver code for this tutorial is shown below. 
 
 
-```cpp
+@code
 /**
   * This example illustrates a simple example of Monte Carlo
   * iteration using the IterationCounter class
@@ -157,8 +157,8 @@ int main() {
     }
 
    return 0;
-}
-```
+} 
+@endcode
 
 Running the code above produces the following output
 
