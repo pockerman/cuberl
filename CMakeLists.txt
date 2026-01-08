@@ -6,7 +6,6 @@ SET(CUBEAILIB_VERSION_MINOR 4)
 SET(CUBEAILIB_VERSION_PATCH 3)
 SET(CUBEAILIB_VERSION "${CUBEAILIB_VERSION_MAJOR}.${CUBEAILIB_VERSION_MINOR}.${CUBEAILIB_VERSION_PATCH}")
 
-
 MESSAGE(STATUS "cuberl lib Version ${CUBEAILIB_VERSION}")
 
 
@@ -54,13 +53,15 @@ SET(CMAKE_LINKER_FLAGS "-pthread")
 SET(USE_OPENMP ON)
 SET(USE_LOG ON)
 SET(USE_PYTORCH ON)
-SET(USE_OPENCV OFF)
-SET(RLENVS_CPP_INCLUDE_DIRS "${PROJECT_SOURCE_DIR}/external/rlenvs_cpp/src") # required
+SET(ENABLE_OPENCV ON)
+SET(ENABLE_MQTT ON)
+SET(BITRL_INCLUDE_DIR "/home/alex/qi3/bitrl/src") # required
+SET(BITRL_LIB_PATH "/home/alex/qi3/bitrl/install/opt") # required
 
 SET(USE_RL ON)
 SET(DATA_SET_FOLDER ${PROJECT_SOURCE_DIR}/data)
 SET(ENABLE_EXAMPLES_FLAG ON)
-SET(ENABLE_TESTS_FLAG ON) # Testing
+SET(ENABLE_TESTS_FLAG OFF) # Testing
 SET(ENABLE_DOC_FLAG OFF) # Documentation
 
 # if we enable Webots then specify the paths
@@ -111,14 +112,6 @@ ELSEIF(CMAKE_BUILD_TYPE STREQUAL "Release")
     SET(BOOST_LOG_DYN_LINK ON)
 ENDIF()
 
-
-IF(CMAKE_BUILD_TYPE MATCHES "Debug")
-	SET(RLENVS_CPP_LIB_PATH "${PROJECT_SOURCE_DIR}/external/rlenvs_cpp/install/dbg")
-ELSE()
-	SET(RLENVS_CPP_LIB_PATH "${PROJECT_SOURCE_DIR}/external/rlenvs_cpp/install/opt")
-ENDIF()
-
-
 # if tests are enabled try to
 # find GTest
 IF(ENABLE_TESTS_FLAG)
@@ -138,6 +131,18 @@ ENDIF()
 FIND_PACKAGE(Boost 1.74.0 REQUIRED)
 FIND_PACKAGE(BLAS REQUIRED)
 FIND_PACKAGE(Eigen3 REQUIRED)
+
+IF(ENABLE_MQTT)
+    FIND_PACKAGE(PahoMqttCpp REQUIRED)
+    SET(USE_MQTT ON)
+    INCLUDE_DIRECTORIES(/usr/local/include/) # mqtt
+ENDIF()
+
+IF(ENABLE_OPENCV)
+    FIND_PACKAGE(OpenCV REQUIRED)
+    SET(USE_OPENCV ON)
+    INCLUDE_DIRECTORIES(${OpenCV_INCLUDE_DIRS})
+ENDIF()
 
 IF(Boost_FOUND)
 	MESSAGE( STATUS  "Found needed Boost C++ library.")
@@ -174,8 +179,8 @@ configure_file(version.h.in ${PROJECT_SOURCE_DIR}/include/cubeai/base/cubeai_ver
 
 # include directories
 INCLUDE_DIRECTORIES(${BOOST_INCLUDEDIR})
-INCLUDE_DIRECTORIES(${EIGEN_INCLUDE_DIRS})
-INCLUDE_DIRECTORIES(${RLENVS_CPP_INCLUDE_DIRS})
+INCLUDE_DIRECTORIES(${EIGEN3_INCLUDE_DIR})
+INCLUDE_DIRECTORIES(${BITRL_INCLUDE_DIR})
 
 IF(USE_PYTORCH)
 	INCLUDE_DIRECTORIES(${TORCH_INCLUDE_DIRS})
@@ -194,14 +199,11 @@ FILE(GLOB SRCS src/cubeai/base/*.cpp
                src/cubeai/maths/statistics/*.cpp
                src/cubeai/maths/statistics/distributions/*.cpp
                src/cubeai/maths/optimization/*.cpp
+		       src/cubeai/control/*.cpp
                #src/cubeai/planning/*.cpp
 	)
 
-
-
-ADD_LIBRARY(cubeailib SHARED ${SRCS}
-		include/cubeai/maths/statistics/distributions/torch_normal.h
-		src/cubeai/maths/statistics/distributions/torch_normal.cpp)
+ADD_LIBRARY(cubeailib SHARED ${SRCS})
 SET_TARGET_PROPERTIES(cubeailib PROPERTIES LINKER_LANGUAGE CXX)
 INSTALL(TARGETS cubeailib DESTINATION ${CMAKE_INSTALL_PREFIX})
 

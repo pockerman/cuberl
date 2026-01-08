@@ -6,9 +6,9 @@
 #include "cubeai/maths/vector_math.h"
 
 
-#include "rlenvs/envs/gymnasium/toy_text/frozen_lake_env.h"
-#include "rlenvs/envs/envs_utils.h"
-#include "rlenvs/envs/api_server/apiserver.h"
+#include "bitrl/envs/gymnasium/toy_text/frozen_lake_env.h"
+#include "bitrl/envs/envs_utils.h"
+#include "bitrl/network/rest_rl_env_client.h"
 
 #include <iostream>
 #include <random>
@@ -25,8 +25,8 @@ using cuberl::rl::algos::mc::FirstVisitMCSolver;
 using cuberl::rl::algos::mc::FirstVisitMCSolverConfig;
 using cuberl::rl::RLSerialAgentTrainer;
 using cuberl::rl::RLSerialTrainerConfig;
-using rlenvscpp::envs::RESTApiServerWrapper;
-using rlenvscpp::envs::gymnasium::FrozenLake;
+    using bitrl::network::RESTRLEnvClient;
+using bitrl::envs::gymnasium::FrozenLake;
 
 
 const std::string SERVER_URL = "http://0.0.0.0:8001/api";
@@ -61,7 +61,7 @@ std::vector<FrozenLake<4>::time_step_type>
 TrajectoryGenerator::operator()(FrozenLake<4>& env, uint_t max_steps){
 
     RandomActionSelector action_selector;
-    return rlenvscpp::envs::create_trajectory(env, action_selector, max_steps );
+    return bitrl::envs::create_trajectory(env, action_selector, max_steps );
 }
 
 
@@ -97,7 +97,7 @@ int main() {
 
     using namespace rl_example_19;
 
-	RESTApiServerWrapper server(SERVER_URL, true);
+	RESTRLEnvClient server(SERVER_URL, true);
 
 
     // create the environment
@@ -105,9 +105,10 @@ int main() {
 
     std::cout<<"Environment URL: "<<env.get_url()<<std::endl;
     std::unordered_map<std::string, std::any> options;
+    std::unordered_map<std::string, std::any> reset_options;
 
     std::cout<<"Creating the environment..."<<std::endl;
-    env.make("v1", options);
+    env.make("v1", options, reset_options);
     env.reset();
     std::cout<<"Done..."<<std::endl;
 

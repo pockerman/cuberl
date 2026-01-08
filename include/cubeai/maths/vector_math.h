@@ -7,7 +7,7 @@
 #include "cubeai/base/cubeai_config.h"
 #include "cubeai/base/cubeai_types.h"
 #include "cubeai/utils/cubeai_concepts.h"
-#include "rlenvs/rlenvs_consts.h"
+#include "bitrl/bitrl_consts.h"
 
 #include <cmath>
 #include <algorithm>
@@ -84,17 +84,13 @@ element_product(const VectorType& v1, const VectorType& v2) {
 	if(size1_ != size2_){
 		throw std::logic_error("Sizes not equal. Cannot compute element product of vectors with no equal sizes");
 	}
-	
-	
-	VectorType v_(v1.size(), 0); 
-	
+
+	VectorType v_(v1.size(), 0);
 	for(uint_t i=0; i < v1.size(); ++i){
 		
 		v_[i] = v1[i] * v2[i];
 	}
-	
 	return v_;
-				
 }
 
 template<typename IteratorType>
@@ -188,7 +184,7 @@ variance(const std::vector<real_t>& vals, bool parallel=true){
 ///
 std::vector<real_t>
 standardize(const std::vector<real_t>& vals, 
-            real_t tol=rlenvscpp::consts::TOLERANCE);
+            real_t tol=bitrl::consts::TOLERANCE);
 
 ///
 /// \brief choice. Implements similar functionality
@@ -221,7 +217,6 @@ choice(const Vec1& choices, const Vec2& probs, uint_t seed=42){
     return choices[distribution(generator)];
 }
 
-
 template<utils::concepts::float_vector Vec>
 typename Vec::value_type
 choose_value(const Vec& vals, uint_t seed=42){
@@ -232,8 +227,6 @@ choose_value(const Vec& vals, uint_t seed=42){
     auto rand_idx = distribution(generator);
     return vals[rand_idx];
 }
-
-
 
 ///
 /// \brief Given a vector of intergal or floating point values
@@ -314,7 +307,7 @@ template<utils::concepts::float_or_integral_vector VectorType>
 VectorType
 exponentiate(const torch_tensor_t tensor, typename VectorType::value_type v){
 	
-#ifdef CUBEAI_DEBUG
+#ifdef CUBERL_DEBUG
 	assert(tensor.dim() == 1 && "Invalid tensor dimension. Should be 1");
 #endif
 	
@@ -483,7 +476,7 @@ template<typename T>
 std::vector<T>
 extract_subvector(const std::vector<T>& vec, uint_t end, bool up_to=true){
 
-#ifdef CUBEAI_DEBUG
+#ifdef CUBERL_DEBUG
     assert(end <= vec.size() && "Invalid end index");
 #endif
 
@@ -505,7 +498,7 @@ uint_t
 bin_index(const typename SequenceTp::value_type& x, const SequenceTp& sequence){
 
     if(sequence.size() <= 1){
-        return rlenvscpp::consts::INVALID_ID;
+        return bitrl::consts::INVALID_ID;
     }
 
     auto index = 1;
@@ -525,7 +518,7 @@ bin_index(const typename SequenceTp::value_type& x, const SequenceTp& sequence){
         prev_val = current_val;
     }
 
-    return rlenvscpp::consts::INVALID_ID;
+    return bitrl::consts::INVALID_ID;
 }
 
 ///

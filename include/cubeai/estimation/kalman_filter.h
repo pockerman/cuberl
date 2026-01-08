@@ -1,6 +1,6 @@
 #include "cubeai/base/cubeai_types.h"
-#include "rlenvs/utils/std_map_utils.h"
-
+#include "bitrl/utils/std_map_utils.h"
+#include "Eigen/Dense"
 #include <boost/noncopyable.hpp>
 
 #include <any>
@@ -307,8 +307,8 @@ KalmanFilter<MotionModelType,
         throw std::runtime_error("Motion model has not been set");
     }
 
-    auto u = rlenvscpp::utils::template resolve<DynVec<real_t>>("u", input);
-    auto w = rlenvscpp::utils::template resolve<DynVec<real_t>>("w", input);
+    auto u = bitrl::utils::template resolve<DynVec<real_t>>("u", input);
+    auto w = bitrl::utils::template resolve<DynVec<real_t>>("w", input);
 
     // make a state predicion using the
     // motion model
@@ -367,7 +367,7 @@ KalmanFilter<MotionModelType,
       }
 
       auto& K = (*this)["K"];
-      auto z = rlenvscpp::utils::template resolve<DynVec<real_t>>("z", input);
+      auto z = bitrl::utils::template resolve<DynVec<real_t>>("z", input);
       auto innovation = z - H*x;
 
       if(K.cols() != innovation.size()){

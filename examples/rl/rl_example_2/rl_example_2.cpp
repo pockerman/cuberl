@@ -1,9 +1,9 @@
 #include "cubeai/base/cubeai_types.h"
 #include "cubeai/maths/vector_math.h"
 #include "cubeai/rl/policies/epsilon_greedy_policy.h"
-#include "rlenvs/utils/maths/statistics/distributions/beta_dist.h"
-#include "rlenvs/utils/maths/statistics/distributions/bernoulli_dist.h"
-#include "rlenvs/envs/multi_armed_bandits/multi_armed_bandits.h"
+#include "bitrl/utils/maths/statistics/distributions/beta_dist.h"
+#include "bitrl/utils/maths/statistics/distributions/bernoulli_dist.h"
+#include "bitrl/envs/multi_armed_bandits/multi_armed_bandits.h"
 
 #include <cmath>
 #include <utility>
@@ -24,9 +24,9 @@ using cuberl::int_t;
 using cuberl::DynMat;
 using cuberl::DynVec;
 using cuberl::rl::policies::EpsilonGreedyPolicy;
-using rlenvscpp::utils::maths::stats::BetaDist;
-using rlenvscpp::utils::maths::stats::BernoulliDist;
-using rlenvscpp::envs::bandits::MultiArmedBandits;
+using bitrl::utils::maths::stats::BetaDist;
+using bitrl::utils::maths::stats::BernoulliDist;
+using bitrl::envs::bandits::MultiArmedBandits;
 
 // Number of episodes to play
 uint_t N_EPISODES = 1000;
@@ -143,7 +143,8 @@ int main() {
 		std::vector<real_t> p(5, 0.5);
 		std::unordered_map<std::string, std::any> options;
 		options["p"] = std::any(p);
-		env.make("v0", options);
+    	std::unordered_map<std::string, std::any> reset_options;
+		env.make("v0", options, reset_options);
 		env.reset();
 		
 		std::cout<<"Running thompson sampling"<<std::endl;
@@ -175,7 +176,8 @@ int main() {
 		p[4] = 0.5;
 		std::unordered_map<std::string, std::any> options;
 		options["p"] = std::any(p);
-		env.make("v0", options);
+    	std::unordered_map<std::string, std::any> reset_options;
+		env.make("v0", options, reset_options);
 		env.reset();
 		
 		std::cout<<"Running thompson sampling"<<std::endl;

@@ -3,8 +3,8 @@
 #ifdef USE_PYTORCH
 
 #include "cubeai/base/cubeai_types.h"
-#include "rlenvs/utils/iteration_counter.h"
-#include "rlenvs/utils/io/json_file_reader.h"
+#include "bitrl/utils/iteration_counter.h"
+#include "bitrl/utils/io/json_file_reader.h"
 
 #include <torch/torch.h>
 #include <boost/log/trivial.hpp>
@@ -18,8 +18,8 @@ namespace intro_example_2
 
 using cuberl::real_t;
 using cuberl::uint_t;
-using rlenvscpp::utils::io::JSONFileReader;
-using rlenvscpp::utils::IterationCounter;
+using bitrl::utils::io::JSONFileReader;
+using bitrl::utils::IterationCounter;
 
 namespace fs = std::filesystem;
 const std::string CONFIG = "config.json";

@@ -2,7 +2,7 @@
 #define REINFORCE_CONFIG_H
 
 #include "cubeai/base/cubeai_types.h"
-#include "rlenvs/rlenvs_consts.h"
+#include "bitrl/bitrl_consts.h"
 #include "cubeai/utils/train_enum_type.h"
 
 #include <ostream>
@@ -12,9 +12,7 @@ namespace cuberl {
 namespace rl {
 namespace algos {
 namespace pg {
-	
-	using namespace rlenvscpp::consts;
-	
+
 ///
 /// \brief Enumeration of the baseline types supported
 ///
@@ -70,7 +68,7 @@ struct ReinforceConfig
 	/// \brief Small constant to use as tolerance
 	/// Used when baseline_type = BaselineEnumType::STANDARDIZE 
 	///
-	real_t eps{TOLERANCE};
+	real_t eps{bitrl::consts::TOLERANCE};
     
 
     ///

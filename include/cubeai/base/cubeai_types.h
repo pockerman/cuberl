@@ -1,7 +1,7 @@
 #ifndef CUBEAI_TYPES_H
 #define CUBEAI_TYPES_H
 
-#include "rlenvs/rlenvs_types_v2.h"
+#include "bitrl/bitrl_types.h"
 #include "cubeai/base/cubeai_config.h"
 
 #ifdef USE_PYTORCH
@@ -15,57 +15,67 @@
 namespace cuberl
 {
 	
-	using namespace rlenvscpp;
+	using namespace bitrl;
 	
 	///
 	/// \brief int type
 	///
-	using rlenvscpp::int_t;
+	using bitrl::int_t;
 	
 	///
 	/// \brief long int type
 	///
-	using rlenvscpp::lint_t;
+	using bitrl::lint_t;
 
     ///
     /// \brief The float precision type
     ///
-	using rlenvscpp::float_t;
+	using bitrl::float_t;
     
 	///
     /// \brief The double precision type
     ///
-	using rlenvscpp::real_t;
+	using bitrl::real_t;
     
     ///
     /// \brief General matrix type
     ///
-    using rlenvscpp::DynMat; 
+    using bitrl::DynMat;
+
+	///
+	/// \brief Square matrix type
+	///
+	using bitrl::SquareMat;
+
+	///
+	/// General fixed size at compile time matrix
+	///
+	using bitrl::Mat;
 
 	///
 	/// \brief General row vector
 	///
-    using rlenvscpp::DynVec;
+    using bitrl::DynVec;
 
     ///
     /// Float type vector
     ///
-    using rlenvscpp::FloatVec;
+    using bitrl::FloatVec;
 	
 	///
 	/// Real type vector
 	///
-	using rlenvscpp::RealVec;
+	using bitrl::RealVec;
 
     ///
     /// \brief Null type. Simple placeholder
     ///
-    using rlenvscpp::Null;
+    using bitrl::Null;
 	
 	///
 	/// \brief Device type
 	///
-	using rlenvscpp::DeviceType;
+	using bitrl::DeviceType;
     
 #ifdef USE_PYTORCH
    ///

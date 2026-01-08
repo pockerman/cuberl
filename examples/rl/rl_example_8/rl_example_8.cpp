@@ -2,9 +2,9 @@
 #include "cubeai/rl/algorithms/dp/value_iteration.h"
 #include "cubeai/rl/trainers/rl_serial_agent_trainer.h"
 
-#include "rlenvs/utils/io/csv_file_writer.h"
-#include "rlenvs/envs/api_server/apiserver.h"
-#include "rlenvs/envs/gymnasium/toy_text/frozen_lake_env.h"
+#include "bitrl/utils/io/csv_file_writer.h"
+#include "bitrl/network/rest_rl_env_client.h"
+#include "bitrl/envs/gymnasium/toy_text/frozen_lake_env.h"
 
 #include <boost/log/trivial.hpp>
 #include <tuple>
@@ -23,8 +23,8 @@ using cuberl::rl::algos::dp::ValueIterationConfig;
 using cuberl::rl::RLSerialAgentTrainer;
 using cuberl::rl::RLSerialTrainerConfig;
 
-using rlenvscpp::envs::gymnasium::FrozenLake;
-using rlenvscpp::envs::RESTApiServerWrapper;
+using bitrl::envs::gymnasium::FrozenLake;
+using bitrl::network::RESTRLEnvClient;
 
 // the environment to use
 typedef FrozenLake<4> env_type;
@@ -40,7 +40,7 @@ int main() {
 	
     using namespace rl_example_8;
 	
-	RESTApiServerWrapper server(SERVER_URL, true);
+	RESTRLEnvClient server(SERVER_URL, true);
 
     // create the environment
     env_type env(server);
@@ -49,7 +49,9 @@ int main() {
     std::unordered_map<std::string, std::any> options;
 
 	options["is_slippery"] = std::any(false);
-    env.make("v1", options);
+
+	 std::unordered_map<std::string, std::any> reset_options;
+    env.make("v1", options, reset_options);
     env.reset();
     BOOST_LOG_TRIVIAL(info)<<"Done...";
 
@@ -75,7 +77,7 @@ int main() {
 	auto reward = trainer.episodes_total_rewards();
 	auto iterations = trainer.n_itrs_per_episode();
 	
-	rlenvscpp::utils::io::CSVWriter csv_writer(REWARD_PER_ITR);
+	bitrl::utils::io::CSVWriter csv_writer(REWARD_PER_ITR);
 	csv_writer.open();
 	
 	csv_writer.write_column_names({"epoch", "reward"});

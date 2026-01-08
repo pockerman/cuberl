@@ -42,7 +42,7 @@ DynVec<real_t>&
 get_table_values_(std::map<StateTp,DynVec<real_t>>& table, const StateTp& state ){
 
     auto itr = table.find(state);
-#ifdef CUBEAI_DEBUG
+#ifdef CUBERL_DEBUG
     if(itr == table.end()){
         assert(false && "Invalid state given");
     }

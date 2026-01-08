@@ -15,8 +15,8 @@
 #include "cubeai/maths/vector_math.h"
 #include "cubeai/data_structs/experience_buffer.h"
 
-#include "rlenvs/utils/io/csv_file_writer.h"
-#include "rlenvs/envs/grid_world/grid_world_env.h"
+#include "bitrl/utils/io/csv_file_writer.h"
+#include "bitrl/envs/grid_world/grid_world_env.h"
 
 #include <boost/log/trivial.hpp>
 #include <torch/torch.h>
@@ -44,8 +44,8 @@ using cuberl::rl::RLSerialAgentTrainer;
 using cuberl::rl::RLSerialTrainerConfig;
 using cuberl::rl::policies::EpsilonGreedyPolicy;
 using cuberl::containers::ExperienceBuffer;
-using rlenvscpp::envs::grid_world::Gridworld;
-using rlenvscpp::utils::io::CSVWriter;
+using bitrl::envs::grid_world::Gridworld;
+using bitrl::utils::io::CSVWriter;
 
 	
 const std::string EXPERIMENT_ID = "1";
@@ -176,9 +176,10 @@ int main(){
 
 		// initialize the environment using random mode
 		std::unordered_map<std::string, std::any> options;
-        options["mode"] = std::any(rlenvscpp::envs::grid_world::GridWorldInitType::RANDOM);
+        options["mode"] = std::any(bitrl::envs::grid_world::GridWorldInitType::RANDOM);
 
-        env.make("v0", options);
+    	std::unordered_map<std::string, std::any> reset_options;
+        env.make("v0", options, reset_options);
 
         BOOST_LOG_TRIVIAL(info)<<"Done...";
         BOOST_LOG_TRIVIAL(info)<<"Environment name: "<<env.name;

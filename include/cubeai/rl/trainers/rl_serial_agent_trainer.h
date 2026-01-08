@@ -2,10 +2,10 @@
 #define RL_SERIAL_AGENT_TRAINER_H
 
 #include "cubeai/base/cubeai_types.h"
-#include "rlenvs/rlenvs_consts.h"
+#include "bitrl/bitrl_consts.h"
 
-#include "rlenvs/utils/iterative_algorithm_result.h"
-#include "rlenvs/utils/iterative_algorithm_controller.h"
+#include "bitrl/utils/iterative_algorithm_result.h"
+#include "bitrl/utils/iterative_algorithm_controller.h"
 
 #include <boost/noncopyable.hpp>
 #include <boost/log/trivial.hpp>
@@ -25,9 +25,9 @@ struct EpisodeInfo;
 ///
 struct RLSerialTrainerConfig
 {
-    uint_t output_msg_frequency{rlenvscpp::consts::INVALID_ID};
+    uint_t output_msg_frequency{bitrl::consts::INVALID_ID};
     uint_t n_episodes{0};
-    real_t tolerance{rlenvscpp::consts::TOLERANCE};
+    real_t tolerance{bitrl::consts::TOLERANCE};
 };
 
 
@@ -54,7 +54,7 @@ public:
     /// \brief train Iterate to train the agent on the given
     /// environment
     ///
-    virtual rlenvscpp::utils::IterativeAlgorithmResult train(env_type& env);
+    virtual bitrl::utils::IterativeAlgorithmResult train(env_type& env);
 
     ///
     /// \brief actions_before_training_begins.  Execute any actions
@@ -106,7 +106,7 @@ protected:
     /// \brief itr_ctrl_ Handles the iteration over the
     /// episodes
     ///
-    rlenvscpp::utils::IterativeAlgorithmController itr_ctrl_;
+    bitrl::utils::IterativeAlgorithmController itr_ctrl_;
 
     ///
     /// \brief agent_
@@ -170,7 +170,7 @@ RLSerialAgentTrainer<EnvType, AgentType>::actions_after_training_ends(env_type& 
 }
 
 template<typename EnvType, typename AgentType>
-rlenvscpp::utils::IterativeAlgorithmResult
+bitrl::utils::IterativeAlgorithmResult
 RLSerialAgentTrainer<EnvType, AgentType>::train(env_type& env){
 
 	BOOST_LOG_TRIVIAL(info)<<" Start training on environment..."; //<<env.name;
@@ -187,7 +187,7 @@ RLSerialAgentTrainer<EnvType, AgentType>::train(env_type& env){
         this->actions_before_episode_begins(env, episode_counter);
         auto episode_info = agent_.on_training_episode(env, episode_counter);
 
-        if(output_msg_frequency_ != rlenvscpp::consts::INVALID_ID &&
+        if(output_msg_frequency_ != bitrl::consts::INVALID_ID &&
                 episode_counter % output_msg_frequency_  == 0){
 
             BOOST_LOG_TRIVIAL(info)<<episode_info;

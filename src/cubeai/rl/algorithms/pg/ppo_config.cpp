@@ -1,5 +1,5 @@
 #include "cubeai/rl/algorithms/pg/ppo_config.h"
-#include "rlenvs/utils/io/json_file_reader.h"
+#include "bitrl/utils/io/json_file_reader.h"
 #include <boost/log/trivial.hpp>
 
 namespace cuberl {
@@ -22,7 +22,7 @@ PPOConfig::load_from_json(const std::string& filename){
 	
 	BOOST_LOG_TRIVIAL(info)<<"Loading PPOConfig from path: "<<filename;
 	
-	rlenvscpp::utils::io::JSONFileReader json_reader(filename);
+	bitrl::utils::io::JSONFileReader json_reader(filename);
 	json_reader.open();
 	
 	//normalize_rewards = json_reader.template get_value<bool>("normalize_rewards");

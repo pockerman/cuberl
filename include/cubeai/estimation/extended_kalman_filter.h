@@ -2,7 +2,7 @@
 #define EXTENDED_KALMAN_FILTER_H
 
 #include "cubeai/base/cubeai_types.h"
-
+#include "Eigen/Dense"
 #include <boost/noncopyable.hpp>
 #include <map>
 #include <string>

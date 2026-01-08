@@ -28,6 +28,9 @@
 /*Use OpenCV */
 #cmakedefine USE_OPENCV
 
+/*Use MQTT*/
+#cmakedefine USE_MQTT
+
 /*Use CUDA */
 #cmakedefine USE_CUDA
 
