@@ -17,7 +17,7 @@ Note that this tutorial requires cuberl to be configured with PyTorch support.
 The driver code for this tutorial is shown below. 
 
 
-```cpp
+@code
 #include "cubeai/base/cubeai_config.h"
 
 #if defined(USE_PYTORCH)
@@ -107,4 +107,4 @@ int main(){
 }
 #endif
 
-```
+@endcode

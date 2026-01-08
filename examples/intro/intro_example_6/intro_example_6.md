@@ -7,7 +7,7 @@ main linear algebra backend that _cuberl_ is using namely <a href="https://eigen
 
 The driver code for this tutorial is shown below.
 
-```cpp
+@code
 #include "cubeai/base/cubeai_types.h"
 
 
@@ -96,11 +96,11 @@ int main() {
     return 0;
 }
 
-```
+@endcode
 
 Running the driver code above produces the following output
 
-```bash
+@code
 After 3 steps...
 [0.844 , 0.156]
 [0.78 , 0.22]
@@ -122,6 +122,5 @@ v_50= 0.416667 0.0833333
  0.416667 0.0833333
 v_100= 0.416667 0.0833333
  0.416667 0.0833333
-
-```
+@endcode
 
