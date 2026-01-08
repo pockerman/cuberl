@@ -2,8 +2,8 @@
 #include "cubeai/rl/algorithms/td/sarsa.h"
 #include "cubeai/rl/policies/epsilon_greedy_policy.h"
 #include "cubeai/rl/trainers/rl_serial_agent_trainer.h"
-#include "rlenvs/envs/api_server/apiserver.h"
-#include "rlenvs/envs/gymnasium/toy_text/cliff_world_env.h"
+#include "bitrl/network/rest_rl_env_client.h"
+#include "bitrl/envs/gymnasium/toy_text/cliff_world_env.h"
 
 #include <boost/log/trivial.hpp>
 #include <iostream>
@@ -23,8 +23,8 @@ using cuberl::rl::algos::td::SarsaConfig;
 using cuberl::rl::policies::EpsilonDecayOption;
 using cuberl::rl::RLSerialAgentTrainer;
 using cuberl::rl::RLSerialTrainerConfig;
-using rlenvscpp::envs::RESTApiServerWrapper;
-typedef  rlenvscpp::envs::gymnasium::CliffWorld env_type;
+	using bitrl::network::RESTRLEnvClient;
+typedef  bitrl::envs::gymnasium::CliffWorld env_type;
 
 
 }
@@ -36,14 +36,15 @@ int main(){
 
     try{
 
-		RESTApiServerWrapper server(SERVER_URL, true);
+		RESTRLEnvClient server(SERVER_URL, true);
 		
         // create the environment
         env_type env(server);
 
         BOOST_LOG_TRIVIAL(info)<<"Creating environment...";
         std::unordered_map<std::string, std::any> options;
-        env.make("v0", options);
+    	std::unordered_map<std::string, std::any> reset_options;
+        env.make("v0", options, reset_options);
         env.reset();
         BOOST_LOG_TRIVIAL(info)<<"Done...";
 

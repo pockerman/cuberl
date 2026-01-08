@@ -10,7 +10,7 @@
 #include "cubeai/rl/episode_info.h"
 #include "cubeai/rl/policies/max_tabular_policy.h"
 #include "bitrl/utils/io/csv_file_writer.h"
-#include "bitrl/rlenvs_consts.h"
+#include "bitrl/bitrl_consts.h"
 
 #include <memory>
 #include <cmath>

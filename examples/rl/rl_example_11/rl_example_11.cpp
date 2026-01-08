@@ -10,9 +10,9 @@
 #include "cubeai/maths/optimization/optimizer_type.h"
 #include "cubeai/maths/optimization/pytorch_optimizer_factory.h"
 
-#include "rlenvs/utils/io/csv_file_writer.h"
-#include "rlenvs/envs/api_server/apiserver.h"
-#include "rlenvs/envs/gymnasium/classic_control/cart_pole_env.h"
+#include "bitrl/utils/io/csv_file_writer.h"
+#include "bitrl/network/rest_rl_env_client.h"
+#include "bitrl/envs/gymnasium/classic_control/cart_pole_env.h"
 
 #include <boost/log/trivial.hpp>
 #include <torch/torch.h>
@@ -38,9 +38,9 @@ using cuberl::rl::algos::pg::A2CConfig;
 using cuberl::rl::algos::pg::A2CSolver;
 using cuberl::rl::RLSerialAgentTrainer;
 using cuberl::rl::RLSerialTrainerConfig;
-using rlenvscpp::envs::RESTApiServerWrapper;
+	using bitrl::network::RESTRLEnvClient;
 
-typedef  rlenvscpp::envs::gymnasium::CartPole env_type;
+typedef  bitrl::envs::gymnasium::CartPole env_type;
 
 /// Layer sizes for Actor
 const uint_t L1 = 4;
@@ -175,15 +175,15 @@ int main(){
         std::filesystem::create_directories("experiments/" + EXPERIMENT_ID);
 
 		torch::manual_seed(42);
-		RESTApiServerWrapper server(SERVER_URL, true);
+		RESTRLEnvClient server(SERVER_URL, true);
 		
         // create the environment
         env_type env(server);
 
 		BOOST_LOG_TRIVIAL(info)<<"Creating environment...";
         std::unordered_map<std::string, std::any> options;
-
-        env.make("v1", options);
+    	std::unordered_map<std::string, std::any> reset_options;
+        env.make("v1", options, reset_options);
         env.reset();
 		
         BOOST_LOG_TRIVIAL(info)<<"Done...";
@@ -233,8 +233,8 @@ int main(){
 		// write the loss values
 		auto& policy_loss_vals  = solver.get_monitor().policy_loss_values;
 		
-		rlenvscpp::utils::io::CSVWriter loss_csv_writer(experiment_path + "/" + "policy_loss.csv",
-														  rlenvscpp::utils::io::CSVWriter::default_delimiter());
+		bitrl::utils::io::CSVWriter loss_csv_writer(experiment_path + "/" + "policy_loss.csv",
+														  bitrl::utils::io::CSVWriter::default_delimiter());
 		loss_csv_writer.open();
 		
 		auto episode_counter = 0;
@@ -248,8 +248,8 @@ int main(){
 		// write the loss values
 		auto& critic_loss_vals  = solver.get_monitor().critic_loss_values;
 		
-		rlenvscpp::utils::io::CSVWriter critic_csv_writer(experiment_path + "/" + "critic_loss.csv",
-														  rlenvscpp::utils::io::CSVWriter::default_delimiter());
+		bitrl::utils::io::CSVWriter critic_csv_writer(experiment_path + "/" + "critic_loss.csv",
+														  bitrl::utils::io::CSVWriter::default_delimiter());
 		critic_csv_writer.open();
 		
 		episode_counter = 0;
@@ -263,8 +263,8 @@ int main(){
 		
 		
 		auto& rewards  = solver.get_monitor().rewards;
-		rlenvscpp::utils::io::CSVWriter rewards_csv_writer(experiment_path + "/" + "rewards.csv",
-														  rlenvscpp::utils::io::CSVWriter::default_delimiter());
+		bitrl::utils::io::CSVWriter rewards_csv_writer(experiment_path + "/" + "rewards.csv",
+														  bitrl::utils::io::CSVWriter::default_delimiter());
 		rewards_csv_writer.open();
 		
 		episode_counter = 0;
@@ -277,8 +277,8 @@ int main(){
 		
 		
 		auto& episode_duration  = solver.get_monitor().episode_duration;
-		rlenvscpp::utils::io::CSVWriter episode_duration_csv_writer(experiment_path + "/" + "episode_duration.csv",
-														            rlenvscpp::utils::io::CSVWriter::default_delimiter());
+		bitrl::utils::io::CSVWriter episode_duration_csv_writer(experiment_path + "/" + "episode_duration.csv",
+														            bitrl::utils::io::CSVWriter::default_delimiter());
 		episode_duration_csv_writer.open();
 		
 		episode_counter = 0;
