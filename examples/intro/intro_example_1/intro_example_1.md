@@ -1,4 +1,5 @@
-# Example 1: Monte Carlo intergration
+
+\page cuberl_intro_example_1 Monte Carlo intergration
 
 In this first example we explore some of the basic elements of _cuberl_. In particular,
 we will see how to read a json file, how to use boost logging, various types exposed by the library.
