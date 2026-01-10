@@ -1,5 +1,5 @@
 
-\page cuberl_intro_example_1 Monte Carlo intergration
+\page cuberl_intro_example_1 Example 1 Monte Carlo intergration
 
 In this first example we explore some of the basic elements of _cuberl_. In particular,
 we will see how to read a json file, how to use boost logging, various types exposed by the library.
@@ -16,7 +16,9 @@ but it becomes increasingly efficient as the dimensionality of the integral grow
 
 Let's assume that we want to evaluate the integral
 
-$$I=\int_a^b h(x) dx$$
+$$
+I=\int_a^b h(x) dx
+$$
 
 If $f$ is a polynomial or a trigonometric function, then this integral can be calculated in closed form. 
 However, in many cases there may not be  a closed for solution for $I$. Numerical techniques, such as <a href="https://en.wikipedia.org/wiki/Gaussian_quadrature">Gaussian quadrature</a> or the the <a href="https://en.wikipedia.org/wiki/Trapezoidal_rule">trapezoid rule</a> can  be 
@@ -25,7 +27,9 @@ notable for its simplicity and generality [1].
 
 Let's begine by rewriting $I$ as follows
 
-$$I=\int_a^b \omega(x)f(x) dx$$
+$$
+I=\int_a^b \omega(x)f(x) dx
+$$
 
 where $\omega=h(x)(b-a)$ and $f(x) = 1/(b-a)$ i.e. $f$ is the probability density for a uniform random variable over $(a,b)$ [1]. 
 Recall that the expectation for a continuous variable $X$ is given by
@@ -40,23 +44,30 @@ This is the basic Monte Carlo integration method [1]. In order to evaluate the i
 
 $$\hat{I} = \frac{1}{n}\sum_{i=1}^{N}\omega(x_i)$$
 
-where $x \sim U(a,b)$. By the 
-<a href="https://en.wikipedia.org/wiki/Law_of_large_numbers">law of large numbers</a> it follows, [1],
+where $x \sim U(a,b)$. By the <a href="https://en.wikipedia.org/wiki/Law_of_large_numbers">law of large numbers</a> it follows, [1],
 
-$$\hat{I}\rightarrow E\left[\omega(X)\right] = I$$
+$$
+\hat{I}\rightarrow E\left[\omega(X)\right] = I
+$$
 
 Notice that the law of large numbers provides us with probability convergence. 
 Hence $\hat{I}$ will converge in probability to $I$. The standard error, $\hat{se}$, for the estimate is [1]
 
-$$\hat{se} = \frac{s}{\sqrt{n}}$$
+$$
+\hat{se} = \frac{s}{\sqrt{n}}
+$$
 
 where
 
-$$s^2  = \frac{\sum_{i}^{N}(\omega(x_i) - \hat{I} )^2}{n - 1}$$
+$$
+s^2  = \frac{\sum_{i}^{N}(\omega(x_i) - \hat{I} )^2}{n - 1}
+$$
 
 A $1-\alpha$ confidence interval for the estimate is given from, [1], 
 
-$$\hat{I} \pm z_{\alpha/2}\hat{se}$$
+$$
+\hat{I} \pm z_{\alpha/2}\hat{se}
+$$
 
 ## The driver code
 
@@ -64,16 +75,10 @@ The driver code for this tutorial is shown below.
 
 
 @code
-/**
-  * This example illustrates a simple example of Monte Carlo
-  * iteration using the IterationCounter class
-  *
-  * */
-
-#include "cubeai/base/cubeai_types.h"
-#include "cubeai/utils/iteration_counter.h"
-#include "cubeai/geom_primitives/shapes/circle.h"
-#include "cubeai/extern/nlohmann/json/json.hpp"
+#include "cuberl/base/cubeai_types.h"
+#include "cuberl/utils/iteration_counter.h"
+#include "cuberl/geom_primitives/shapes/circle.h"
+#include "bitrl/extern/nlohmann/json/json.hpp"
 
 #include <boost/log/trivial.hpp>
 #include <iostream>
@@ -163,13 +168,13 @@ int main() {
 
 Running the code above produces the following output
 
-```
+@code
 [2024-05-30 17:51:47.253901] [0x00007fe2bbb7b540] [info]    Reading configuration file...
 [2024-05-30 17:51:47.254017] [0x00007fe2bbb7b540] [info]    Starting computation...
 [2024-05-30 17:51:47.258199] [0x00007fe2bbb7b540] [info]    Finished computation...
 [2024-05-30 17:51:47.258222] [0x00007fe2bbb7b540] [info]    Circle area calculated with:100000 is: 3.14716
 [2024-05-30 17:51:47.258226] [0x00007fe2bbb7b540] [info]    Circle area: 3.14159
-```
+@endcode
 
 
 ## References
