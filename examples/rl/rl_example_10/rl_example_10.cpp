@@ -1,7 +1,7 @@
-#include "cubeai/base/cubeai_types.h"
-#include "cubeai/rl/algorithms/td/q_learning.h"
-#include "cubeai/rl/policies/epsilon_greedy_policy.h"
-#include "cubeai/rl/trainers/rl_serial_agent_trainer.h"
+#include "cuberl/base/cubeai_types.h"
+#include "cuberl/rl/algorithms/td/q_learning.h"
+#include "cuberl/rl/policies/epsilon_greedy_policy.h"
+#include "cuberl/rl/trainers/rl_serial_agent_trainer.h"
 
 #include "bitrl/utils/io/csv_file_writer.h"
 #include "bitrl/network/rest_rl_env_client.h"

@@ -9,9 +9,9 @@
   *
   * */
 
-#include "cubeai/base/cubeai_types.h"
-#include "cubeai/maths/vector_math.h"
-#include "cubeai/rl/policies/softmax_policy.h"
+#include "cuberl/base/cubeai_types.h"
+#include "cuberl/maths/vector_math.h"
+#include "cuberl/rl/policies/softmax_policy.h"
 #include "bitrl/utils/io/csv_file_writer.h"
 #include <cmath>
 #include <utility>

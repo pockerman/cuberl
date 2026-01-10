@@ -1,5 +1,5 @@
-#include "cubeai/base/cubeai_types.h"
-#include "cubeai/rl/policies/max_tabular_policy.h"
+#include "cuberl/base/cubeai_types.h"
+#include "cuberl/rl/policies/max_tabular_policy.h"
 
 #include <gtest/gtest.h>
 #include <vector>

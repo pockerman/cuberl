@@ -1,2 +1,2 @@
-include/cubeai/base/cubeai_version.h
-include/cubeai/base/cubeai_config.h
+include/cuberl/base/cubeai_version.h
+include/cuberl/base/cubeai_config.h

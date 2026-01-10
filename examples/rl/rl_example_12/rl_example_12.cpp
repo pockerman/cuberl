@@ -1,15 +1,15 @@
-#include "cubeai/base/cubeai_config.h"
+#include "cuberl/base/cubeai_config.h"
 
 #ifdef USE_PYTORCH
 
-#include "cubeai/base/cubeai_types.h"
+#include "cuberl/base/cubeai_types.h"
 
-#include "cubeai/rl/trainers/rl_serial_agent_trainer.h"
-#include "cubeai/maths/optimization/optimizer_type.h"
-#include "cubeai/maths/optimization/pytorch_optimizer_factory.h"
-#include "cubeai/rl/policies/epsilon_greedy_policy.h"
-#include "cubeai/utils/torch_adaptor.h"
-#include "cubeai/maths/vector_math.h"
+#include "cuberl/rl/trainers/rl_serial_agent_trainer.h"
+#include "cuberl/maths/optimization/optimizer_type.h"
+#include "cuberl/maths/optimization/pytorch_optimizer_factory.h"
+#include "cuberl/rl/policies/epsilon_greedy_policy.h"
+#include "cuberl/utils/torch_adaptor.h"
+#include "cuberl/maths/vector_math.h"
 
 #include "bitrl/utils/io/csv_file_writer.h"
 #include "bitrl/envs/grid_world/grid_world_env.h"

@@ -1,6 +1,6 @@
-#include "cubeai/base/cubeai_types.h"
-#include "cubeai/rl/algorithms/dp/value_iteration.h"
-#include "cubeai/rl/trainers/rl_serial_agent_trainer.h"
+#include "cuberl/base/cubeai_types.h"
+#include "cuberl/rl/algorithms/dp/value_iteration.h"
+#include "cuberl/rl/trainers/rl_serial_agent_trainer.h"
 
 #include "bitrl/utils/io/csv_file_writer.h"
 #include "bitrl/network/rest_rl_env_client.h"
