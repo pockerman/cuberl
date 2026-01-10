@@ -223,7 +223,4 @@ ELSE()
 	MESSAGE(WARNING "Tests have not been enabled")
 ENDIF()
 
-
-
 MESSAGE(STATUS "Installation destination at: ${CMAKE_INSTALL_PREFIX}")
-MESSAGE(STATUS "Type make install to build cubeAI")
