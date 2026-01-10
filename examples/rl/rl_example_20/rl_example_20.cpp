@@ -2,16 +2,16 @@
  * This example illustrates how to use the REINFORCE algorithm
  * on the CartPole environment from Gymnasium
  **/
-#include "cubeai/base/cubeai_config.h"
+#include "cuberl/base/cubeai_config.h"
 
 #ifdef USE_PYTORCH
 
-#include "cubeai/base/cubeai_types.h"
-#include "cubeai/rl/algorithms/pg/reinforce.h"
-#include "cubeai/rl/trainers/rl_serial_agent_trainer.h"
-#include "cubeai/maths/optimization/optimizer_type.h"
-#include "cubeai/maths/optimization/pytorch_optimizer_factory.h"
-#include "cubeai/maths/statistics/distributions/torch_categorical.h"
+#include "cuberl/base/cubeai_types.h"
+#include "cuberl/rl/algorithms/pg/reinforce.h"
+#include "cuberl/rl/trainers/rl_serial_agent_trainer.h"
+#include "cuberl/maths/optimization/optimizer_type.h"
+#include "cuberl/maths/optimization/pytorch_optimizer_factory.h"
+#include "cuberl/maths/statistics/distributions/torch_categorical.h"
 
 #include "bitrl/utils/io/csv_file_writer.h"
 #include "bitrl/network/rest_rl_env_client.h"

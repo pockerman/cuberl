@@ -1,7 +1,7 @@
-#include "cubeai/base/cubeai_types.h"
+#include "cuberl/base/cubeai_types.h"
 #include "bitrl/utils/iteration_counter.h"
 #include "bitrl/utils/maths/statistics/distributions/normal_dist.h"
-#include "cubeai/maths/vector_math.h"
+#include "cuberl/maths/vector_math.h"
 #include <boost/log/trivial.hpp>
 
 #include <cmath>

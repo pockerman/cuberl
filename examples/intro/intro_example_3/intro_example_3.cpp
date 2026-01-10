@@ -1,8 +1,8 @@
-#include "cubeai/base/cubeai_config.h"
+#include "cuberl/base/cubeai_config.h"
 
 #ifdef USE_PYTORCH
 
-#include "cubeai/base/cubeai_types.h"
+#include "cuberl/base/cubeai_types.h"
 #include "bitrl/utils/iteration_counter.h"
 #include "bitrl/utils/io/json_file_reader.h"
 
@@ -13,7 +13,7 @@
 #include <filesystem>
 #include <string>
 
-namespace intro_example_2
+namespace example
 {
 
 using cuberl::real_t;
@@ -24,13 +24,10 @@ using bitrl::utils::IterationCounter;
 namespace fs = std::filesystem;
 const std::string CONFIG = "config.json";
 
-}
 
-int main() {
-
-    using namespace intro_example_2;
-
-    try{
+std::string train_model()
+{
+  try{
 
       // load the json configuration
       JSONFileReader json_reader(CONFIG);
@@ -59,7 +56,6 @@ int main() {
       BOOST_LOG_TRIVIAL(info)<<"Max epochs: "<<num_epochs;
       BOOST_LOG_TRIVIAL(info)<<"Learning rate: "<<learning_rate;
 
-
       // figure out the device we are using
       auto cuda_available = torch::cuda::is_available();
       torch::Device device(cuda_available ? torch::kCUDA : torch::kCPU);
@@ -69,8 +65,6 @@ int main() {
       else{
         BOOST_LOG_TRIVIAL(info)<<"CUDA is not available. Training on CPU "<<std::endl;
       }
-
-      torch::manual_seed(42);
 
       // Sample dataset
       auto x_train = torch::randint(0, 10, {15, 1},
@@ -87,14 +81,12 @@ int main() {
       torch::optim::SGD optimizer(model->parameters(),
                                   torch::optim::SGDOptions(learning_rate));
 
-      // Set floating point output precision
       BOOST_LOG_TRIVIAL(info)<<"Start training...";
-
 
       IterationCounter iteration_ctrl(num_epochs);
       while(iteration_ctrl.continue_iterations()){
 
-        // Forward pass
+          // Forward pass
           auto output = model->forward(x_train);
           auto loss = torch::nn::functional::mse_loss(output, y_train);
 
@@ -109,20 +101,72 @@ int main() {
           }
       }
 
-      BOOST_LOG_TRIVIAL(info)<<"Training is finished... ";
+      BOOST_LOG_TRIVIAL(info)<<"Training finished... ";
 
-      // let's also save the model
       auto model_filename = std::string(EXPERIMENT_DIR_PATH) + std::string("/linear_regression_model.pth");
-      torch::save(model, model_filename);
+      BOOST_LOG_TRIVIAL(info)<<"Saving model at: "<<model_filename<<std::endl;
 
+      torch::save(model, model_filename);
+      return model_filename;
     }
     catch(std::exception& e){
         std::cout<<e.what()<<std::endl;
     }
     catch(...){
-
-        std::cout<<"Unknown exception occured"<<std::endl;
+        std::cout<<"Unknown exception occurred"<<std::endl;
     }
+}
+
+void test_model(std::string& model_filename)
+{
+  BOOST_LOG_TRIVIAL(info)<<"Start testing...";
+  // load the json configuration
+  JSONFileReader json_reader(CONFIG);
+  json_reader.open();
+
+  const auto input_size = json_reader.template get_value<uint_t>("input_size");
+  const auto output_size = json_reader.template get_value<uint_t>("output_size");
+
+  // figure out the device we are using
+  auto cuda_available = torch::cuda::is_available();
+  torch::Device device(cuda_available ? torch::kCUDA : torch::kCPU);
+  if(cuda_available){
+    BOOST_LOG_TRIVIAL(info)<<"CUDA available. Testing on GPU ";
+  }
+  else{
+    BOOST_LOG_TRIVIAL(info)<<"CUDA is not available. Testing on CPU ";
+  }
+
+  torch::nn::Linear model(input_size, output_size);
+  torch::load(model, model_filename);
+  model->to(device);
+
+  // we will evaluate the model
+  model -> eval();
+
+  // Sample dataset
+  auto x_test = torch::randint(0, 10, {15, 1},
+                                torch::TensorOptions(torch::kFloat).device(device));
+  // get the test predictions
+  auto output = model->forward(x_test);
+
+  // do some comparisons
+  // ...
+
+  BOOST_LOG_TRIVIAL(info)<<"Testing finished... ";
+}
+
+}
+
+int main() {
+
+    using namespace example;
+
+    // set seed for torch
+    torch::manual_seed(42);
+    auto model_filename = train_model();
+
+    test_model(model_filename);
 
    return 0;
 }

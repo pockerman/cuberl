@@ -1,5 +1,5 @@
-#include "cubeai/base/cubeai_types.h"
-#include "cubeai/maths/vector_math.h"
+#include "cuberl/base/cubeai_types.h"
+#include "cuberl/maths/vector_math.h"
 
 #include <gtest/gtest.h>
 #include <vector>

@@ -1,9 +1,9 @@
-#include "cubeai/base/cubeai_types.h"
-#include "cubeai/rl/algorithms/mc/first_visit_mc.h"
-#include "cubeai/rl/learning_rate_scheduler.h"
-#include "cubeai/rl/trainers/rl_serial_agent_trainer.h"
-#include "cubeai/rl/policies/epsilon_greedy_policy.h"
-#include "cubeai/maths/vector_math.h"
+#include "cuberl/base/cubeai_types.h"
+#include "cuberl/rl/algorithms/mc/first_visit_mc.h"
+#include "cuberl/rl/learning_rate_scheduler.h"
+#include "cuberl/rl/trainers/rl_serial_agent_trainer.h"
+#include "cuberl/rl/policies/epsilon_greedy_policy.h"
+#include "cuberl/maths/vector_math.h"
 
 
 #include "bitrl/envs/gymnasium/toy_text/frozen_lake_env.h"

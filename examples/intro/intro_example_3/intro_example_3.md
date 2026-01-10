@@ -23,41 +23,34 @@ The driver code for this tutorial is shown below.
 @code
 #include "cubeai/base/cubeai_config.h"
 
-#if defined(USE_PYTORCH) && defined(USE_RLENVS_CPP)
+#ifdef USE_PYTORCH
 
 #include "cubeai/base/cubeai_types.h"
-#include "cubeai/utils/iteration_counter.h"
-#include "cubeai/io/json_file_reader.h"
+#include "bitrl/utils/iteration_counter.h"
+#include "bitrl/utils/io/json_file_reader.h"
 
 #include <torch/torch.h>
 #include <boost/log/trivial.hpp>
 
-#include <iostream>
 #include <random>
 #include <filesystem>
 #include <string>
-#include <unordered_map>
-#include <any>
-#include <fstream>
 
-namespace intro_example_2
+namespace example
 {
 
-using cubeai::real_t;
-using cubeai::uint_t;
-using cubeai::io::JSONFileReader;
-using cubeai::utils::IterationCounter;
+using cuberl::real_t;
+using cuberl::uint_t;
+using bitrl::utils::io::JSONFileReader;
+using bitrl::utils::IterationCounter;
 
 namespace fs = std::filesystem;
 const std::string CONFIG = "config.json";
 
-}
 
-int main() {
-
-    using namespace intro_example_2;
-
-    try{
+std::string train_model()
+{
+try{
 
       // load the json configuration
       JSONFileReader json_reader(CONFIG);
@@ -86,7 +79,6 @@ int main() {
       BOOST_LOG_TRIVIAL(info)<<"Max epochs: "<<num_epochs;
       BOOST_LOG_TRIVIAL(info)<<"Learning rate: "<<learning_rate;
 
-
       // figure out the device we are using
       auto cuda_available = torch::cuda::is_available();
       torch::Device device(cuda_available ? torch::kCUDA : torch::kCPU);
@@ -97,7 +89,6 @@ int main() {
         BOOST_LOG_TRIVIAL(info)<<"CUDA is not available. Training on CPU "<<std::endl;
       }
 
-      torch::manual_seed(42);
       // Sample dataset
       auto x_train = torch::randint(0, 10, {15, 1},
                                     torch::TensorOptions(torch::kFloat).device(device));
@@ -113,14 +104,12 @@ int main() {
       torch::optim::SGD optimizer(model->parameters(),
                                   torch::optim::SGDOptions(learning_rate));
 
-      // Set floating point output precision
       BOOST_LOG_TRIVIAL(info)<<"Start training...";
-
 
       IterationCounter iteration_ctrl(num_epochs);
       while(iteration_ctrl.continue_iterations()){
 
-        // Forward pass
+          // Forward pass
           auto output = model->forward(x_train);
           auto loss = torch::nn::functional::mse_loss(output, y_train);
 
@@ -135,28 +124,80 @@ int main() {
           }
       }
 
-      BOOST_LOG_TRIVIAL(info)<<"Training is finished... ";
+      BOOST_LOG_TRIVIAL(info)<<"Training finished... ";
 
-      // let's also save the model
       auto model_filename = std::string(EXPERIMENT_DIR_PATH) + std::string("/linear_regression_model.pth");
-      torch::save(model, model_filename);
+      BOOST_LOG_TRIVIAL(info)<<"Saving model at: "<<model_filename<<std::endl;
 
+      torch::save(model, model_filename);
+      return model_filename;
     }
     catch(std::exception& e){
         std::cout<<e.what()<<std::endl;
     }
     catch(...){
-
-        std::cout<<"Unknown exception occured"<<std::endl;
+        std::cout<<"Unknown exception occurred"<<std::endl;
     }
+}
 
-   return 0;
+void test_model(std::string& model_filename)
+{
+BOOST_LOG_TRIVIAL(info)<<"Start testing...";
+// load the json configuration
+JSONFileReader json_reader(CONFIG);
+json_reader.open();
+
+const auto input_size = json_reader.template get_value<uint_t>("input_size");
+const auto output_size = json_reader.template get_value<uint_t>("output_size");
+
+// figure out the device we are using
+auto cuda_available = torch::cuda::is_available();
+torch::Device device(cuda_available ? torch::kCUDA : torch::kCPU);
+if(cuda_available){
+BOOST_LOG_TRIVIAL(info)<<"CUDA available. Testing on GPU ";
+}
+else{
+BOOST_LOG_TRIVIAL(info)<<"CUDA is not available. Testing on CPU ";
+}
+
+torch::nn::Linear model(input_size, output_size);
+torch::load(model, model_filename);
+model->to(device);
+
+// we will evaluate the model
+model -> eval();
+
+// Sample dataset
+auto x_test = torch::randint(0, 10, {15, 1},
+torch::TensorOptions(torch::kFloat).device(device));
+// get the test predictions
+auto output = model->forward(x_test);
+
+// do some comparisons
+// ...
+
+BOOST_LOG_TRIVIAL(info)<<"Testing finished... ";
+}
+
+}
+
+int main() {
+
+    using namespace example;
+
+    // set seed for torch
+    torch::manual_seed(42);
+    auto model_filename = train_model();
+
+    test_model(model_filename);
+
+return 0;
 }
 #else
 #include <iostream>
 int main(){
 
-    std::cout<<"This example requires PyTorch and gymfcpp. Reconfigure cuberl with USE_PYTORCH and USE_RLENVS_CPP flags turned ON."<<std::endl;
+    std::cout<<"This example requires PyTorch and gymfcpp. Reconfigure cuberl with USE_PYTORCH flags turned ON."<<std::endl;
     return 0;
 }
 #endif
@@ -165,28 +206,34 @@ int main(){
 Running the code above produces the following output
 
 ```
-[2024-05-27 10:15:48.581146] [0x00007f9aaa83d000] [info]    Experiment directory: intro_example_2_experiments/
-[2024-05-27 10:15:48.581173] [0x00007f9aaa83d000] [info]    Experiment id: 1
+[2026-01-10 10:52:16.766804] [0x00007f3fc6bdc6c0] [info]    Experiment directory: intro_example_2_experiments/
+[2026-01-10 10:52:16.766822] [0x00007f3fc6bdc6c0] [info]    Experiment id: 1
 
-[2024-05-27 10:15:48.581214] [0x00007f9aaa83d000] [info]    Input size: 1
-[2024-05-27 10:15:48.581217] [0x00007f9aaa83d000] [info]    Output size: 1
-[2024-05-27 10:15:48.581221] [0x00007f9aaa83d000] [info]    Max epochs: 60
-[2024-05-27 10:15:48.581238] [0x00007f9aaa83d000] [info]    Learning rate: 0.001
-[2024-05-27 10:15:49.777364] [0x00007f9aaa83d000] [info]    CUDA available. Training on GPU 
+[2026-01-10 10:52:16.766851] [0x00007f3fc6bdc6c0] [info]    Input size: 1
+[2026-01-10 10:52:16.766855] [0x00007f3fc6bdc6c0] [info]    Output size: 1
+[2026-01-10 10:52:16.766858] [0x00007f3fc6bdc6c0] [info]    Max epochs: 60
+[2026-01-10 10:52:16.766873] [0x00007f3fc6bdc6c0] [info]    Learning rate: 0.001
+[2026-01-10 10:52:16.766880] [0x00007f3fc6bdc6c0] [info]    CUDA is not available. Training on CPU 
 
-[2024-05-27 10:15:49.841728] [0x00007f9aaa83d000] [info]    Start training...
-[2024-05-27 10:15:49.930313] [0x00007f9aaa83d000] [info]    Epoch [5/60], Loss: 7.19124
-[2024-05-27 10:15:49.931668] [0x00007f9aaa83d000] [info]    Epoch [10/60], Loss: 6.83168
-[2024-05-27 10:15:49.932512] [0x00007f9aaa83d000] [info]    Epoch [15/60], Loss: 6.65128
-[2024-05-27 10:15:49.933157] [0x00007f9aaa83d000] [info]    Epoch [20/60], Loss: 6.56069
-[2024-05-27 10:15:49.933783] [0x00007f9aaa83d000] [info]    Epoch [25/60], Loss: 6.51511
-[2024-05-27 10:15:49.934423] [0x00007f9aaa83d000] [info]    Epoch [30/60], Loss: 6.49209
-[2024-05-27 10:15:49.935069] [0x00007f9aaa83d000] [info]    Epoch [35/60], Loss: 6.48037
-[2024-05-27 10:15:49.935710] [0x00007f9aaa83d000] [info]    Epoch [40/60], Loss: 6.47432
-[2024-05-27 10:15:49.936349] [0x00007f9aaa83d000] [info]    Epoch [45/60], Loss: 6.47112
-[2024-05-27 10:15:49.937007] [0x00007f9aaa83d000] [info]    Epoch [50/60], Loss: 6.46934
-[2024-05-27 10:15:49.937671] [0x00007f9aaa83d000] [info]    Epoch [55/60], Loss: 6.46827
-[2024-05-27 10:15:49.938189] [0x00007f9aaa83d000] [info]    Epoch [60/60], Loss: 6.46756
-[2024-05-27 10:15:49.938197] [0x00007f9aaa83d000] [info]    Training is finished... 
+[2026-01-10 10:52:16.785356] [0x00007f3fc6bdc6c0] [info]    Start training...
+[2026-01-10 10:52:16.809743] [0x00007f3fc6bdc6c0] [info]    Epoch [5/60], Loss: 23.7257
+[2026-01-10 10:52:16.810012] [0x00007f3fc6bdc6c0] [info]    Epoch [10/60], Loss: 23.3023
+[2026-01-10 10:52:16.810254] [0x00007f3fc6bdc6c0] [info]    Epoch [15/60], Loss: 22.9896
+[2026-01-10 10:52:16.810584] [0x00007f3fc6bdc6c0] [info]    Epoch [20/60], Loss: 22.751
+[2026-01-10 10:52:16.810948] [0x00007f3fc6bdc6c0] [info]    Epoch [25/60], Loss: 22.5618
+[2026-01-10 10:52:16.811305] [0x00007f3fc6bdc6c0] [info]    Epoch [30/60], Loss: 22.4059
+[2026-01-10 10:52:16.811655] [0x00007f3fc6bdc6c0] [info]    Epoch [35/60], Loss: 22.2722
+[2026-01-10 10:52:16.811899] [0x00007f3fc6bdc6c0] [info]    Epoch [40/60], Loss: 22.1536
+[2026-01-10 10:52:16.812296] [0x00007f3fc6bdc6c0] [info]    Epoch [45/60], Loss: 22.0452
+[2026-01-10 10:52:16.812528] [0x00007f3fc6bdc6c0] [info]    Epoch [50/60], Loss: 21.9438
+[2026-01-10 10:52:16.812779] [0x00007f3fc6bdc6c0] [info]    Epoch [55/60], Loss: 21.8473
+[2026-01-10 10:52:16.813002] [0x00007f3fc6bdc6c0] [info]    Epoch [60/60], Loss: 21.7542
+[2026-01-10 10:52:16.813055] [0x00007f3fc6bdc6c0] [info]    Training finished... 
+[2026-01-10 10:52:16.813060] [0x00007f3fc6bdc6c0] [info]    Saving model at: intro_example_2_experiments/1/linear_regression_model.pth
+
+[2026-01-10 10:52:16.815886] [0x00007f3fc6bdc6c0] [info]    Start testing...
+[2026-01-10 10:52:16.815932] [0x00007f3fc6bdc6c0] [info]    CUDA is not available. Testing on CPU 
+[2026-01-10 10:52:16.828503] [0x00007f3fc6bdc6c0] [info]    Testing finished... 
+
 ```
 

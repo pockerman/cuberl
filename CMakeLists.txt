@@ -38,18 +38,6 @@ ENDIF(COMMAND cmake_policy)
 
 OPTION(ENABLE_WEBOTS_FLAG OFF)
 
-# configure the project accordingly
-# Set the build type options supported
-# Debug and Release are the types supported
-SET(CMAKE_BUILD_TYPE "Debug")
-#SET(CMAKE_CXX_COMPILER g++-11)
-SET(CMAKE_CXX_STANDARD 20)
-#SET(CMAKE_CXX_STANDARD_REQUIRED True)
-#SET(CMAKE_C_COMPILER gcc-11)
-#SET(CMAKE_C_STANDARD 20)
-#SET(CMAKE_C_STANDARD_REQUIRED True)
-SET(CMAKE_LINKER_FLAGS "-pthread")
-
 SET(USE_OPENMP ON)
 SET(USE_LOG ON)
 SET(USE_PYTORCH ON)
@@ -62,7 +50,21 @@ SET(USE_RL ON)
 SET(DATA_SET_FOLDER ${PROJECT_SOURCE_DIR}/data)
 SET(ENABLE_EXAMPLES_FLAG ON)
 SET(ENABLE_TESTS_FLAG OFF) # Testing
-SET(ENABLE_DOC_FLAG OFF) # Documentation
+
+
+# configure the project accordingly
+# Set the build type options supported
+# Debug and Release are the types supported
+SET(CMAKE_BUILD_TYPE "Release")
+#SET(CMAKE_CXX_COMPILER g++-11)
+SET(CMAKE_CXX_STANDARD 20)
+#SET(CMAKE_CXX_STANDARD_REQUIRED True)
+#SET(CMAKE_C_COMPILER gcc-11)
+#SET(CMAKE_C_STANDARD 20)
+#SET(CMAKE_C_STANDARD_REQUIRED True)
+SET(CMAKE_LINKER_FLAGS "-pthread")
+
+
 
 # if we enable Webots then specify the paths
 # Note that if rlenvscpp is compiled with
@@ -174,8 +176,8 @@ MESSAGE(STATUS "C Compiler: ${CMAKE_C_COMPILER}")
 MESSAGE(STATUS "Project SRC directory: ${PROJECT_SOURCE_DIR}")
 
 # write configuration and version files
-configure_file(config.h.in ${PROJECT_SOURCE_DIR}/include/cubeai/base/cubeai_config.h @ONLY)
-configure_file(version.h.in ${PROJECT_SOURCE_DIR}/include/cubeai/base/cubeai_version.h @ONLY)
+configure_file(config.h.in ${PROJECT_SOURCE_DIR}/include/cuberl/base/cubeai_config.h @ONLY)
+configure_file(version.h.in ${PROJECT_SOURCE_DIR}/include/cuberl/base/cubeai_version.h @ONLY)
 
 # include directories
 INCLUDE_DIRECTORIES(${BOOST_INCLUDEDIR})
@@ -189,23 +191,23 @@ ENDIF()
 INCLUDE_DIRECTORIES(include/)
 
 # collect the source files for the library
-FILE(GLOB SRCS src/cubeai/base/*.cpp
-               src/cubeai/rl/*.cpp
-               src/cubeai/rl/*/*.cpp
-			   src/cubeai/rl/algorithms/*.cpp
-			   src/cubeai/rl/algorithms/*/*.cpp
-               src/cubeai/utils/*.cpp
-               src/cubeai/maths/*.cpp
-               src/cubeai/maths/statistics/*.cpp
-               src/cubeai/maths/statistics/distributions/*.cpp
-               src/cubeai/maths/optimization/*.cpp
-		       src/cubeai/control/*.cpp
+FILE(GLOB SRCS src/cuberl/base/*.cpp
+		src/cuberl/rl/*.cpp
+		src/cuberl/rl/*/*.cpp
+		src/cuberl/rl/algorithms/*.cpp
+		src/cuberl/rl/algorithms/*/*.cpp
+		src/cuberl/utils/*.cpp
+		src/cuberl/maths/*.cpp
+		src/cuberl/maths/statistics/*.cpp
+		src/cuberl/maths/statistics/distributions/*.cpp
+		src/cuberl/maths/optimization/*.cpp
+		src/cuberl/control/*.cpp
                #src/cubeai/planning/*.cpp
 	)
 
-ADD_LIBRARY(cubeailib SHARED ${SRCS})
-SET_TARGET_PROPERTIES(cubeailib PROPERTIES LINKER_LANGUAGE CXX)
-INSTALL(TARGETS cubeailib DESTINATION ${CMAKE_INSTALL_PREFIX})
+ADD_LIBRARY(cuberllib SHARED ${SRCS})
+SET_TARGET_PROPERTIES(cuberllib PROPERTIES LINKER_LANGUAGE CXX)
+INSTALL(TARGETS cuberllib DESTINATION ${CMAKE_INSTALL_PREFIX})
 
 IF(ENABLE_EXAMPLES_FLAG)
 	# Add the examples
@@ -221,12 +223,7 @@ ELSE()
 	MESSAGE(WARNING "Tests have not been enabled")
 ENDIF()
 
-IF(ENABLE_DOC_FLAG)
-	# Add the documentation
-	ADD_SUBDIRECTORY(doc)
-ELSE()
-	MESSAGE(WARNING "Documentation will not be generated")
-ENDIF()
+
 
 MESSAGE(STATUS "Installation destination at: ${CMAKE_INSTALL_PREFIX}")
 MESSAGE(STATUS "Type make install to build cubeAI")

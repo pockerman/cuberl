@@ -4,9 +4,9 @@
   * Greg Welch and Gary Bishop
   * */
 
-#include "cubeai/base/cubeai_types.h"
-#include "cubeai/estimation/kalman_filter.h"
-#include "cubeai/estimation/kf_model_base.h"
+#include "cuberl/base/cubeai_types.h"
+#include "cuberl/estimation/kalman_filter.h"
+#include "cuberl/estimation/kf_model_base.h"
 #include "bitrl/utils/iteration_counter.h"
 #include "bitrl/utils/io/csv_file_writer.h"
 

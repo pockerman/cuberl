@@ -1,7 +1,7 @@
-#include "cubeai/base/cubeai_types.h"
-#include "cubeai/rl/algorithms/dp/policy_iteration.h"
-#include "cubeai/rl/trainers/rl_serial_agent_trainer.h"
-#include "cubeai/rl/policies/uniform_discrete_policy.h"
+#include "cuberl/base/cubeai_types.h"
+#include "cuberl/rl/algorithms/dp/policy_iteration.h"
+#include "cuberl/rl/trainers/rl_serial_agent_trainer.h"
+#include "cuberl/rl/policies/uniform_discrete_policy.h"
 #include "bitrl/network/rest_rl_env_client.h"
 #include "bitrl/envs/gymnasium/toy_text/frozen_lake_env.h"
 

@@ -1,8 +1,8 @@
-#include "cubeai/base/cubeai_config.h"
+#include "cuberl/base/cubeai_config.h"
 
 #ifdef USE_PYTORCH
 
-#include "cubeai/base/cubeai_types.h"
+#include "cuberl/base/cubeai_types.h"
 
 #include <torch/torch.h>
 #include <boost/log/trivial.hpp>
