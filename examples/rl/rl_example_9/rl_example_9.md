@@ -6,9 +6,9 @@ All Gymnasium-based environments require an instance of the <a href="https://git
 
 
 Temporal Difference Learning is a combination of dynamic programming and Monte Carlo. TDL does not use the environment transition probabilities and therefore is
-a model-free algorithm. One problem with TDL is that we don't which action to take; TDL approximate that state-value function $V(s)$
+a model-free algorithm. One problem with TDL is that we don't know which action to take; TDL approximate that state-value function $V(s)$
 however, we cannot use the Bellman equations to establish the state-action value function $Q(s, \alpha)$ as we don't know the transition probabilities.
-The solution thus is to approaximate $Q(s, \alpha)$ directly. In this note we will discuss one such approach i.e. SARSA or State-Action-Reward-State-Action.
+The solution thus is to approximate $Q(s, \alpha)$ directly. In this note we will discuss one such approach i.e. SARSA or State-Action-Reward-State-Action.
 
 SARSA is  an on-policy method i.e. the agent takes actions and learns, that is it chooses the next $Q(s,\alpha)$,  under the policy $\pi$ it currently follows. 
 When we update the value of $Q(s,\alpha)$ we take into account the value $Q(s_{t+1},\alpha_{t+1})$. 
@@ -24,7 +24,7 @@ Typically, the policy $\pi$ will an $\epsilon$-greedy policy but this need not b
 The following is the update formula that SARSA is using:
 
 $$
-Q(s_t, \alpha_t) = Q(s_t, \alpha_t) + \eta \left[r_{t+1} + \gamma Q(s_{t+1}, \alpha_{t+1}) - Q(s_t, \alpha_t)]
+Q(s_t, \alpha_t) = Q(s_t, \alpha_t) + \eta \left[r_{t+1} + \gamma Q(s_{t+1}, \alpha_{t+1}) - Q(s_t, \alpha_t)\left]
 $$
 
 The state-action value function that is learnt by SARSA reflect a real policy that includes both exploration noise and operational constraints.
@@ -35,7 +35,7 @@ Let's have a closer look into the algorithm.
 #### Step 1
 
 Reinforcement learning algorithms will usually start by knowing nothing about the environment. So the first step is
-to initialize the table table that represents $Q(s,\alpha)$ to arbitrary values; often this is just zero. This however, can also
+to initialize the table that represents $Q(s,\alpha)$ to arbitrary values; often this is just zero. This however, can also
 be values that encourage exploration.
 
 #### Step 2
@@ -68,7 +68,7 @@ Below is the driver code for this example.
 #include "cuberl/rl/algorithms/td/sarsa.h"
 #include "cuberl/rl/policies/epsilon_greedy_policy.h"
 #include "cuberl/rl/trainers/rl_serial_agent_trainer.h"
-#include "rlenvs/envs/api_server/apiserver.h"
+#include "bitrl/envs/api_server/apiserver.h"
 #include "bitrl/envs/gymnasium/toy_text/cliff_world_env.h"
 
 #include <boost/log/trivial.hpp>
