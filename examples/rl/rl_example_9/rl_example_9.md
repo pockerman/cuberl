@@ -1,19 +1,84 @@
-# Example 9: SARSA on ```CliffWorld```
+\page cuberl_rl_example_9 RL-Example 9: SARSA on `CliffWorld`
+
+In this example we will apply the SARSA algorithm on <a href="https://gymnasium.farama.org/environments/toy_text/cliff_walking/">CliffWorld</a>.
+This is a Gymnasium-based environment implemented in \ref bitrl::envs::gymnasium::CliffWorld "bitrl::envs::gymnasium::CliffWorld" class.
+All Gymnasium-based environments require an instance of the <a href="https://github.com/pockerman/bitrl-rest-api">bitrl-envs-api</a> server to run.
 
 
-## The driver code
+Temporal Difference Learning is a combination of dynamic programming and Monte Carlo. TDL does not use the environment transition probabilities and therefore is
+a model-free algorithm. One problem with TDL is that we don't which action to take; TDL approximate that state-value function $V(s)$
+however, we cannot use the Bellman equations to establish the state-action value function $Q(s, \alpha)$ as we don't know the transition probabilities.
+The solution thus is to approaximate $Q(s, \alpha)$ directly. In this note we will discuss one such approach i.e. SARSA or State-Action-Reward-State-Action.
 
-```
-#include "cubeai/base/cubeai_types.h"
-#include "cubeai/rl/algorithms/td/sarsa.h"
-#include "cubeai/rl/policies/epsilon_greedy_policy.h"
-#include "cubeai/rl/trainers/rl_serial_agent_trainer.h"
+SARSA is  an on-policy method i.e. the agent takes actions and learns, that is it chooses the next $Q(s,\alpha)$,  under the policy $\pi$ it currently follows. 
+When we update the value of $Q(s,\alpha)$ we take into account the value $Q(s_{t+1},\alpha_{t+1})$. 
+Hence, with the SARSA algorithm we work with the following tuple $(s_t, \alpha_t, s_{t+1}, \alpha_{t+1})$.
+
+----
+**Remark**
+
+Typically, the policy $\pi$ will an $\epsilon$-greedy policy but this need not be the case.
+
+----
+
+The following is the update formula that SARSA is using:
+
+$$
+Q(s_t, \alpha_t) = Q(s_t, \alpha_t) + \eta \left[r_{t+1} + \gamma Q(s_{t+1}, \alpha_{t+1}) - Q(s_t, \alpha_t)]
+$$
+
+The state-action value function that is learnt by SARSA reflect a real policy that includes both exploration noise and operational constraints.
+The algorithm, compared to Q-learning, is more conservative and therefore convergence is slower. 
+
+Let's have a closer look into the algorithm.
+
+#### Step 1
+
+Reinforcement learning algorithms will usually start by knowing nothing about the environment. So the first step is
+to initialize the table table that represents $Q(s,\alpha)$ to arbitrary values; often this is just zero. This however, can also
+be values that encourage exploration.
+
+#### Step 2
+
+The algorithm begins by some be presented with a state. SARSA needs to decide what to do whilst at this state. This is done using a policy
+$\pi$ which most often will be an $\epsilon-$greedy policy.
+
+#### Step 3
+
+The algorithm will execute the action that was selected from step 2. The environment will respond with a reward $r_t$ and the new state $s_{t+1}$.
+However, we cannot update yet the table $Q(s,\alpha)$; we need to determine what we will do next. It uses the policy $\pi$ at the new state $s_{t+1}$
+in order to select the new action $\alpha_{t+1}$. $\alpha_{t+1}$ is the action that the agent will take next. 
+**This is the key SARSA step that distinguishes it from Q-learning.** [1]. We can now update the state-action value function.
+The update rule, see above, is using the future $Q(s_{t+1}, \alpha_{t+1})$ in order to update the current $Q(s_{t}, \alpha_{t})$
+
+#### Step 4
+
+After updating, we move to $s_{t+1}$ and take action $\alpha_{t+1}$ and repeat step 3. 
+If we've reached a terminal state (like the end of a game or a completed transaction), the episode ends and we start fresh.
+The environment has to inform the agent about whether it reached the end of the game or not. So when we take an action in the environment,
+we will usually receive not just a reward signal and the next state but also a flag indicating if the end of the game or simulation has been reached. 
+
+
+The SARSA algorithm is implemented in the \ref cuberl::rl::algos::td::SarsaSolver "cuberl::rl::algos::td::SarsaSolver"  class
+
+Below is the driver code for this example. 
+
+@code{.cpp}
+#include "cuberl/base/cubeai_types.h"
+#include "cuberl/rl/algorithms/td/sarsa.h"
+#include "cuberl/rl/policies/epsilon_greedy_policy.h"
+#include "cuberl/rl/trainers/rl_serial_agent_trainer.h"
 #include "rlenvs/envs/api_server/apiserver.h"
-#include "rlenvs/envs/gymnasium/toy_text/cliff_world_env.h"
+#include "bitrl/envs/gymnasium/toy_text/cliff_world_env.h"
 
 #include <boost/log/trivial.hpp>
 #include <iostream>
+@endcode
 
+
+
+
+@code{.cpp}
 namespace rl_example_9{
 
 const std::string SERVER_URL = "http://0.0.0.0:8001/api";
@@ -84,7 +149,7 @@ int main(){
 		auto reward = trainer.episodes_total_rewards();
 		auto iterations = trainer.n_itrs_per_episode();
 	
-		rlenvscpp::utils::io::CSVWriter csv_writer(REWARD_PER_ITR);
+		bitrl::utils::io::CSVWriter csv_writer(REWARD_PER_ITR);
 		csv_writer.open();
 		
 		csv_writer.write_column_names({"epoch", "reward"});
@@ -113,7 +178,7 @@ int main(){
     return 0;
 }
 
-```
+@endcode
 
 
 | ![cw-sarsa-step-1](images/sarsa_cliff_step_1.png) |
