@@ -24,7 +24,7 @@ Typically, the policy $\pi$ will an $\epsilon$-greedy policy but this need not b
 The following is the update formula that SARSA is using:
 
 $$
-Q(s_t, \alpha_t) = Q(s_t, \alpha_t) + \eta \left[r_{t+1} + \gamma Q(s_{t+1}, \alpha_{t+1}) - Q(s_t, \alpha_t)\left]
+Q(s_t, \alpha_t) = Q(s_t, \alpha_t) + \eta \left[r_{t+1} + \gamma Q(s_{t+1}, \alpha_{t+1}) - Q(s_t, \alpha_t)\right]
 $$
 
 The state-action value function that is learnt by SARSA reflect a real policy that includes both exploration noise and operational constraints.
