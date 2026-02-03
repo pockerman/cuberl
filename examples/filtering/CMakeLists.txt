@@ -1,3 +1,0 @@
-ADD_SUBDIRECTORY(filtering_example_1)
-ADD_SUBDIRECTORY(filtering_example_2)
-

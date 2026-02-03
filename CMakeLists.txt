@@ -1,12 +1,12 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 3.20 FATAL_ERROR)
 MESSAGE(STATUS "Using CMake ${CMAKE_VERSION}")
 
-SET(CUBEAILIB_VERSION_MAJOR 2)
-SET(CUBEAILIB_VERSION_MINOR 0)
-SET(CUBEAILIB_VERSION_PATCH 1)
-SET(CUBEAILIB_VERSION "${CUBEAILIB_VERSION_MAJOR}.${CUBEAILIB_VERSION_MINOR}.${CUBEAILIB_VERSION_PATCH}")
+SET(CUBERLLIB_VERSION_MAJOR 2)
+SET(CUBERLLIB_VERSION_MINOR 1)
+SET(CUBERLLIB_VERSION_PATCH 0)
+SET(CUBERLLIB_VERSION "${CUBERLLIB_VERSION_MAJOR}.${CUBERLLIB_VERSION_MINOR}.${CUBERLLIB_VERSION_PATCH}")
 
-MESSAGE(STATUS "cuberl lib Version ${CUBEAILIB_VERSION}")
+MESSAGE(STATUS "cuberl lib Version ${CUBERLLIB_VERSION}")
 
 
 # if PyTorch has been compiled with CUDA support
@@ -201,8 +201,6 @@ FILE(GLOB SRCS src/cuberl/base/*.cpp
 		src/cuberl/maths/statistics/*.cpp
 		src/cuberl/maths/statistics/distributions/*.cpp
 		src/cuberl/maths/optimization/*.cpp
-		src/cuberl/control/*.cpp
-               #src/cubeai/planning/*.cpp
 	)
 
 ADD_LIBRARY(cuberllib SHARED ${SRCS})
