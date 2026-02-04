@@ -37,19 +37,6 @@ The following is an indicative list of examples.
 - <a href="examples/rl/rl_example_20/rl_example_20.md">REINFORCE algorithm with baseline on ```CartPole```</a>
 - <a href="examples/rl/rl_example_22/rl_example_22.md">PPO on ```LunarLander```</a>
 
-### Filtering
-
-- <a href="examples/filtering/filtering_example_1/filtering_example_1.md">Kalman filtering</a>
-- <a href="examples/filtering/filtering_example_2/filtering_example_2.md">Extended Kalman filter for diff-drive system</a>
-
-
-### Path planning
-
-- <a href="#">Path planning with rapidly-exploring random trees (TODO)</a>
-- <a href="#">Path planning with dynamic windows (TODO) </a>
-- <a href="examples/example_17/example_17.cpp"> A* search on a road network  from Open Street Map data</a>
-
-
 ## Installation
 
 The cubeai library has a host of dependencies:

@@ -67,17 +67,19 @@ Below is the driver code for this example.
 #include "cuberl/rl/algorithms/td/sarsa.h"
 #include "cuberl/rl/policies/epsilon_greedy_policy.h"
 #include "cuberl/rl/trainers/rl_serial_agent_trainer.h"
-#include "bitrl/envs/api_server/apiserver.h"
+#include "bitrl/network/rest_rl_env_client.h"
 #include "bitrl/envs/gymnasium/toy_text/cliff_world_env.h"
 
 #include <boost/log/trivial.hpp>
 #include <iostream>
+
 @endcode
 
 
 
 
 @code{.cpp}
+
 namespace rl_example_9{
 
 const std::string SERVER_URL = "http://0.0.0.0:8001/api";
@@ -95,8 +97,6 @@ using cuberl::rl::RLSerialAgentTrainer;
 using cuberl::rl::RLSerialTrainerConfig;
 using rlenvscpp::envs::RESTApiServerWrapper;
 typedef  rlenvscpp::envs::gymnasium::CliffWorld env_type;
-
-
 }
 
 int main(){
@@ -176,7 +176,6 @@ int main(){
 
     return 0;
 }
-
 @endcode
 
 
