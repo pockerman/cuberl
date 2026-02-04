@@ -68,7 +68,7 @@ Below is the driver code for this example.
 #include "cuberl/rl/algorithms/td/sarsa.h"
 #include "cuberl/rl/policies/epsilon_greedy_policy.h"
 #include "cuberl/rl/trainers/rl_serial_agent_trainer.h"
-#include "bitrl/envs/api_server/apiserver.h"
+#include "bitrl/network/rest_rl_env_client.h"
 #include "bitrl/envs/gymnasium/toy_text/cliff_world_env.h"
 
 #include <boost/log/trivial.hpp>
