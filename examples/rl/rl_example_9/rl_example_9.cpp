@@ -23,7 +23,7 @@ using cuberl::rl::algos::td::SarsaConfig;
 using cuberl::rl::policies::EpsilonDecayOption;
 using cuberl::rl::RLSerialAgentTrainer;
 using cuberl::rl::RLSerialTrainerConfig;
-	using bitrl::network::RESTRLEnvClient;
+using bitrl::network::RESTRLEnvClient;
 typedef  bitrl::envs::gymnasium::CliffWorld env_type;
 
 
