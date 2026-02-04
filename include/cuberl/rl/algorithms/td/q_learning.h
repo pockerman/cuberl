@@ -1,7 +1,7 @@
 #ifndef Q_LEARNING_H
 #define Q_LEARNING_H
 
-#include "cuberl/base/cubeai_types.h"
+#include "cuberl/base/cuberl_types.h"
 #include "cuberl/base/cubeai_config.h"
 #include "cuberl/rl/episode_info.h"
 #include "cuberl/rl/algorithms/td/td_algo_base.h"

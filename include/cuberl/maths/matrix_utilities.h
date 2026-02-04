@@ -1,7 +1,7 @@
 #ifndef MATRIX_UTILITIES_H
 #define MATRIX_UTILITIES_H
 
-#include "cuberl/base/cubeai_types.h"
+#include "cuberl/base/cuberl_types.h"
 
 #include <random>
 #include <set>

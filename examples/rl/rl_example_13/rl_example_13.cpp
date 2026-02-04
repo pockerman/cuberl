@@ -6,7 +6,7 @@
 
 #ifdef USE_PYTORCH
 
-#include "cuberl/base/cubeai_types.h"
+#include "cuberl/base/cuberl_types.h"
 #include "cuberl/rl/algorithms/pg/reinforce.h"
 #include "cuberl/rl/algorithms/pg/reinforce_config.h"
 #include "cuberl/rl/trainers/rl_serial_agent_trainer.h"

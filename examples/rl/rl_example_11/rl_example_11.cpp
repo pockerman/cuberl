@@ -2,7 +2,7 @@
 
 #ifdef USE_PYTORCH
 
-#include "cuberl/base/cubeai_types.h"
+#include "cuberl/base/cuberl_types.h"
 #include "cuberl/maths/statistics/distributions/torch_categorical.h"
 #include "cuberl/rl/trainers/rl_serial_agent_trainer.h"
 #include "cuberl/rl/algorithms/pg/a2c.h"

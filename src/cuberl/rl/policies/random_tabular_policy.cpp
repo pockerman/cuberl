@@ -1,5 +1,5 @@
 #include "cuberl/rl/policies/random_tabular_policy.h"
-#include "cuberl/base/cubeai_types.h"
+#include "cuberl/base/cuberl_types.h"
 #include "cuberl/base/cubeai_config.h"
 
 #ifdef CUBERL_DEBUG

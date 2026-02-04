@@ -1,4 +1,4 @@
-\page cuberl_rl_example_9 RL-Example 9: SARSA on `CliffWorld`
+\page cuberl_example_9 CubeRL Example 9: SARSA on `CliffWorld`
 
 In this example we will apply the SARSA algorithm on <a href="https://gymnasium.farama.org/environments/toy_text/cliff_walking/">CliffWorld</a>.
 This is a Gymnasium-based environment implemented in \ref bitrl::envs::gymnasium::CliffWorld "bitrl::envs::gymnasium::CliffWorld" class.
@@ -57,7 +57,6 @@ After updating, we move to $s_{t+1}$ and take action $\alpha_{t+1}$ and repeat s
 If we've reached a terminal state (like the end of a game or a completed transaction), the episode ends and we start fresh.
 The environment has to inform the agent about whether it reached the end of the game or not. So when we take an action in the environment,
 we will usually receive not just a reward signal and the next state but also a flag indicating if the end of the game or simulation has been reached. 
-
 
 The SARSA algorithm is implemented in the \ref cuberl::rl::algos::td::SarsaSolver "cuberl::rl::algos::td::SarsaSolver"  class
 

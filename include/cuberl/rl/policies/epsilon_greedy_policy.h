@@ -2,7 +2,7 @@
 #define EPSILON_GREEDY_POLICY_H
 
 #include "cuberl/base/cubeai_config.h"
-#include "cuberl/base/cubeai_types.h"
+#include "cuberl/base/cuberl_types.h"
 #include "cuberl/rl/policies/max_tabular_policy.h"
 #include "cuberl/rl/policies/random_tabular_policy.h"
 

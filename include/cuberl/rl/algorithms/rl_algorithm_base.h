@@ -1,7 +1,7 @@
 #ifndef RL_ALGORITHM_BASE_H
 #define RL_ALGORITHM_BASE_H
 
-#include "cuberl/base/cubeai_types.h"
+#include "cuberl/base/cuberl_types.h"
 #include "cuberl/rl/episode_info.h"
 
 

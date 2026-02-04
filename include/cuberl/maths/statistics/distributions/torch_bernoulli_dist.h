@@ -10,7 +10,7 @@
 
 #ifdef USE_PYTORCH
 
-#include "cuberl/base/cubeai_types.h"
+#include "cuberl/base/cuberl_types.h"
 #include "cuberl/maths/statistics/distributions/torch_distribution.h"
 
 #include <torch/torch.h>

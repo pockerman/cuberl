@@ -11,7 +11,7 @@
 
 #ifdef USE_PYTORCH
 
-#include "cuberl/base/cubeai_types.h"
+#include "cuberl/base/cuberl_types.h"
 #include "cuberl/rl/algorithms/rl_algorithm_base.h"
 #include "cuberl/rl/algorithms/utils.h"
 #include "cuberl/rl/algorithms/pg/reinforce_config.h"

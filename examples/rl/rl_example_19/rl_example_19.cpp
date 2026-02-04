@@ -1,4 +1,4 @@
-#include "cuberl/base/cubeai_types.h"
+#include "cuberl/base/cuberl_types.h"
 #include "cuberl/rl/algorithms/mc/first_visit_mc.h"
 #include "cuberl/rl/learning_rate_scheduler.h"
 #include "cuberl/rl/trainers/rl_serial_agent_trainer.h"

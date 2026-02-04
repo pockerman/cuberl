@@ -3,7 +3,7 @@
 
 #ifndef LEARNING_RATE_SCHEDULER_H
 #define LEARNING_RATE_SCHEDULER_H
-#include "cuberl/base/cubeai_types.h"
+#include "cuberl/base/cuberl_types.h"
 
 namespace cuberl{
 namespace rl{

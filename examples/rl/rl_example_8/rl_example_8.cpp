@@ -1,4 +1,4 @@
-#include "cuberl/base/cubeai_types.h"
+#include "cuberl/base/cuberl_types.h"
 #include "cuberl/rl/algorithms/dp/value_iteration.h"
 #include "cuberl/rl/trainers/rl_serial_agent_trainer.h"
 

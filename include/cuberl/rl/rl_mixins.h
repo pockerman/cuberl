@@ -5,7 +5,7 @@
   * of RL algorithms
   * */
 #include "cuberl/base/cubeai_config.h"
-#include "cuberl/base/cubeai_types.h"
+#include "cuberl/base/cuberl_types.h"
 #include "cuberl/rl/epsilon_decay_options.h"
 
 

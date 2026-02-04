@@ -176,8 +176,8 @@ MESSAGE(STATUS "C Compiler: ${CMAKE_C_COMPILER}")
 MESSAGE(STATUS "Project SRC directory: ${PROJECT_SOURCE_DIR}")
 
 # write configuration and version files
-configure_file(config.h.in ${PROJECT_SOURCE_DIR}/include/cuberl/base/cubeai_config.h @ONLY)
-configure_file(version.h.in ${PROJECT_SOURCE_DIR}/include/cuberl/base/cubeai_version.h @ONLY)
+configure_file(config.h.in ${PROJECT_SOURCE_DIR}/include/cuberl/base/cuberl_config.h @ONLY)
+configure_file(version.h.in ${PROJECT_SOURCE_DIR}/include/cuberl/base/cuberl_version.h @ONLY)
 
 # include directories
 INCLUDE_DIRECTORIES(${BOOST_INCLUDEDIR})

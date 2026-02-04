@@ -1,7 +1,7 @@
 #ifndef A2C_CONFIG_H
 #define A2C_CONFIG_H
 
-#include "cuberl/base/cubeai_types.h"
+#include "cuberl/base/cuberl_types.h"
 //#include "bitrl/rlenvs_consts.h"
 #include "cuberl/utils/train_enum_type.h"
 

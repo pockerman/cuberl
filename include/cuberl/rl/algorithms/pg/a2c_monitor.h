@@ -5,7 +5,7 @@
 
 #ifdef USE_PYTORCH
 
-#include "cuberl/base/cubeai_types.h"
+#include "cuberl/base/cuberl_types.h"
 #include "cuberl/data_structs/experience_buffer.h"
 
 

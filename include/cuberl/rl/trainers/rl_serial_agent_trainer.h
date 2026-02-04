@@ -1,7 +1,7 @@
 #ifndef RL_SERIAL_AGENT_TRAINER_H
 #define RL_SERIAL_AGENT_TRAINER_H
 
-#include "cuberl/base/cubeai_types.h"
+#include "cuberl/base/cuberl_types.h"
 #include "bitrl/bitrl_consts.h"
 
 #include "bitrl/utils/iterative_algorithm_result.h"

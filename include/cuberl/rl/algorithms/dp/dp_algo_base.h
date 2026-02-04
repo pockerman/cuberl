@@ -1,7 +1,7 @@
 #ifndef DP_ALGO_BASE_H
 #define DP_ALGO_BASE_H
 
-#include "cuberl/base/cubeai_types.h"
+#include "cuberl/base/cuberl_types.h"
 #include "cuberl/rl/algorithms/rl_algorithm_base.h"
 
 #include <tuple>

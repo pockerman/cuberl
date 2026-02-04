@@ -5,7 +5,7 @@
 #define FIRST_VISIT_MC_H
 
 #include "cuberl/base/cubeai_config.h"
-#include "cuberl/base/cubeai_types.h"
+#include "cuberl/base/cuberl_types.h"
 
 #include "cuberl/rl/episode_info.h"
 #include "cuberl/maths/vector_math.h"

@@ -12,7 +12,7 @@
 
 #ifdef USE_PYTORCH
 
-#include "cuberl/base/cubeai_types.h"
+#include "cuberl/base/cuberl_types.h"
 #include "cuberl/utils/torch_adaptor.h"
 #include "cuberl/rl/algorithms/pg/actor_critic_solver_base.h"
 #include "cuberl/rl/algorithms/utils.h"

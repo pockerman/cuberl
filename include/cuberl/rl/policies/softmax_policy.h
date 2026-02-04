@@ -2,7 +2,7 @@
 #define SOFTMAX_POLICY_H
 
 
-#include "cuberl/base/cubeai_types.h"
+#include "cuberl/base/cuberl_types.h"
 #include "cuberl/rl/policies/max_tabular_policy.h"
 #include "cuberl/maths/vector_math.h"
 

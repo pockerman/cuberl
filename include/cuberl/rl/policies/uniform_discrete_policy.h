@@ -1,7 +1,7 @@
 #ifndef UNIFORM_DISCRETE_POLICY_H
 #define UNIFORM_DISCRETE_POLICY_H
 
-#include "cuberl/base/cubeai_types.h"
+#include "cuberl/base/cuberl_types.h"
 
 #include <vector>
 #include <utility>

@@ -1,7 +1,7 @@
 #ifndef STOCHASTIC_ADAPTOR_POLICY_H
 #define STOCHASTIC_ADAPTOR_POLICY_H
 
-#include "cuberl/base/cubeai_types.h"
+#include "cuberl/base/cuberl_types.h"
 #include "cuberl/maths/vector_math.h"
 #include "cuberl/base/cubeai_config.h"
 

@@ -1,4 +1,4 @@
-#include "cuberl/base/cubeai_types.h"
+#include "cuberl/base/cuberl_types.h"
 #include "cuberl/maths/vector_math.h"
 #include "cuberl/rl/policies/epsilon_greedy_policy.h"
 #include "bitrl/utils/maths/statistics/distributions/beta_dist.h"

@@ -1,7 +1,7 @@
 #ifndef REINFORCE_CONFIG_H
 #define REINFORCE_CONFIG_H
 
-#include "cuberl/base/cubeai_types.h"
+#include "cuberl/base/cuberl_types.h"
 #include "bitrl/bitrl_consts.h"
 #include "cuberl/utils/train_enum_type.h"
 

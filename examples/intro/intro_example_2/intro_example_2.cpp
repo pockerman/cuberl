@@ -2,7 +2,7 @@
 
 #ifdef USE_PYTORCH
 
-#include "cuberl/base/cubeai_types.h"
+#include "cuberl/base/cuberl_types.h"
 
 #include <torch/torch.h>
 #include <boost/log/trivial.hpp>

@@ -1,7 +1,7 @@
 #ifndef EPISODE_INFO_H
 #define EPISODE_INFO_H
 
-#include "cuberl/base/cubeai_types.h"
+#include "cuberl/base/cuberl_types.h"
 #include "bitrl/bitrl_consts.h"
 #include <chrono>
 #include <string>
