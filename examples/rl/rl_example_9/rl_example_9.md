@@ -73,12 +73,14 @@ Below is the driver code for this example.
 
 #include <boost/log/trivial.hpp>
 #include <iostream>
+
 @endcode
 
 
 
 
 @code{.cpp}
+
 namespace rl_example_9{
 
 const std::string SERVER_URL = "http://0.0.0.0:8001/api";
@@ -96,8 +98,6 @@ using cuberl::rl::RLSerialAgentTrainer;
 using cuberl::rl::RLSerialTrainerConfig;
 using rlenvscpp::envs::RESTApiServerWrapper;
 typedef  rlenvscpp::envs::gymnasium::CliffWorld env_type;
-
-
 }
 
 int main(){
@@ -177,7 +177,6 @@ int main(){
 
     return 0;
 }
-
 @endcode
 
 
