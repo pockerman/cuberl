@@ -1,4 +1,4 @@
-\page cuberl_example_9 CubeRL Example 9: SARSA on `CliffWorld`
+\page cuberl_example_13 CubeRL Example 13: SARSA on CliffWorld
 
 In this example we will apply the SARSA algorithm on <a href="https://gymnasium.farama.org/environments/toy_text/cliff_walking/">CliffWorld</a>.
 This is a Gymnasium-based environment implemented in \ref bitrl::envs::gymnasium::CliffWorld "bitrl::envs::gymnasium::CliffWorld" class.

@@ -1,13 +1,13 @@
-# Example 2: Multi-armed bandits
+\page cuberl_example_8 CubeRL Example 8: Multi-armed bandits
 
 In this example we will look at how to solve the <a href="https://en.wikipedia.org/wiki/Multi-armed_bandit">multi-armed bandits problem</a>.
 In particular, we will look at how to use two specific algorithms namely 
-$\epsilon$-greedy and <a href="https://en.wikipedia.org/wiki/Thompson_sampling">Thompson sampling</a>.
+\f$\epsilon\f$-greedy and <a href="https://en.wikipedia.org/wiki/Thompson_sampling">Thompson sampling</a>.
 
-The multi-armed bandits framework has a lot of applications to online decision making such as 
+The multi-armed bandits framework has a lot of applications to online decision-making such as 
 advertisement placement, and recommendation engines. 
 An algorithm that solves the problem essentially provides a policy that optimizes
-for a given criteria e.g. reward accummulated over how to choose amonst the available options.
+for a given criteria e.g. reward accumulated over how to choose amongst the available options.
 
 
 ----
@@ -21,15 +21,15 @@ by John Myles White, discusses bandit algorithms for website optimization</a>.
 
 ----
 
-### $\epsilon$-greedy sampling
+\f$\epsilon\f$-greedy sampling
 
 Perhaps one of the simplest approaches to solve the bandits problem is an 
-$\epsilon$-greedy sampling strategy. As probably the name suggests, the algorithm
-most of the times will greedily select the action with the highest accummulated reward.
-However for a small probability, $\epsilon$, the algorithm will randomly select an action
+\f$\epsilon\f$-greedy sampling strategy. As probably the name suggests, the algorithm
+most of the time will greedily select the action with the highest accumulated reward.
+However for a small probability, \f$\epsilon\f$, the algorithm will randomly select an action
 amonst the available ones. This is a very simple algorithm and often provides quite good results.
 
-The $\epsilon$-greedy sampling is implemented in the class ```cuberl::rl::policies::EpsilonGreedyPolicy```.
+The \f$\epsilon\f$-greedy sampling is implemented in the class  \ref cuberl::rl::policies::EpsilonGreedyPolicy "cuberl::rl::policies::EpsilonGreedyPolicy".
 
 ### Thompson sampling
 
@@ -41,19 +41,19 @@ In the implementation below, we will use the <a href="https://en.wikipedia.org/w
 but this need not be the case. Feel free to experiment with this.
 
 
-The class ```rlenvscpp::envs::bandits::MultiArmedBandits``` conventietly wraps the multi-armed bandits
+The class \ref bitrl::envs::bandits::MultiArmedBandits "bitrl::envs::bandits::MultiArmedBandits" conveniently wraps the multi-armed bandits
 framework into an environment we can utilise.
 
 
 ## Driver code
 
-```
+@code{.cpp}
 #include "cubeai/base/cubeai_types.h"
 #include "cubeai/maths/vector_math.h"
 #include "cubeai/rl/policies/epsilon_greedy_policy.h"
-#include "rlenvs/utils/maths/statistics/distributions/beta_dist.h"
-#include "rlenvs/utils/maths/statistics/distributions/bernoulli_dist.h"
-#include "rlenvs/envs/multi_armed_bandits/multi_armed_bandits.h"
+#include "bitrl/utils/maths/statistics/distributions/beta_dist.h"
+#include "bitrl/utils/maths/statistics/distributions/bernoulli_dist.h"
+#include "bitrl/envs/multi_armed_bandits/multi_armed_bandits.h"
 
 #include <cmath>
 #include <utility>
@@ -74,9 +74,9 @@ using cuberl::int_t;
 using cuberl::DynMat;
 using cuberl::DynVec;
 using cuberl::rl::policies::EpsilonGreedyPolicy;
-using rlenvscpp::utils::maths::stats::BetaDist;
-using rlenvscpp::utils::maths::stats::BernoulliDist;
-using rlenvscpp::envs::bandits::MultiArmedBandits;
+using bitrl::utils::maths::stats::BetaDist;
+using bitrl::utils::maths::stats::BernoulliDist;
+using bitrl::envs::bandits::MultiArmedBandits;
 
 // Number of episodes to play
 uint_t N_EPISODES = 1000;
@@ -118,9 +118,7 @@ run_epsilon_greedy(MultiArmedBandits& env, real_t eps){
 		result.total_reward += reward;
 		result.lever_pulls[action] += 1;
 	}
-	
-	return result;
-	
+	return result;	
 }
 
 SamplingResult 
@@ -244,11 +242,11 @@ int main() {
    return 0;
 }
 
-```
+@endcode
 
 Running the driver above produces the following output (this may be different on your machine.
 
-```
+@code
 Running thompson sampling
 Thompson reward: 484
 Thompson selected levers: 306 158 256 250  30
@@ -262,24 +260,18 @@ Thompson selected levers:  19   9  41 229 702
 Running epsilon greedy sampling
 epsilon-greedy reward: 140
 epsilon-greedy selected levers: 840  36  45  37  42
-
-```
+@endcode
 
 
 We can see that when all levers have the same probability of success Thompson sampling and
-$\epsilon$-greedy perform more or less the same, with $\epsilon$-greedy having some better performance.
-Notice also that Thompson sampling somehow spreads the decision making amongst the equally good levers.
+\f$\epsilon\f$-greedy perform more or less the same, with \f$\epsilon\f$-greedy having some better performance.
+Notice also that Thompson sampling somehow spreads the decision-making amongst the equally good levers.
 However, when the levers have different probability of success, Thompson sampling outperforms
-$\epsilon$-greedy by roughly a factor of 4.  Also notice that Thompson sampling favours the last lever
-as one would expect. In contrast, $\epsilon$-greedy seems to favour the lever with the lowest
+\f$\epsilon\f$-greedy by roughly a factor of 4.  Also notice that Thompson sampling favours the last lever
+as one would expect. In contrast, \f$\epsilon\f$-greedy seems to favour the lever with the lowest
 success probability.
 
-Although we did not implement this here, we can decay $\epsilon$ over time. This makes sense since as the 
+Although we did not implement this here, we can decay \f$\epsilon\f$ over time. This makes sense since as the 
 agent spends more time in the game it aquires more knowledge and therefore it does not need to explore as often as
 it needs in the early stages. Alternatively, we can have the agent acting completely at random at the beginning
 and the then fully exploit.
-
- 
-## Summary
-
-This example implemented Thompson sampling and  $\epsilon$-greedy in order to solve the multi-armed Bandits problem.

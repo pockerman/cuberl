@@ -1,11 +1,12 @@
-\page cuberl_example_10 CubeRL Example 10 Q-learning on `CliffWorld`
+\page cuberl_example_14 CubeRL Example 14 Q-learning on CliffWorld
 
 In this example, we will apply another temporal difference learning algorithm namely <a href="https://en.wikipedia.org/wiki/Q-learning">Q-learning</a>
 on _CliffWorld_.  This is a Gymnasium-based environment implemented in \ref bitrl::envs::gymnasium::CliffWorld "bitrl::envs::gymnasium::CliffWorld" class.
-We used this environment in example \ref cuberl_example_9 "CubeRL Example 9: SARSA on `CliffWorld`".
+We used this environment in example \ref cuberl_example_13.
 
-Q-learning, just like SARSA, is a model-free reinforcement learning algorithm that learns how good an action is in a given state, without needing a model of the environment.
-As the name suggests, the algorithms learns a state-action value function $Q(s,\alpha)$.
+Q-learning, just like SARSA, is a model-free reinforcement learning algorithm that learns how good an action is in a given state, 
+without needing a model of the environment.
+As the name suggests, the algorithms learns a state-action value function \f$Q(s,\alpha)\f$.
 The algorithm is very similar to SARSA. Before we show the algorithmic steps, here is the update function used in Q-learning
 
 $$
@@ -19,35 +20,35 @@ $$
 Q(s_t, \alpha_t) = Q(s_t, \alpha_t) + \eta \left[r_{t+1} + \gamma Q(s_{t+1}, \alpha_{t+1}) - Q(s_t, \alpha_t) \right]
 $$
 
-So Q-learning instead of consulting $\pi$ about $\alpha_{t+1}$ it simply acts greedily and selects the action that provides the best state-action value function.
-This is called optimistic bootstrapping; assume the best possible action will be taken next, regardless of what we'll actually do [2].
+So Q-learning instead of consulting \f$\pi\f$ about \f$\alpha_{t+1}\f$ it simply acts greedily and selects the action that provides the best state-action value function.
+This is called optimistic bootstrapping; assume the best possible action will be taken next, regardless of what we'll actually do.
 Here are the steps for Q-learning. These are very similar to SARSA:
 
 #### Step 1
 
-The first step is to initialize the table table that represents $Q(s,\alpha)$ to arbitrary values; often this is just zero. This however, can also
+The first step is to initialize the table that represents $Q(s,\alpha)$ to arbitrary values; often this is just zero. This however, can also
 be values that encourage exploration.
 
 #### Step 2
 
 The algorithm begins by some be presented with a state. Q-learning needs to decide what to do whilst at this state. This is done using a policy
-$\pi$ which most often will be an $\epsilon-$greedy policy.
+$\pi$ which most often will be an \f$\epsilon-\f$greedy policy.
 
 #### Step 3
 
-The algorithm will execute the action that was selected from step 2. The environment will respond with a reward $r_t$ and the new state $s_{t+1}$.
-In order to apply the update formula we need to calculate what is the best $Q$ at $s_{t+1}$.
-The update rule, see above, is using the future $maxQ(s_{t+1}, \alpha_{t+1})$ in order to update the current $Q(s_{t}, \alpha_{t})$
-Compared to SARSA, in Q-learning we don't necessarily choose $\alpha_{t+1}$ when at $s_{t+1}$ but instead ask the policy to provide the action to.
+The algorithm will execute the action that was selected from step 2. The environment will respond with a reward \f$r_t\f$ and the new state \f$s_{t+1}\f$.
+In order to apply the update formula we need to calculate what is the best \f$Q\f$ at \f$s_{t+1}\f$.
+The update rule, see above, is using the future \f$maxQ(s_{t+1}, \alpha_{t+1})\f$ in order to update the current \f$Q(s_{t}, \alpha_{t})\f$
+Compared to SARSA, in Q-learning we don't necessarily choose \f$\alpha_{t+1}\f$ when at \f$s_{t+1}\f$ but instead ask the policy to provide the action to.
 
 #### Step 4
 
-After updating, we move to $s_{t+1}$ and ask $\pi$ to provide us with an action and we repeat step 3.
+After updating, we move to \f$s_{t+1}\f$ and ask \f$\pi\f$ to provide us with an action and we repeat step 3.
 If we've reached a terminal state (like the end of a game or a completed transaction), the episode ends and we start fresh.
 The environment has to inform the agent about whether it reached the end of the game or not. So when we take an action in the environment,
 we will usually receive not just a reward signal and the next state but also a flag indicating if the end of the game or simulation has been reached.
 
-All in all, Q-learning learns the optimal policy. It is a fast and efficient algorithm that is ideal for batch learning [2].
+All in all, Q-learning learns the optimal policy. It is a fast and efficient algorithm that is ideal for batch learning.
 Q-learning, compared to SARSA, is more optimistic which can be dangerous in risky domains, and it suffers from maximization bias that can overestimate action values when estimates are noisy [2].
 
 The Q-learning algorithm is implemented in the \ref cuberl::rl::algos::td::QLearningSolver "cuberl::rl::algos::td::QLearningSolver"  class
