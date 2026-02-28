@@ -4,9 +4,9 @@
   * Implements basic statistical computations on arrays
   */
 
-#include "cuberl/base/cubeai_config.h"
+#include "cuberl/base/cuberl_config.h"
 #include "cuberl/base/cuberl_types.h"
-#include "cuberl/utils/cubeai_concepts.h"
+#include "cuberl/utils/cuberl_concepts.h"
 #include "bitrl/bitrl_consts.h"
 
 #include <cmath>

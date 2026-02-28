@@ -1,9 +1,8 @@
 #ifndef VALUE_ITERATION_H
 #define VALUE_ITERATION_H
 
-#include "cuberl/base/cubeai_config.h" //KERNEL_PRINT_DBG_MSGS
-#include "cuberl/base/cuberl_types.h"
 
+#include "cuberl/base/cuberl_types.h"
 #include "cuberl/rl/algorithms/dp/dp_algo_base.h"
 #include "cuberl/rl/algorithms/dp/policy_improvement.h"
 #include "cuberl/rl/algorithms/utils.h"

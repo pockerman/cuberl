@@ -1,0 +1,22 @@
+#VRML_SIM R2024a utf8
+
+EXTERNPROTO "webots://projects/objects/backgrounds/protos/TexturedBackground.proto"
+EXTERNPROTO "webots://projects/objects/backgrounds/protos/TexturedBackgroundLight.proto"
+EXTERNPROTO "webots://projects/objects/floors/protos/RectangleArena.proto"
+EXTERNPROTO "webots://projects/robots/gctronic/e-puck/protos/E-puck.proto"
+
+WorldInfo {
+}
+Viewpoint {
+  orientation -0.5773502691896257 0.5773502691896257 0.5773502691896257 2.0944
+  position -2.1372062979006645e-05 -2.1372123411293227e-05 2.4417061726419553
+}
+TexturedBackground {
+}
+TexturedBackgroundLight {
+}
+RectangleArena {
+}
+E-puck {
+  supervisor TRUE
+}

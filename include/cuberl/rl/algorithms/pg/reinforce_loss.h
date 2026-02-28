@@ -1,7 +1,7 @@
 #ifndef REINFORCE_LOSS_H
 #define REINFORCE_LOSS_H
 
-#include "cuberl/base/cubeai_config.h"
+#include "cuberl/base/cuberl_config.h"
 
 #ifdef USE_PYTORCH
 

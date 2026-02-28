@@ -7,7 +7,7 @@
 /// Implements the REINFORCE algorithm
 ///
 
-#include "cuberl/base/cubeai_config.h"
+#include "cuberl/base/cuberl_config.h"
 
 #ifdef USE_PYTORCH
 
@@ -19,7 +19,7 @@
 #include "cuberl/rl/algorithms/pg/reinforce_loss.h"
 #include "cuberl/rl/episode_info.h"
 #include "cuberl/maths/vector_math.h"
-#include "cuberl/data_structs/experience_buffer.h"
+//#include "cuberl/data_structs/experience_buffer.h"
 #include "cuberl/utils/torch_adaptor.h"
 
 #include <boost/log/trivial.hpp>

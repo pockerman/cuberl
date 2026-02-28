@@ -1,7 +1,7 @@
 #ifndef MAX_TABULAR_POLICY_H
 #define MAX_TABULAR_POLICY_H
 
-#include "cuberl/base/cubeai_config.h"
+#include "cuberl/base/cuberl_config.h"
 #include "cuberl/base/cuberl_types.h"
 #include "cuberl/rl/algorithms/utils.h"
 #include "cuberl/maths/vector_math.h"

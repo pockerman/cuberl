@@ -11,7 +11,7 @@ namespace optim {
 namespace pytorch{
 
 std::unique_ptr<torch::optim::OptimizerOptions>
-build_pytorch_optimizer_options(OptimzerType type, const std::map<std::string, std::any>& options){
+build_pytorch_optimizer_options(OptimizerType type, const std::map<std::string, std::any>& options){
 
     std::unique_ptr<torch::optim::OptimizerOptions> ptr;
 
@@ -19,22 +19,22 @@ build_pytorch_optimizer_options(OptimzerType type, const std::map<std::string, s
 
     switch(type){
 
-        case OptimzerType::GD:
+        case OptimizerType::GD:
         {
              throw std::logic_error("PyTorch does not implement GD");
         }
-        case OptimzerType::SGD:
+        case OptimizerType::SGD:
         {
 
             ptr = std::make_unique<torch::optim::SGDOptions>(lr);
             break;
         }
-        case OptimzerType::ADAM:
+        case OptimizerType::ADAM:
         {
             ptr = std::make_unique<torch::optim::AdamOptions>(lr);
             break;
         }
-        case OptimzerType::RSPROP:
+        case OptimizerType::RSPROP:
         {
             ptr = std::make_unique<torch::optim::RMSpropOptions>(lr);
             break;
@@ -49,29 +49,29 @@ build_pytorch_optimizer_options(OptimzerType type, const std::map<std::string, s
 
 
 std::unique_ptr<torch::optim::Optimizer>
-build_pytorch_optimizer(OptimzerType type, torch::nn::Module& model, const torch::optim::OptimizerOptions& options){
+build_pytorch_optimizer(OptimizerType type, torch::nn::Module& model, const torch::optim::OptimizerOptions& options){
 
     std::unique_ptr<torch::optim::Optimizer> ptr;
 
     switch(type){
 
-        case OptimzerType::GD:
+        case OptimizerType::GD:
         {
              throw std::logic_error("PyTorch does not implement GD");
         }
-        case OptimzerType::SGD:
+        case OptimizerType::SGD:
         {
             ptr = std::make_unique<torch::optim::SGD>(model.parameters(),
                                                         torch::optim::SGDOptions{options.get_lr()});
             break;
         }
-        case OptimzerType::ADAM:
+        case OptimizerType::ADAM:
         {
             ptr = std::make_unique<torch::optim::Adam>(model.parameters(),
                                                    torch::optim::AdamOptions{options.get_lr()});
             break;
         }
-        case OptimzerType::RSPROP:
+        case OptimizerType::RSPROP:
         {
             ptr = std::make_unique<torch::optim::RMSprop>(model.parameters(),
                                                       torch::optim::RMSpropOptions{options.get_lr()});

@@ -1,5 +1,5 @@
 #include "cuberl/rl/policies/softmax_policy.h"
-#include "cuberl/base/cubeai_config.h"
+#include "cuberl/base/cuberl_config.h"
 
 #include <vector>
 #include <algorithm>

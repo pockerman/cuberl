@@ -1,4 +1,4 @@
-#include "cuberl/base/cubeai_config.h"
+#include "cuberl/base/cuberl_config.h"
 
 
 #ifdef USE_PYTORCH

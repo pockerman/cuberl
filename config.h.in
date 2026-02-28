@@ -31,6 +31,9 @@
 /*Use MQTT*/
 #cmakedefine USE_MQTT
 
+/*Use Chrono*/
+#cmakedefine BITRL_CHRONO
+
 /*Use CUDA */
 #cmakedefine USE_CUDA
 

@@ -1,5 +1,5 @@
 #include "cuberl/rl/policies/max_tabular_policy.h"
-#include "cuberl/base/cubeai_config.h"
+#include "cuberl/base/cuberl_config.h"
 #include "bitrl/utils/io/csv_file_writer.h"
 
 #include <vector>

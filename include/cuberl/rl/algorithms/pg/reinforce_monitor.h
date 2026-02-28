@@ -1,12 +1,12 @@
 #ifndef REINFORCE_MONITOR_H
 #define REINFORCE_MONITOR_H
 
-#include "cuberl/base/cubeai_config.h"
+#include "cuberl/base/cuberl_config.h"
 
 #ifdef USE_PYTORCH
 
 #include "cuberl/base/cuberl_types.h"
-#include "cuberl/data_structs/experience_buffer.h"
+#include "bitrl/utils/experience_buffer.h"
 
 
 #include <vector>
@@ -30,7 +30,7 @@ struct ReinforceMonitor
 					   torch_tensor_t // log prob
 					   > experience_tuple_type;
 
-	typedef cuberl::containers::ExperienceBuffer<experience_tuple_type> experience_buffer_type;
+	typedef bitrl::utils::ExperienceBuffer<experience_tuple_type> experience_buffer_type;
 	
 	/// monitor 
     std::vector<real_t> rewards;

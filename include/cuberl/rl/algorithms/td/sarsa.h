@@ -1,7 +1,6 @@
 #ifndef SARSA_H
 #define SARSA_H
 
-#include "cuberl/base/cubeai_config.h"
 #include "cuberl/rl/algorithms/td/td_algo_base.h"
 #include "cuberl/rl/worlds/envs_concepts.h"
 #include "cuberl/rl/episode_info.h"

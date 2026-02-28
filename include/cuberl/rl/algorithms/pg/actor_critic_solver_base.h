@@ -8,7 +8,7 @@
 /// 
 /// 
 
-#include "cuberl/base/cubeai_config.h"
+#include "cuberl/base/cuberl_config.h"
 
 #ifdef USE_PYTORCH
 
@@ -19,7 +19,7 @@
 #include "cuberl/rl/episode_info.h"
 #include "cuberl/rl/algorithms/pg/a2c_config.h"
 #include "cuberl/rl/algorithms/pg/a2c_monitor.h"
-#include "cuberl/data_structs/experience_buffer.h"
+//#include "bitrl/utils/experience_buffer.h"
 
 
 #include <torch/torch.h>

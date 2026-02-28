@@ -43,8 +43,9 @@ SET(USE_LOG ON)
 SET(USE_PYTORCH ON)
 SET(ENABLE_OPENCV ON)
 SET(ENABLE_MQTT ON)
-SET(BITRL_INCLUDE_DIR "YOU-NEED-TO-SET-THIS") # required
-SET(BITRL_LIB_PATH "YOU-NEED-TO-SET-THIS") # required
+SET(ENABLE_CHRONO ON)
+SET(BITRL_INCLUDE_DIR "/home/alex/qi3/bitrl/src/") # required
+SET(BITRL_LIB_PATH "/home/alex/qi3/bitrl/install/opt") # required
 
 SET(USE_RL ON)
 SET(DATA_SET_FOLDER ${PROJECT_SOURCE_DIR}/data)
@@ -144,6 +145,26 @@ IF(ENABLE_OPENCV)
     FIND_PACKAGE(OpenCV REQUIRED)
     SET(USE_OPENCV ON)
     INCLUDE_DIRECTORIES(${OpenCV_INCLUDE_DIRS})
+ENDIF()
+
+IF(ENABLE_CHRONO)
+
+	FIND_PACKAGE(Chrono  REQUIRED COMPONENTS Irrlicht)
+	IF (NOT Chrono_FOUND)
+  		MESSAGE("Could not find Chrono or one of its required modules")
+  		RETURN()
+	ENDIF()
+
+	SET(BITRL_CHRONO ON)
+	SET(BITRL_CHRONO_TARGETS ${CHRONO_TARGETS})
+
+	# Manually set this as for some reason it does not work
+	# otherwise
+	INCLUDE_DIRECTORIES(/usr/include/irrlicht)
+        INCLUDE_DIRECTORIES(/usr/local/include/chrono_thirdparty/HACD)
+	INCLUDE_DIRECTORIES(/usr/local/include/chrono/collision/bullet)
+
+	LINK_DIRECTORIES(/usr/local/lib)
 ENDIF()
 
 IF(Boost_FOUND)

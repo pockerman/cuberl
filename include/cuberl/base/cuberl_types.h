@@ -2,7 +2,7 @@
 #define CUBEAI_TYPES_H
 
 #include "bitrl/bitrl_types.h"
-#include "cuberl/base/cubeai_config.h"
+#include "cuberl/base/cuberl_config.h"
 
 #ifdef USE_PYTORCH
 #include <torch/torch.h>
